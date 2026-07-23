@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Re:Act KR Jukebox (RKJ) - 세이로쿠 키라 Live Archive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --panel-bg: #1e293b;
+      --card-bg: #334155;
+      --accent: #f43f5e;
+      --accent-hover: #e11d48;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #475569;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: var(--panel-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    header h1 span.badge-header {
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+
+    .main-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      flex: 1;
+    }
+
+    @media (min-width: 900px) {
+      .main-container {
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+    }
+
+    /* Player Box */
+    .player-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .player-container {
+      position: relative;
+      padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+      height: 0;
+      background-color: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .player-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .now-playing-card {
+      background-color: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+
+    .now-playing-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .now-playing-artist {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Playlist Section */
+    .playlist-section {
+      background-color: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+    }
+
+    .search-filter-box {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background-color: var(--bg-color);
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+
+    .lang-filters {
+      display: flex;
+      gap: 6px;
+    }
+
+    .filter-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background-color: var(--bg-color);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active, .filter-btn:hover {
+      background-color: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .playlist-scroll {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+    }
+
+    .playlist-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .playlist-scroll::-webkit-scrollbar-thumb {
+      background-color: var(--border);
+      border-radius: 3px;
+    }
+
+    .song-card {
+      padding: 12px 14px;
+      border-radius: 8px;
+      background-color: var(--bg-color);
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+    }
+
+    .song-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .song-card.active {
+      border-left: 4px solid var(--accent);
+      background-color: #1e293b;
+    }
+
+    .song-info-main {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .song-info-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .song-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 6px;
+      border-radius: 4px;
+      background-color: var(--card-bg);
+      color: #38bdf8;
+    }
+
+    footer {
+      text-align: center;
+      padding: 16px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+      background-color: var(--panel-bg);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1> Re:Act KR Jukebox <span class="badge-header">RKJ v1.0</span></h1>
+  </header>
+
+  <div class="main-container">
+    <!-- Player Section -->
+    <div class="player-section">
+      <div class="player-container">
+        <div id="player"></div>
+      </div>
+      <div class="now-playing-card">
+        <div class="now-playing-title" id="npTitle">곡을 선택해주세요</div>
+        <div class="now-playing-artist" id="npArtist">라이브 아카이브 플레이어</div>
+      </div>
+    </div>
+
+    <!-- Playlist Section -->
+    <div class="playlist-section">
+      <div class="search-filter-box">
+        <input type="text" id="searchInput" class="search-input" placeholder="곡명, 가수, 출처 검색..." oninput="filterSongs()">
+        <div class="lang-filters">
+          <button class="filter-btn active" onclick="setLangFilter('ALL', this)">전체</button>
+          <button class="filter-btn" onclick="setLangFilter('KO', this)">한식(KO)</button>
+          <button class="filter-btn" onclick="setLangFilter('JA', this)">일식(JA)</button>
+          <button class="filter-btn" onclick="setLangFilter('EN', this)">양식(EN)</button>
+        </div>
+      </div>
+      <div class="playlist-scroll" id="playlist"></div>
+    </div>
+  </div>
+
+  <footer>
+    &copy; Re:Act KR Jukebox Project. Designed for Live Music Stream Archives.
+  </footer>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    // 10개 초기 데이터 샘플 (추후 Google Sheet CSV 연동 가능)
+    const songs = [
+      { id: "20250905_01", title: "역광 (逆光)", artist: "Ado", work: "원피스 필름 레드", lang: "JA", videoId: "ibcQ6BG8IJM", start: 513, end: 715 },
+      { id: "20250905_02", title: "기타와 고독과 푸른 행성", artist: "결속 밴드", work: "봇치 더 록!", lang: "JA", videoId: "ibcQ6BG8IJM", start: 2316, end: 2544 },
+      { id: "20250905_03", title: "벚꽃만월 (サクラミツツキ)", artist: "SPYAIR", work: "은혼", lang: "JA", videoId: "ibcQ6BG8IJM", start: 2784, end: 3002 },
+      { id: "20250905_04", title: "잔향산가 (残響散歌)", artist: "Aimer", work: "귀멸의 칼날", lang: "JA", videoId: "ibcQ6BG8IJM", start: 3177, end: 3361 },
+      { id: "20250918_01", title: "real Emotion", artist: "코다 쿠미", work: "파이널 판타지 X-2", lang: "JA", videoId: "VqfEP-u-vzA", start: 343, end: 582 },
+      { id: "20250918_02", title: "Believe", artist: "타마키 나미", work: "기동전사 건담 SEED", lang: "JA", videoId: "VqfEP-u-vzA", start: 1747, end: 1981 },
+      { id: "20250918_03", title: "INVOKE", artist: "T.M.Revolution", work: "기동전사 건담 SEED", lang: "JA", videoId: "VqfEP-u-vzA", start: 1904, end: 2162 },
+      { id: "20250918_04", title: "Cutie Honey", artist: "코다 쿠미", work: "큐티 하니", lang: "JA", videoId: "VqfEP-u-vzA", start: 2828, end: 3013 },
+      { id: "20250924_01", title: "분홍신", artist: "아이유", work: "", lang: "KO", videoId: "m7zMYY6ze-M", start: 4036, end: 4290 },
+      { id: "20250924_02", title: "너랑 나", artist: "아이유", work: "", lang: "KO", videoId: "m7zMYY6ze-M", start: 4300, end: 4550 }
+    ];
+
+    let player;
+    let currentIndex = 0;
+    let currentLang = 'ALL';
+    let timerCheck;
+
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        height: '100%',
+        width: '100%',
+        videoId: songs[0].videoId,
+        playerVars: { 'autoplay': 0, 'controls': 1 },
+        events: {
+          'onReady': onPlayerReady
+        }
+      });
+    }
+
+    function onPlayerReady() {
+      renderPlaylist();
+      updateNowPlaying(0);
+    }
+
+    function renderPlaylist() {
+      const container = document.getElementById('playlist');
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      container.innerHTML = '';
+
+      songs.forEach((song, idx) => {
+        const matchSearch = song.title.toLowerCase().includes(query) ||
+                            song.artist.toLowerCase().includes(query) ||
+                            (song.work && song.work.toLowerCase().includes(query));
+        const matchLang = (currentLang === 'ALL') || (song.lang === currentLang);
+
+        if (matchSearch && matchLang) {
+          const card = document.createElement('div');
+          card.className = `song-card ${idx === currentIndex ? 'active' : ''}`;
+          card.onclick = () => playSong(idx);
+          card.innerHTML = `
+            <div>
+              <div class="song-info-main">${song.title}</div>
+              <div class="song-info-sub">${song.artist} ${song.work ? '• ' + song.work : ''}</div>
+            </div>
+            <span class="song-badge">${song.lang}</span>
+          `;
+          container.appendChild(card);
+        }
+      });
+    }
+
+    function playSong(index) {
+      currentIndex = index;
+      const song = songs[index];
+      renderPlaylist();
+      updateNowPlaying(index);
+
+      player.loadVideoById({
+        videoId: song.videoId,
+        startSeconds: song.start
+      });
+
+      clearInterval(timerCheck);
+      timerCheck = setInterval(() => {
+        if (player.getCurrentTime && player.getCurrentTime() >= song.end) {
+          clearInterval(timerCheck);
+          if (currentIndex + 1 < songs.length) {
+            playSong(currentIndex + 1);
+          }
+        }
+      }, 1000);
+    }
+
+    function updateNowPlaying(index) {
+      const song = songs[index];
+      document.getElementById('npTitle').innerText = song.title;
+      document.getElementById('npArtist').innerText = `${song.artist} ${song.work ? '(' + song.work + ')' : ''}`;
+    }
+
+    function filterSongs() {
+      renderPlaylist();
+    }
+
+    function setLangFilter(lang, btn) {
+      currentLang = lang;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderPlaylist();
+    }
+  </script>
+</body>
+</html>
