@@ -95,7 +95,7 @@
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
     }
 
-    .player-container iframe {
+    .player-container iframe, .player-container div#player {
       position: absolute;
       top: 0;
       left: 0;
@@ -252,7 +252,7 @@
 <body>
 
   <header>
-    <h1> Re:Act KR Jukebox <span class="badge-header">RKJ v1.0</span></h1>
+    <h1>Re:Act KR Jukebox <span class="badge-header">RKJ v1.0</span></h1>
   </header>
 
   <div class="main-container">
@@ -286,9 +286,8 @@
     &copy; Re:Act KR Jukebox Project. Designed for Live Music Stream Archives.
   </footer>
 
-  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
-    // 10개 초기 데이터 샘플 (추후 Google Sheet CSV 연동 가능)
+    // 10개 초기 데이터 샘플
     const songs = [
       { id: "20250905_01", title: "역광 (逆光)", artist: "Ado", work: "원피스 필름 레드", lang: "JA", videoId: "ibcQ6BG8IJM", start: 513, end: 715 },
       { id: "20250905_02", title: "기타와 고독과 푸른 행성", artist: "결속 밴드", work: "봇치 더 록!", lang: "JA", videoId: "ibcQ6BG8IJM", start: 2316, end: 2544 },
@@ -302,26 +301,53 @@
       { id: "20250924_02", title: "너랑 나", artist: "아이유", work: "", lang: "KO", videoId: "m7zMYY6ze-M", start: 4300, end: 4550 }
     ];
 
-    let player;
+    let player = null;
+    let isPlayerReady = false;
     let currentIndex = 0;
     let currentLang = 'ALL';
-    let timerCheck;
+    let timerCheck = null;
 
-    function onYouTubeIframeAPIReady() {
+    // 1. 페이지 로드 시 곡 목록 및 정보 즉시 출력 (유튜브 API 로드 상태와 무관하게 동작)
+    window.addEventListener('DOMContentLoaded', () => {
+      renderPlaylist();
+      updateNowPlaying(0);
+      loadYouTubeAPI();
+    });
+
+    // 2. 유튜브 API 스크립트 동적 로드 (재생/새로고침 안정성 확보)
+    function loadYouTubeAPI() {
+      if (window.YT && window.YT.Player) {
+        initPlayer();
+      } else {
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      }
+    }
+
+    // 유튜브 API 준비 완료 시 호출
+    window.onYouTubeIframeAPIReady = function() {
+      initPlayer();
+    };
+
+    function initPlayer() {
+      if (player) return;
       player = new YT.Player('player', {
         height: '100%',
         width: '100%',
         videoId: songs[0].videoId,
-        playerVars: { 'autoplay': 0, 'controls': 1 },
+        playerVars: { 
+          'autoplay': 0, 
+          'controls': 1,
+          'start': songs[0].start
+        },
         events: {
-          'onReady': onPlayerReady
+          'onReady': () => {
+            isPlayerReady = true;
+          }
         }
       });
-    }
-
-    function onPlayerReady() {
-      renderPlaylist();
-      updateNowPlaying(0);
     }
 
     function renderPlaylist() {
@@ -357,14 +383,20 @@
       renderPlaylist();
       updateNowPlaying(index);
 
-      player.loadVideoById({
-        videoId: song.videoId,
-        startSeconds: song.start
-      });
+      if (isPlayerReady && player && typeof player.loadVideoById === 'function') {
+        player.loadVideoById({
+          videoId: song.videoId,
+          startSeconds: song.start
+        });
+      } else {
+        // 플레이어가 아직 준비되지 않은 경우 잠시 후 재시도
+        setTimeout(() => playSong(index), 300);
+        return;
+      }
 
       clearInterval(timerCheck);
       timerCheck = setInterval(() => {
-        if (player.getCurrentTime && player.getCurrentTime() >= song.end) {
+        if (player && typeof player.getCurrentTime === 'function' && player.getCurrentTime() >= song.end) {
           clearInterval(timerCheck);
           if (currentIndex + 1 < songs.length) {
             playSong(currentIndex + 1);
@@ -375,6 +407,7 @@
 
     function updateNowPlaying(index) {
       const song = songs[index];
+      if (!song) return;
       document.getElementById('npTitle').innerText = song.title;
       document.getElementById('npArtist').innerText = `${song.artist} ${song.work ? '(' + song.work + ')' : ''}`;
     }
