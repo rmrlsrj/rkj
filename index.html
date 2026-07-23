@@ -111,6 +111,12 @@
       padding: 16px 20px;
     }
 
+    .now-playing-date {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
     .now-playing-title {
       font-size: 1.1rem;
       font-weight: 700;
@@ -268,6 +274,7 @@
         <div id="player"></div>
       </div>
       <div class="now-playing-card">
+        <div class="now-playing-date" id="npDate"></div>
         <div class="now-playing-title" id="npTitle">곡을 선택해주세요</div>
         <div class="now-playing-artist" id="npArtist">라이브 아카이브 플레이어</div>
       </div>
@@ -276,7 +283,7 @@
     <!-- Playlist Section -->
     <div class="playlist-section">
       <div class="search-filter-box">
-        <input type="text" id="searchInput" class="search-input" placeholder="곡명, 가수, 출처 검색..." oninput="filterSongs()">
+        <input type="text" id="searchInput" class="search-input" placeholder="곡명, 가수, 출처, 날짜 검색..." oninput="filterSongs()">
         <div class="lang-filters">
           <button class="filter-btn active" onclick="setLangFilter('ALL', this)">전체</button>
           <button class="filter-btn" onclick="setLangFilter('KO', this)">한식(KO)</button>
@@ -442,8 +449,9 @@
     function updateNowPlaying(index) {
       const song = songs[index];
       if (!song) return;
+      const dateStr = parseDateFromId(song.id);
+      document.getElementById('npDate').innerText = dateStr;
       document.getElementById('npTitle').innerText = song.title;
-      // 영상 하단 표기 방식을 우측 리스트와 동일하게 '가수 • 출처' 로 통일
       document.getElementById('npArtist').innerText = `${song.artist}${song.work ? ' • ' + song.work : ''}`;
     }
 
