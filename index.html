@@ -306,6 +306,7 @@
     let currentIndex = 0;
     let currentLang = 'ALL';
     let timerCheck = null;
+    let currentVideoId = null;
 
     window.addEventListener('DOMContentLoaded', () => {
       renderPlaylist();
@@ -330,6 +331,7 @@
 
     function initPlayer() {
       if (player) return;
+      currentVideoId = songs[0].videoId;
       player = new YT.Player('player', {
         height: '100%',
         width: '100%',
@@ -342,9 +344,18 @@
         events: {
           'onReady': () => {
             isPlayerReady = true;
-          }
+          },
+          'onStateChange': onPlayerStateChange
         }
       });
+    }
+
+    function onPlayerStateChange(event) {
+      if (event.data === YT.PlayerState.ENDED) {
+        if (currentIndex + 1 < songs.length) {
+          playSong(currentIndex + 1);
+        }
+      }
     }
 
     function renderPlaylist() {
@@ -380,25 +391,36 @@
       renderPlaylist();
       updateNowPlaying(index);
 
-      if (isPlayerReady && player && typeof player.loadVideoById === 'function') {
-        player.loadVideoById({
-          videoId: song.videoId,
-          startSeconds: song.start
-        });
+      if (isPlayerReady && player) {
+        // [최적화 핵심] 동일 영상 내 전환 시 플레이어 재로딩 없이 seekTo로 즉시 이동!
+        if (currentVideoId === song.videoId && typeof player.seekTo === 'function') {
+          player.seekTo(song.start, true);
+          player.playVideo();
+        } else if (typeof player.loadVideoById === 'function') {
+          currentVideoId = song.videoId;
+          player.loadVideoById({
+            videoId: song.videoId,
+            startSeconds: song.start
+          });
+        }
       } else {
         setTimeout(() => playSong(index), 300);
         return;
       }
 
+      // [최적화 핵심] 감시 주기를 250ms(0.25초)로 정밀화하여 완벽한 전환
       clearInterval(timerCheck);
       timerCheck = setInterval(() => {
-        if (player && typeof player.getCurrentTime === 'function' && player.getCurrentTime() >= song.end) {
-          clearInterval(timerCheck);
-          if (currentIndex + 1 < songs.length) {
-            playSong(currentIndex + 1);
+        if (player && typeof player.getCurrentTime === 'function') {
+          const currentTime = player.getCurrentTime();
+          if (currentTime >= song.end) {
+            clearInterval(timerCheck);
+            if (currentIndex + 1 < songs.length) {
+              playSong(currentIndex + 1);
+            }
           }
         }
-      }, 1000);
+      }, 250);
     }
 
     function updateNowPlaying(index) {
