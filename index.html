@@ -287,18 +287,18 @@
   </footer>
 
   <script>
-    // 10개 샘플 데이터 (원곡 음원 길이 완벽 반영 및 여유 버퍼 적용)
+    // [확정 규칙] 종료 시간(end) = 팬 시작 타임스탬프(start) + 원곡 음원 길이 + 정확히 3초
     const songs = [
-      { id: "20250905_01", title: "역광 (逆光)", artist: "Ado", work: "원피스 필름 레드", lang: "JA", videoId: "ibcQ6BG8IJM", start: 513, end: 753 },      // 원곡 3분 57초 전체 반영
-      { id: "20250905_02", title: "기타와 고독과 푸른 행성", artist: "결속 밴드", work: "봇치 더 록!", lang: "JA", videoId: "ibcQ6BG8IJM", start: 2316, end: 2556 }, // 원곡 3분 48초 전체 반영
-      { id: "20250905_03", title: "벚꽃만월 (サクラミツツキ)", artist: "SPYAIR", work: "은혼", lang: "JA", videoId: "ibcQ6BG8IJM", start: 2784, end: 3015 },  // 원곡 3분 38초 전체 반영
-      { id: "20250905_04", title: "잔향산가 (残響散歌)", artist: "Aimer", work: "귀멸의 칼날", lang: "JA", videoId: "ibcQ6BG8IJM", start: 3177, end: 3372 },    // 원곡 3분 04초 전체 반영
-      { id: "20250918_01", title: "real Emotion", artist: "코다 쿠미", work: "파이널 판타지 X-2", lang: "JA", videoId: "VqfEP-u-vzA", start: 343, end: 588 },    // 원곡 3분 59초 전체 반영
-      { id: "20250918_02", title: "Believe", artist: "타마키 나미", work: "기동전사 건담 SEED", lang: "JA", videoId: "VqfEP-u-vzA", start: 1747, end: 1992 },  // 원곡 3분 55초 전체 반영
-      { id: "20250918_03", title: "INVOKE", artist: "T.M.Revolution", work: "기동전사 건담 SEED", lang: "JA", videoId: "VqfEP-u-vzA", start: 1904, end: 2170 },  // 원곡 4분 18초 전체 반영
-      { id: "20250918_04", title: "Cutie Honey", artist: "코다 쿠미", work: "큐티 하니", lang: "JA", videoId: "VqfEP-u-vzA", start: 2828, end: 3020 },   // 원곡 3분 05초 전체 반영
-      { id: "20250924_01", title: "분홍신", artist: "아이유", work: "", lang: "KO", videoId: "m7zMYY6ze-M", start: 4036, end: 4296 },                      // 원곡 4분 14초 전체 반영
-      { id: "20250924_02", title: "너랑 나", artist: "아이유", work: "", lang: "KO", videoId: "m7zMYY6ze-M", start: 4300, end: 4545 }                      // 원곡 3분 58초 전체 반영
+      { id: "20250905_01", title: "역광 (逆光)", artist: "Ado", work: "원피스 필름 레드", lang: "JA", videoId: "ibcQ6BG8IJM", start: 513, end: 753 },
+      { id: "20250905_02", title: "기타와 고독과 푸른 행성", artist: "결속 밴드", work: "봇치 더 록!", lang: "JA", videoId: "ibcQ6BG8IJM", start: 2316, end: 2547 },
+      { id: "20250905_03", title: "벚꽃만월 (サクラミツツキ)", artist: "SPYAIR", work: "은혼", lang: "JA", videoId: "ibcQ6BG8IJM", start: 2784, end: 3005 },
+      { id: "20250905_04", title: "잔향산가 (残響散歌)", artist: "Aimer", work: "귀멸의 칼날", lang: "JA", videoId: "ibcQ6BG8IJM", start: 3177, end: 3364 },
+      { id: "20250918_01", title: "real Emotion", artist: "코다 쿠미", work: "파이널 판타지 X-2", lang: "JA", videoId: "VqfEP-u-vzA", start: 343, end: 585 },
+      { id: "20250918_02", title: "Believe", artist: "타마키 나미", work: "기동전사 건담 SEED", lang: "JA", videoId: "VqfEP-u-vzA", start: 1747, end: 1985 },
+      { id: "20250918_03", title: "INVOKE", artist: "T.M.Revolution", work: "기동전사 건담 SEED", lang: "JA", videoId: "VqfEP-u-vzA", start: 1904, end: 2165 },
+      { id: "20250918_04", title: "Cutie Honey", artist: "코다 쿠미", work: "큐티 하니", lang: "JA", videoId: "VqfEP-u-vzA", start: 2828, end: 3016 },
+      { id: "20250924_01", title: "분홍신", artist: "아이유", work: "", lang: "KO", videoId: "m7zMYY6ze-M", start: 4036, end: 4293 },
+      { id: "20250924_02", title: "너랑 나", artist: "아이유", work: "", lang: "KO", videoId: "m7zMYY6ze-M", start: 4300, end: 4541 }
     ];
 
     let player = null;
