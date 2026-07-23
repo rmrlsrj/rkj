@@ -287,18 +287,18 @@
   </footer>
 
   <script>
-    // 10개 초기 데이터 샘플
+    // 10개 샘플 데이터 (원곡 음원 길이 완벽 반영 및 여유 버퍼 적용)
     const songs = [
-      { id: "20250905_01", title: "역광 (逆光)", artist: "Ado", work: "원피스 필름 레드", lang: "JA", videoId: "ibcQ6BG8IJM", start: 513, end: 715 },
-      { id: "20250905_02", title: "기타와 고독과 푸른 행성", artist: "결속 밴드", work: "봇치 더 록!", lang: "JA", videoId: "ibcQ6BG8IJM", start: 2316, end: 2544 },
-      { id: "20250905_03", title: "벚꽃만월 (サクラミツツキ)", artist: "SPYAIR", work: "은혼", lang: "JA", videoId: "ibcQ6BG8IJM", start: 2784, end: 3002 },
-      { id: "20250905_04", title: "잔향산가 (残響散歌)", artist: "Aimer", work: "귀멸의 칼날", lang: "JA", videoId: "ibcQ6BG8IJM", start: 3177, end: 3361 },
-      { id: "20250918_01", title: "real Emotion", artist: "코다 쿠미", work: "파이널 판타지 X-2", lang: "JA", videoId: "VqfEP-u-vzA", start: 343, end: 582 },
-      { id: "20250918_02", title: "Believe", artist: "타마키 나미", work: "기동전사 건담 SEED", lang: "JA", videoId: "VqfEP-u-vzA", start: 1747, end: 1981 },
-      { id: "20250918_03", title: "INVOKE", artist: "T.M.Revolution", work: "기동전사 건담 SEED", lang: "JA", videoId: "VqfEP-u-vzA", start: 1904, end: 2162 },
-      { id: "20250918_04", title: "Cutie Honey", artist: "코다 쿠미", work: "큐티 하니", lang: "JA", videoId: "VqfEP-u-vzA", start: 2828, end: 3013 },
-      { id: "20250924_01", title: "분홍신", artist: "아이유", work: "", lang: "KO", videoId: "m7zMYY6ze-M", start: 4036, end: 4290 },
-      { id: "20250924_02", title: "너랑 나", artist: "아이유", work: "", lang: "KO", videoId: "m7zMYY6ze-M", start: 4300, end: 4550 }
+      { id: "20250905_01", title: "역광 (逆光)", artist: "Ado", work: "원피스 필름 레드", lang: "JA", videoId: "ibcQ6BG8IJM", start: 513, end: 753 },      // 원곡 3분 57초 전체 반영
+      { id: "20250905_02", title: "기타와 고독과 푸른 행성", artist: "결속 밴드", work: "봇치 더 록!", lang: "JA", videoId: "ibcQ6BG8IJM", start: 2316, end: 2556 }, // 원곡 3분 48초 전체 반영
+      { id: "20250905_03", title: "벚꽃만월 (サクラミツツキ)", artist: "SPYAIR", work: "은혼", lang: "JA", videoId: "ibcQ6BG8IJM", start: 2784, end: 3015 },  // 원곡 3분 38초 전체 반영
+      { id: "20250905_04", title: "잔향산가 (残響散歌)", artist: "Aimer", work: "귀멸의 칼날", lang: "JA", videoId: "ibcQ6BG8IJM", start: 3177, end: 3372 },    // 원곡 3분 04초 전체 반영
+      { id: "20250918_01", title: "real Emotion", artist: "코다 쿠미", work: "파이널 판타지 X-2", lang: "JA", videoId: "VqfEP-u-vzA", start: 343, end: 588 },    // 원곡 3분 59초 전체 반영
+      { id: "20250918_02", title: "Believe", artist: "타마키 나미", work: "기동전사 건담 SEED", lang: "JA", videoId: "VqfEP-u-vzA", start: 1747, end: 1992 },  // 원곡 3분 55초 전체 반영
+      { id: "20250918_03", title: "INVOKE", artist: "T.M.Revolution", work: "기동전사 건담 SEED", lang: "JA", videoId: "VqfEP-u-vzA", start: 1904, end: 2170 },  // 원곡 4분 18초 전체 반영
+      { id: "20250918_04", title: "Cutie Honey", artist: "코다 쿠미", work: "큐티 하니", lang: "JA", videoId: "VqfEP-u-vzA", start: 2828, end: 3020 },   // 원곡 3분 05초 전체 반영
+      { id: "20250924_01", title: "분홍신", artist: "아이유", work: "", lang: "KO", videoId: "m7zMYY6ze-M", start: 4036, end: 4296 },                      // 원곡 4분 14초 전체 반영
+      { id: "20250924_02", title: "너랑 나", artist: "아이유", work: "", lang: "KO", videoId: "m7zMYY6ze-M", start: 4300, end: 4545 }                      // 원곡 3분 58초 전체 반영
     ];
 
     let player = null;
@@ -307,14 +307,12 @@
     let currentLang = 'ALL';
     let timerCheck = null;
 
-    // 1. 페이지 로드 시 곡 목록 및 정보 즉시 출력 (유튜브 API 로드 상태와 무관하게 동작)
     window.addEventListener('DOMContentLoaded', () => {
       renderPlaylist();
       updateNowPlaying(0);
       loadYouTubeAPI();
     });
 
-    // 2. 유튜브 API 스크립트 동적 로드 (재생/새로고침 안정성 확보)
     function loadYouTubeAPI() {
       if (window.YT && window.YT.Player) {
         initPlayer();
@@ -326,7 +324,6 @@
       }
     }
 
-    // 유튜브 API 준비 완료 시 호출
     window.onYouTubeIframeAPIReady = function() {
       initPlayer();
     };
@@ -389,7 +386,6 @@
           startSeconds: song.start
         });
       } else {
-        // 플레이어가 아직 준비되지 않은 경우 잠시 후 재시도
         setTimeout(() => playSong(index), 300);
         return;
       }
