@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- PapaParse CDN for robust CSV parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
     :root {
       --bg-color: #0f172a;
@@ -251,6 +253,13 @@
       color: #38bdf8;
     }
 
+    .loading-state {
+      text-align: center;
+      padding: 40px 10px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
     footer {
       text-align: center;
       padding: 16px;
@@ -264,7 +273,7 @@
 <body>
 
   <header>
-    <h1>Re:Act KR Jukebox <span class="badge-header">RKJ v1.0</span></h1>
+    <h1>Re:Act KR Jukebox <span class="badge-header">RKJ Live Sync</span></h1>
   </header>
 
   <div class="main-container">
@@ -274,8 +283,8 @@
         <div id="player"></div>
       </div>
       <div class="now-playing-card">
-        <div class="now-playing-date" id="npDate"></div>
-        <div class="now-playing-title" id="npTitle">곡을 선택해주세요</div>
+        <div class="now-playing-date" id="npDate">데이터 로딩 중...</div>
+        <div class="now-playing-title" id="npTitle">구글 시트 연동 중...</div>
         <div class="now-playing-artist" id="npArtist">라이브 아카이브 플레이어</div>
       </div>
     </div>
@@ -283,7 +292,7 @@
     <!-- Playlist Section -->
     <div class="playlist-section">
       <div class="search-filter-box">
-        <input type="text" id="searchInput" class="search-input" placeholder="곡명, 가수, 출처, 날짜 검색..." oninput="filterSongs()">
+        <input type="text" id="searchInput" class="search-input" placeholder="곡명, 가수, 출처, 날짜, 특이사항 검색..." oninput="filterSongs()">
         <div class="lang-filters">
           <button class="filter-btn active" onclick="setLangFilter('ALL', this)">전체</button>
           <button class="filter-btn" onclick="setLangFilter('KO', this)">한식(KO)</button>
@@ -291,29 +300,21 @@
           <button class="filter-btn" onclick="setLangFilter('EN', this)">양식(EN)</button>
         </div>
       </div>
-      <div class="playlist-scroll" id="playlist"></div>
+      <div class="playlist-scroll" id="playlist">
+        <div class="loading-state">구글 시트에서 노래 데이터를 불러오는 중입니다... 🎵</div>
+      </div>
     </div>
   </div>
 
   <footer>
-    &copy; Re:Act KR Jukebox Project. Designed for Live Music Stream Archives.
+    &copy; Re:Act KR Jukebox Project. Dynamic Google Sheets DB Connected.
   </footer>
 
   <script>
-    // [확정 규칙] 종료 시간(end) = 팬 시작 타임스탬프(start) + 원곡 음원 길이 + 정확히 3초
-    const songs = [
-      { id: "20250905_01", title: "역광 (逆光)", artist: "Ado", work: "원피스 필름 레드", lang: "JA", videoId: "ibcQ6BG8IJM", start: 513, end: 753 },
-      { id: "20250905_02", title: "기타와 고독과 푸른 행성", artist: "결속 밴드", work: "봇치 더 록!", lang: "JA", videoId: "ibcQ6BG8IJM", start: 2316, end: 2547 },
-      { id: "20250905_03", title: "벚꽃만월 (サクラミツツキ)", artist: "SPYAIR", work: "은혼", lang: "JA", videoId: "ibcQ6BG8IJM", start: 2784, end: 3005 },
-      { id: "20250905_04", title: "잔향산가 (残響散歌)", artist: "Aimer", work: "귀멸의 칼날", lang: "JA", videoId: "ibcQ6BG8IJM", start: 3177, end: 3364 },
-      { id: "20250918_01", title: "real Emotion", artist: "코다 쿠미", work: "파이널 판타지 X-2", lang: "JA", videoId: "VqfEP-u-vzA", start: 343, end: 585 },
-      { id: "20250918_02", title: "Believe", artist: "타마키 나미", work: "기동전사 건담 SEED", lang: "JA", videoId: "VqfEP-u-vzA", start: 1747, end: 1985 },
-      { id: "20250918_03", title: "INVOKE", artist: "T.M.Revolution", work: "기동전사 건담 SEED", lang: "JA", videoId: "VqfEP-u-vzA", start: 1904, end: 2165 },
-      { id: "20250918_04", title: "Cutie Honey", artist: "코다 쿠미", work: "큐티 하니", lang: "JA", videoId: "VqfEP-u-vzA", start: 2828, end: 3016 },
-      { id: "20250924_01", title: "분홍신", artist: "아이유", work: "", lang: "KO", videoId: "m7zMYY6ze-M", start: 4036, end: 4293 },
-      { id: "20250924_02", title: "너랑 나", artist: "아이유", work: "", lang: "KO", videoId: "m7zMYY6ze-M", start: 4300, end: 4541 }
-    ];
+    // [구글 시트 CSV 게시 URL]
+    const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRtj9gPbkqj8_BFhsa4G_8ifKB4OaATKlIoFMUS58E1lRNzL6g-ftU1RSRiTEqWpPtFTvnlQK5Xmq95/pub?output=csv';
 
+    let songs = [];
     let player = null;
     let isPlayerReady = false;
     let currentIndex = 0;
@@ -321,20 +322,118 @@
     let timerCheck = null;
     let currentVideoId = null;
 
-    // ID(예: 20250905_01)에서 날짜(2025.09.05) 추출 함수
-    function parseDateFromId(id) {
-      if (!id || id.length < 8) return '';
-      const year = id.substring(0, 4);
-      const month = id.substring(4, 6);
-      const day = id.substring(6, 8);
-      return `${year}.${month}.${day}`;
+    // "HH:MM:SS" 또는 "MM:SS" 또는 초 단위 숫자를 초(sec) 수치로 정밀 변환하는 함수
+    function timeToSeconds(timeStr) {
+      if (!timeStr) return 0;
+      if (typeof timeStr === 'number') return timeStr;
+      
+      const cleanStr = timeStr.toString().trim();
+      if (!cleanStr) return 0;
+
+      // 만약 이미 숫자만 들어있는 경우 (예: "513")
+      if (/^\d+$/.test(cleanStr)) {
+        return parseInt(cleanStr, 10);
+      }
+
+      const parts = cleanStr.split(':').map(val => parseInt(val.trim(), 10) || 0);
+      if (parts.length === 3) {
+        return parts[0] * 3600 + parts[1] * 60 + parts[2];
+      } else if (parts.length === 2) {
+        return parts[0] * 60 + parts[1];
+      } else if (parts.length === 1) {
+        return parts[0] || 0;
+      }
+      return 0;
+    }
+
+    // 날짜 포맷 정리 (예: 2025-10-10 -> 2025.10.10)
+    function formatDate(dateStr, idStr) {
+      if (dateStr && dateStr.trim()) {
+        return dateStr.trim().replace(/-/g, '.');
+      }
+      if (idStr && idStr.length >= 8) {
+        const year = idStr.substring(0, 4);
+        const month = idStr.substring(4, 6);
+        const day = idStr.substring(6, 8);
+        return `${year}.${month}.${day}`;
+      }
+      return '';
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      fetchGoogleSheetData();
+    });
+
+    // 구글 시트 CSV 데이터 비동기 로딩
+    function fetchGoogleSheetData() {
+      Papa.parse(GOOGLE_SHEET_CSV_URL, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          if (results.data && results.data.length > 0) {
+            parseAndLoadSongs(results.data);
+          } else {
+            showError('구글 시트에서 데이터를 찾을 수 없습니다.');
+          }
+        },
+        error: function(err) {
+          console.error('CSV Load Error:', err);
+          showError('구글 시트 데이터를 불러오는데 실패했습니다.');
+        }
+      });
+    }
+
+    // 13개 멸균 컬럼 스키마 매핑
+    function parseAndLoadSongs(rawData) {
+      songs = rawData.map((row, idx) => {
+        const id = (row['id'] || '').trim();
+        const title = (row['uniform_title'] || row['title_orig'] || '').trim();
+        const titleOrig = (row['title_orig'] || '').trim();
+        const artist = (row['uniform_artist'] || row['artist_orig'] || '').trim();
+        const artistOrig = (row['artist_orig'] || '').trim();
+        const work = (row['source_work'] || '').trim();
+        const sourceType = (row['source_type'] || '').trim();
+        const lang = (row['lang'] || 'JA').trim().toUpperCase();
+        const dateRaw = (row['date'] || '').trim();
+        const date = formatDate(dateRaw, id);
+        const start = timeToSeconds(row['start_time']);
+        const end = timeToSeconds(row['end_time']);
+        const videoId = (row['video_id'] || '').trim();
+        const note = (row['note'] || '').trim();
+
+        return {
+          id: id || `song_${idx}`,
+          title: title,
+          titleOrig: titleOrig,
+          artist: artist,
+          artistOrig: artistOrig,
+          work: work,
+          sourceType: sourceType,
+          lang: lang,
+          date: date,
+          start: start,
+          end: end,
+          videoId: videoId,
+          note: note
+        };
+      }).filter(s => s.videoId && s.title); // videoId와 title이 존재하는 데이터만 필터링
+
+      if (songs.length === 0) {
+        showError('유효한 노래 데이터가 없습니다.');
+        return;
+      }
+
       renderPlaylist();
       updateNowPlaying(0);
       loadYouTubeAPI();
-    });
+    }
+
+    function showError(msg) {
+      document.getElementById('playlist').innerHTML = `<div class="loading-state" style="color:#f43f5e;">${msg}</div>`;
+      document.getElementById('npTitle').innerText = '데이터 오류';
+      document.getElementById('npDate').innerText = '';
+    }
 
     function loadYouTubeAPI() {
       if (window.YT && window.YT.Player) {
@@ -352,7 +451,7 @@
     };
 
     function initPlayer() {
-      if (player) return;
+      if (player || songs.length === 0) return;
       currentVideoId = songs[0].videoId;
       player = new YT.Player('player', {
         height: '100%',
@@ -386,11 +485,13 @@
       container.innerHTML = '';
 
       songs.forEach((song, idx) => {
-        const dateStr = parseDateFromId(song.id);
         const matchSearch = song.title.toLowerCase().includes(query) ||
+                            song.titleOrig.toLowerCase().includes(query) ||
                             song.artist.toLowerCase().includes(query) ||
-                            (song.work && song.work.toLowerCase().includes(query)) ||
-                            dateStr.includes(query);
+                            song.artistOrig.toLowerCase().includes(query) ||
+                            song.work.toLowerCase().includes(query) ||
+                            song.date.toLowerCase().includes(query) ||
+                            song.note.toLowerCase().includes(query);
         const matchLang = (currentLang === 'ALL') || (song.lang === currentLang);
 
         if (matchSearch && matchLang) {
@@ -399,7 +500,7 @@
           card.onclick = () => playSong(idx);
           card.innerHTML = `
             <div>
-              <div class="song-info-date">${dateStr}</div>
+              <div class="song-info-date">${song.date}</div>
               <div class="song-info-main">${song.title}</div>
               <div class="song-info-sub">${song.artist}${song.work ? ' • ' + song.work : ''}</div>
             </div>
@@ -436,7 +537,7 @@
       timerCheck = setInterval(() => {
         if (player && typeof player.getCurrentTime === 'function') {
           const currentTime = player.getCurrentTime();
-          if (currentTime >= song.end) {
+          if (currentTime >= song.end && song.end > 0) {
             clearInterval(timerCheck);
             if (currentIndex + 1 < songs.length) {
               playSong(currentIndex + 1);
@@ -449,8 +550,7 @@
     function updateNowPlaying(index) {
       const song = songs[index];
       if (!song) return;
-      const dateStr = parseDateFromId(song.id);
-      document.getElementById('npDate').innerText = dateStr;
+      document.getElementById('npDate').innerText = song.date;
       document.getElementById('npTitle').innerText = song.title;
       document.getElementById('npArtist').innerText = `${song.artist}${song.work ? ' • ' + song.work : ''}`;
     }
