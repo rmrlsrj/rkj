@@ -218,6 +218,12 @@
       background-color: #1e293b;
     }
 
+    .song-info-date {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
     .song-info-main {
       font-size: 0.95rem;
       font-weight: 600;
@@ -308,6 +314,15 @@
     let timerCheck = null;
     let currentVideoId = null;
 
+    // ID(예: 20250905_01)에서 날짜(2025.09.05) 추출 함수
+    function parseDateFromId(id) {
+      if (!id || id.length < 8) return '';
+      const year = id.substring(0, 4);
+      const month = id.substring(4, 6);
+      const day = id.substring(6, 8);
+      return `${year}.${month}.${day}`;
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       renderPlaylist();
       updateNowPlaying(0);
@@ -364,9 +379,11 @@
       container.innerHTML = '';
 
       songs.forEach((song, idx) => {
+        const dateStr = parseDateFromId(song.id);
         const matchSearch = song.title.toLowerCase().includes(query) ||
                             song.artist.toLowerCase().includes(query) ||
-                            (song.work && song.work.toLowerCase().includes(query));
+                            (song.work && song.work.toLowerCase().includes(query)) ||
+                            dateStr.includes(query);
         const matchLang = (currentLang === 'ALL') || (song.lang === currentLang);
 
         if (matchSearch && matchLang) {
@@ -375,8 +392,9 @@
           card.onclick = () => playSong(idx);
           card.innerHTML = `
             <div>
+              <div class="song-info-date">${dateStr}</div>
               <div class="song-info-main">${song.title}</div>
-              <div class="song-info-sub">${song.artist} ${song.work ? '• ' + song.work : ''}</div>
+              <div class="song-info-sub">${song.artist}${song.work ? ' • ' + song.work : ''}</div>
             </div>
             <span class="song-badge">${song.lang}</span>
           `;
@@ -392,7 +410,6 @@
       updateNowPlaying(index);
 
       if (isPlayerReady && player) {
-        // [최적화 핵심] 동일 영상 내 전환 시 플레이어 재로딩 없이 seekTo로 즉시 이동!
         if (currentVideoId === song.videoId && typeof player.seekTo === 'function') {
           player.seekTo(song.start, true);
           player.playVideo();
@@ -408,7 +425,6 @@
         return;
       }
 
-      // [최적화 핵심] 감시 주기를 250ms(0.25초)로 정밀화하여 완벽한 전환
       clearInterval(timerCheck);
       timerCheck = setInterval(() => {
         if (player && typeof player.getCurrentTime === 'function') {
@@ -427,7 +443,8 @@
       const song = songs[index];
       if (!song) return;
       document.getElementById('npTitle').innerText = song.title;
-      document.getElementById('npArtist').innerText = `${song.artist} ${song.work ? '(' + song.work + ')' : ''}`;
+      // 영상 하단 표기 방식을 우측 리스트와 동일하게 '가수 • 출처' 로 통일
+      document.getElementById('npArtist').innerText = `${song.artist}${song.work ? ' • ' + song.work : ''}`;
     }
 
     function filterSongs() {
