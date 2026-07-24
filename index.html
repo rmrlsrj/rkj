@@ -39,16 +39,55 @@
     header {
       background-color: var(--panel-bg);
       border-bottom: 1px solid var(--border);
-      padding: 16px 24px;
+      padding: 12px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
     header h1 {
       font-size: 1.2rem;
       font-weight: 700;
       color: var(--text);
+    }
+
+    /* Tab Controls */
+    .tab-nav {
+      display: flex;
+      gap: 4px;
+      background-color: var(--bg-color);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      padding: 6px 16px;
+      border-radius: 6px;
+      border: none;
+      background-color: transparent;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background-color: var(--accent);
+      color: #fff;
+    }
+
+    .tab-content {
+      display: none;
+      width: 100%;
+      flex: 1;
+    }
+
+    .tab-content.active {
+      display: block;
     }
 
     .main-container {
@@ -59,7 +98,6 @@
       max-width: 1200px;
       margin: 0 auto;
       width: 100%;
-      flex: 1;
     }
 
     @media (min-width: 900px) {
@@ -152,9 +190,10 @@
       border-color: var(--accent);
     }
 
-    .lang-filters {
+    .filter-group {
       display: flex;
       gap: 6px;
+      flex-wrap: wrap;
     }
 
     .filter-btn {
@@ -241,6 +280,64 @@
       color: #38bdf8;
     }
 
+    /* Statistics Section */
+    .stats-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .stats-header-box {
+      background-color: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .stats-list {
+      background-color: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 500px;
+    }
+
+    .stats-item {
+      background-color: var(--bg-color);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    .stats-item .title-text {
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    .stats-item .artist-text {
+      color: #f43f5e;
+    }
+
+    .stats-item .dates-text {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
     .loading-state {
       text-align: center;
       padding: 40px 10px;
@@ -262,34 +359,65 @@
 
   <header>
     <h1>비공식 통계</h1>
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchMainTab('player', this)">재생</button>
+      <button class="tab-btn" onclick="switchMainTab('stats', this)">통계</button>
+    </div>
   </header>
 
-  <div class="main-container">
-    <!-- Player Section -->
-    <div class="player-section">
-      <div class="player-container">
-        <div id="player"></div>
-      </div>
-      <div class="now-playing-card">
-        <div class="now-playing-date" id="npDate">데이터 로딩 중...</div>
-        <div class="now-playing-title" id="npTitle">노래목록 불러오는 중...</div>
-        <div class="now-playing-artist" id="npArtist">노래 아카이브 플레이어</div>
-      </div>
-    </div>
-
-    <!-- Playlist Section -->
-    <div class="playlist-section">
-      <div class="search-filter-box">
-        <input type="text" id="searchInput" class="search-input" placeholder="곡명, 가수(한글 발음 포함), 날짜, 특이사항 검색..." oninput="filterSongs()">
-        <div class="lang-filters">
-          <button class="filter-btn active" onclick="setLangFilter('ALL', this)">전체</button>
-          <button class="filter-btn" onclick="setLangFilter('KO', this)">한식(KO)</button>
-          <button class="filter-btn" onclick="setLangFilter('JA', this)">일식(JA)</button>
-          <button class="filter-btn" onclick="setLangFilter('EN', this)">양식(EN)</button>
+  <!-- [1. 재생 파트] -->
+  <div id="tab-player" class="tab-content active">
+    <div class="main-container">
+      <div class="player-section">
+        <div class="player-container">
+          <div id="player"></div>
+        </div>
+        <div class="now-playing-card">
+          <div class="now-playing-date" id="npDate">데이터 로딩 중...</div>
+          <div class="now-playing-title" id="npTitle">노래목록 불러오는 중...</div>
+          <div class="now-playing-artist" id="npArtist">노래 아카이브 플레이어</div>
         </div>
       </div>
-      <div class="playlist-scroll" id="playlist">
-        <div class="loading-state">구글 시트에서 노래 데이터를 불러오는 중입니다... 🎵</div>
+
+      <div class="playlist-section">
+        <div class="search-filter-box">
+          <input type="text" id="searchInput" class="search-input" placeholder="곡명, 가수(한글 발음 포함), 날짜, 특이사항 검색..." oninput="filterSongs()">
+          <div class="filter-group">
+            <button class="filter-btn active" onclick="setLangFilter('ALL', this)">전체</button>
+            <button class="filter-btn" onclick="setLangFilter('KO', this)">한식</button>
+            <button class="filter-btn" onclick="setLangFilter('JA', this)">일식</button>
+            <button class="filter-btn" onclick="setLangFilter('EN', this)">양식</button>
+            <button class="filter-btn" onclick="setLangFilter('BUNSIK', this)">분식</button>
+          </div>
+        </div>
+        <div class="playlist-scroll" id="playlist">
+          <div class="loading-state">구글 시트에서 노래 데이터를 불러오는 중입니다... 🎵</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- [2. 통계 파트] -->
+  <div id="tab-stats" class="tab-content">
+    <div class="stats-container">
+      <div class="stats-header-box">
+        <!-- 필터 (전체, 한식, 일식, 양식, 분식) -->
+        <div class="filter-group">
+          <button class="filter-btn active" onclick="setStatsLangFilter('ALL', this)">전체</button>
+          <button class="filter-btn" onclick="setStatsLangFilter('KO', this)">한식</button>
+          <button class="filter-btn" onclick="setStatsLangFilter('JA', this)">일식</button>
+          <button class="filter-btn" onclick="setStatsLangFilter('EN', this)">양식</button>
+          <button class="filter-btn" onclick="setStatsLangFilter('BUNSIK', this)">분식</button>
+        </div>
+        <!-- 정렬 필터 (처음 부른 날짜순, 원제목 한/일/영 순) -->
+        <div class="filter-group">
+          <button class="filter-btn active" onclick="setStatsSort('DATE_ASC', this)">처음 부른 날짜순</button>
+          <button class="filter-btn" onclick="setStatsSort('TITLE_LANG', this)">원제목순 (한/일/영)</button>
+        </div>
+      </div>
+
+      <div class="stats-list" id="statsList">
+        <div class="loading-state">통계 데이터를 계산 중입니다... 📊</div>
       </div>
     </div>
   </div>
@@ -310,7 +438,24 @@
     let timerCheck = null;
     let currentVideoId = null;
 
-    // "HH:MM:SS" 또는 "MM:SS" 또는 초 단위 숫자를 초(sec) 수치로 정밀 변환하는 함수
+    // 통계 파트 전용 상태 변수
+    let currentStatsLang = 'ALL';
+    let currentStatsSort = 'DATE_ASC';
+
+    // 탭 전환 제어
+    function switchMainTab(tabId, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      btn.classList.add('active');
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+
+      if (tabId === 'stats') {
+        renderStatistics();
+      }
+    }
+
+    // 초 정밀 변환
     function timeToSeconds(timeStr) {
       if (!timeStr) return 0;
       if (typeof timeStr === 'number') return timeStr;
@@ -333,7 +478,7 @@
       return 0;
     }
 
-    // 날짜 포맷 정리 (예: 2025-10-10 -> 2025.10.10)
+    // YYYY-MM-DD -> YYYY.MM.DD
     function formatDate(dateStr, idStr) {
       if (dateStr && dateStr.trim()) {
         return dateStr.trim().replace(/-/g, '.');
@@ -347,11 +492,21 @@
       return '';
     }
 
+    // YYYY.MM.DD -> YY.MM.DD 변환 (통계 출력용)
+    function formatShortDate(fullDate) {
+      if (!fullDate) return '';
+      const parts = fullDate.split('.');
+      if (parts.length === 3) {
+        const yy = parts[0].length === 4 ? parts[0].substring(2) : parts[0];
+        return `${yy}.${parts[1]}.${parts[2]}`;
+      }
+      return fullDate;
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       fetchGoogleSheetData();
     });
 
-    // 구글 시트 CSV 데이터 비동기 로딩
     function fetchGoogleSheetData() {
       Papa.parse(GOOGLE_SHEET_CSV_URL, {
         download: true,
@@ -371,14 +526,13 @@
       });
     }
 
-    // 16개 멸균 컬럼 스키마 매핑 (음차 검색용 데이터 포함)
     function parseAndLoadSongs(rawData) {
       songs = rawData.map((row, idx) => {
         const id = (row['id'] || '').trim();
         const title = (row['uniform_title'] || row['title_orig'] || '').trim();
-        const titleOrig = (row['title_orig'] || '').trim();
+        const titleOrig = (row['title_orig'] || title).trim();
         const artist = (row['uniform_artist'] || row['artist_orig'] || '').trim();
-        const artistOrig = (row['artist_orig'] || '').trim();
+        const artistOrig = (row['artist_orig'] || artist).trim();
         const work = (row['source_work'] || '').trim();
         const sourceType = (row['source_type'] || '').trim();
         const lang = (row['lang'] || 'JA').trim().toUpperCase();
@@ -471,6 +625,16 @@
       }
     }
 
+    // 재생 파트 필터 판별 함수 (한식, 일식, 양식, 분식)
+    function matchCategoryFilter(song, category) {
+      if (category === 'ALL') return true;
+      if (category === 'BUNSIK') return song.sourceType === '동요';
+      if (category === 'KO') return song.lang === 'KO' && song.sourceType !== '동요';
+      if (category === 'JA') return song.lang === 'JA';
+      if (category === 'EN') return song.lang === 'EN';
+      return false;
+    }
+
     function renderPlaylist() {
       const container = document.getElementById('playlist');
       const query = document.getElementById('searchInput').value.toLowerCase();
@@ -487,9 +651,9 @@
                             song.date.toLowerCase().includes(query) ||
                             song.note.toLowerCase().includes(query);
                             
-        const matchLang = (currentLang === 'ALL') || (song.lang === currentLang);
+        const matchCategory = matchCategoryFilter(song, currentLang);
 
-        if (matchSearch && matchLang) {
+        if (matchSearch && matchCategory) {
           const card = document.createElement('div');
           card.className = `song-card ${idx === currentIndex ? 'active' : ''}`;
           card.onclick = () => playSong(idx);
@@ -556,9 +720,139 @@
 
     function setLangFilter(lang, btn) {
       currentLang = lang;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       renderPlaylist();
+    }
+
+    // ==========================================
+    // [통계 파트 집계 및 정렬 연산 로직]
+    // ==========================================
+
+    function setStatsLangFilter(lang, btn) {
+      currentStatsLang = lang;
+      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderStatistics();
+    }
+
+    function setStatsSort(sortType, btn) {
+      currentStatsSort = sortType;
+      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderStatistics();
+    }
+
+    // 원제목 언어 종류 판별 (1: 한글, 2: 일어, 3: 영어, 4: 기타)
+    function getTitleLangCategory(str) {
+      if (!str) return 4;
+      const firstChar = str.trim().charAt(0);
+
+      // 한글 (가-힣, 자음, 모음)
+      if (/[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/.test(firstChar)) {
+        return 1;
+      }
+      // 일본어 (히라가나, 카타카나, 한자)
+      if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(firstChar)) {
+        return 2;
+      }
+      // 영어 (A-Z, a-z)
+      if (/[A-Za-z]/.test(firstChar)) {
+        return 3;
+      }
+      return 4;
+    }
+
+    function renderStatistics() {
+      const container = document.getElementById('statsList');
+      container.innerHTML = '';
+
+      if (songs.length === 0) {
+        container.innerHTML = `<div class="loading-state">집계할 데이터가 없습니다.</div>`;
+        return;
+      }
+
+      // 1. 중복 곡 통합 (원곡명 + 원가수명 기준 맵핑)
+      const songMap = new Map();
+
+      songs.forEach(song => {
+        const key = `${song.titleOrig}___${song.artistOrig}`;
+
+        if (!songMap.has(key)) {
+          songMap.set(key, {
+            titleOrig: song.titleOrig,
+            artistOrig: song.artistOrig,
+            lang: song.lang,
+            sourceType: song.sourceType,
+            rawDates: [song.date]
+          });
+        } else {
+          const entry = songMap.get(key);
+          if (!entry.rawDates.includes(song.date)) {
+            entry.rawDates.push(song.date);
+          }
+        }
+      });
+
+      // 2. 통합 배열 변환 및 날짜 정렬
+      let groupedList = Array.from(songMap.values()).map(item => {
+        item.rawDates.sort((a, b) => a.localeCompare(b));
+        const shortDates = item.rawDates.map(d => formatShortDate(d));
+
+        return {
+          titleOrig: item.titleOrig,
+          artistOrig: item.artistOrig,
+          lang: item.lang,
+          sourceType: item.sourceType,
+          firstDate: item.rawDates[0] || '',
+          datesFormatted: shortDates.join(' / ')
+        };
+      });
+
+      // 3. 필터링 (전체, 한식, 일식, 양식, 분식)
+      if (currentStatsLang !== 'ALL') {
+        groupedList = groupedList.filter(item => {
+          if (currentStatsLang === 'BUNSIK') return item.sourceType === '동요';
+          if (currentStatsLang === 'KO') return item.lang === 'KO' && item.sourceType !== '동요';
+          if (currentStatsLang === 'JA') return item.lang === 'JA';
+          if (currentStatsLang === 'EN') return item.lang === 'EN';
+          return false;
+        });
+      }
+
+      // 4. 정렬 로직 적용
+      if (currentStatsSort === 'DATE_ASC') {
+        // 처음 부른 날짜순
+        groupedList.sort((a, b) => a.firstDate.localeCompare(b.firstDate));
+      } else if (currentStatsSort === 'TITLE_LANG') {
+        // 원제목 기준 (한글 -> 일본어 -> 영어 -> 기타)
+        groupedList.sort((a, b) => {
+          const catA = getTitleLangCategory(a.titleOrig);
+          const catB = getTitleLangCategory(b.titleOrig);
+
+          if (catA !== catB) {
+            return catA - catB;
+          }
+          return a.titleOrig.localeCompare(b.titleOrig, 'ko');
+        });
+      }
+
+      if (groupedList.length === 0) {
+        container.innerHTML = `<div class="loading-state">해당 조건에 부합하는 통계 데이터가 없습니다.</div>`;
+        return;
+      }
+
+      // 5. DOM 출력 (포맷: ETERNAL BLAZE / Mizuki Nana / 25.10.12 / 25.12.13 / 26.03.01)
+      groupedList.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'stats-item';
+        div.innerHTML = `
+          <span class="title-text">${item.titleOrig}</span> / 
+          <span class="artist-text">${item.artistOrig}</span> / 
+          <span class="dates-text">${item.datesFormatted}</span>
+        `;
+        container.appendChild(div);
+      });
     }
   </script>
 </body>
