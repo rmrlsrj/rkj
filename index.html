@@ -401,6 +401,13 @@
             <button class="filter-btn" onclick="setLangFilter('EN', this)">양식</button>
             <button class="filter-btn" onclick="setLangFilter('BUNSIK', this)">분식</button>
           </div>
+          <!-- 재생 파트 정렬 버튼 (최신순, 날짜순, 가나다순, 랜덤) -->
+          <div class="filter-group">
+            <button class="filter-btn" onclick="setPlayerSort('DATE_DESC', this)">최신순</button>
+            <button class="filter-btn active" onclick="setPlayerSort('DATE_ASC', this)">날짜순</button>
+            <button class="filter-btn" onclick="setPlayerSort('TITLE_ASC', this)">가나다순</button>
+            <button class="filter-btn" onclick="setPlayerSort('SHUFFLE', this)">🎲 랜덤</button>
+          </div>
         </div>
         <div class="playlist-scroll" id="playlist">
           <div class="loading-state">구글 시트에서 노래 데이터를 불러오는 중입니다... 🎵</div>
@@ -448,6 +455,7 @@
     let isPlayerReady = false;
     let currentIndex = 0;
     let currentLang = 'ALL';
+    let currentPlayerSort = 'DATE_ASC'; // 재생 파트 정렬 상태
     let timerCheck = null;
     let currentVideoId = null;
 
@@ -583,6 +591,14 @@
         return;
       }
 
+      // 초기 로딩 시 기본 정렬: 날짜순(과거순)
+      songs.sort((a, b) => {
+        if (a.date !== b.date) {
+          return a.date.localeCompare(b.date);
+        }
+        return a.start - b.start;
+      });
+
       renderPlaylist();
       updateNowPlaying(0);
       loadYouTubeAPI();
@@ -648,9 +664,48 @@
       return false;
     }
 
+    // 재생 파트 정렬 제어 함수 (최신순, 날짜순, 가나다순, 랜덤)
+    function setPlayerSort(sortType, btn) {
+      currentPlayerSort = sortType;
+      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const currentSongId = songs[currentIndex]?.id;
+
+      if (sortType === 'DATE_DESC') {
+        // 최신순 (날짜 내림차순, 같은 날짜면 타임스탬프 순)
+        songs.sort((a, b) => {
+          if (a.date !== b.date) return b.date.localeCompare(a.date);
+          return a.start - b.start;
+        });
+      } else if (sortType === 'DATE_ASC') {
+        // 날짜순 (과거순 오름차순)
+        songs.sort((a, b) => {
+          if (a.date !== b.date) return a.date.localeCompare(b.date);
+          return a.start - b.start;
+        });
+      } else if (sortType === 'TITLE_ASC') {
+        // 가나다순
+        songs.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
+      } else if (sortType === 'SHUFFLE') {
+        // Fisher-Yates 셔플 알고리즘으로 무작위 교환
+        for (let i = songs.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [songs[i], songs[j]] = [songs[j], songs[i]];
+        }
+      }
+
+      // 정렬 완료 후 재생 중인 곡 인덱스 보존
+      if (currentSongId) {
+        const newIndex = songs.findIndex(s => s.id === currentSongId);
+        currentIndex = newIndex !== -1 ? newIndex : 0;
+      }
+
+      renderPlaylist();
+    }
+
     function renderPlaylist() {
       const container = document.getElementById('playlist');
-      // 사용자가 입력한 검색어를 띄어쓰기 기준으로 나눕니다.
       const searchInput = document.getElementById('searchInput').value.trim().toLowerCase();
       const queries = searchInput ? searchInput.split(/\s+/) : [];
       container.innerHTML = '';
@@ -659,17 +714,14 @@
         let matchSearch = true;
         
         if (queries.length > 0) {
-          // 노래가 가진 모든 정보를 띄어쓰기로 합쳐 하나의 문자열로 만듭니다.
           const searchableText = [
             song.title, song.titleOrig, song.titlePhonetic,
             song.artist, song.artistOrig, song.artistPhonetic,
             song.work, song.date, song.note
           ].join(' ').toLowerCase();
 
-          // 각 검색어(query)가 "단어 단위"로 정확히 일치하는지 검사합니다.
-          // 예: 앞뒤에 공백이나 기호(괄호, 쉼표 등)가 있는 경우에만 참(True)
           matchSearch = queries.every(q => {
-            const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // 정규식 기호 보호
+            const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const regex = new RegExp(`(^|[\\s,./\\-()\\[\\]_:;~])` + escapedQ + `(?=[\\s,./\\-()\\[\\]_:;~]|$)`);
             return regex.test(searchableText);
           });
