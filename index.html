@@ -292,7 +292,7 @@
     <!-- Playlist Section -->
     <div class="playlist-section">
       <div class="search-filter-box">
-        <input type="text" id="searchInput" class="search-input" placeholder="곡명, 가수, 출처, 날짜, 특이사항 검색..." oninput="filterSongs()">
+        <input type="text" id="searchInput" class="search-input" placeholder="곡명, 가수(음차/발음 포함), 출처, 날짜 등 검색..." oninput="filterSongs()">
         <div class="lang-filters">
           <button class="filter-btn active" onclick="setLangFilter('ALL', this)">전체</button>
           <button class="filter-btn" onclick="setLangFilter('KO', this)">한식(KO)</button>
@@ -384,7 +384,7 @@
       });
     }
 
-    // 13개 멸균 컬럼 스키마 매핑
+    // 16개 멸균 컬럼 스키마 매핑 (음차 검색용 데이터 추가 반영)
     function parseAndLoadSongs(rawData) {
       songs = rawData.map((row, idx) => {
         const id = (row['id'] || '').trim();
@@ -401,6 +401,10 @@
         const end = timeToSeconds(row['end_time']);
         const videoId = (row['video_id'] || '').trim();
         const note = (row['note'] || '').trim();
+        
+        // 추가된 검색용 음차 데이터 파싱
+        const titlePhonetic = (row['title_phonetic'] || '').trim();
+        const artistPhonetic = (row['artist_phonetic'] || '').trim();
 
         return {
           id: id || `song_${idx}`,
@@ -415,7 +419,9 @@
           start: start,
           end: end,
           videoId: videoId,
-          note: note
+          note: note,
+          titlePhonetic: titlePhonetic,
+          artistPhonetic: artistPhonetic
         };
       }).filter(s => s.videoId && s.title); // videoId와 title이 존재하는 데이터만 필터링
 
@@ -485,13 +491,17 @@
       container.innerHTML = '';
 
       songs.forEach((song, idx) => {
+        // 음차(발음) 데이터도 검색 조건에 포함
         const matchSearch = song.title.toLowerCase().includes(query) ||
                             song.titleOrig.toLowerCase().includes(query) ||
+                            song.titlePhonetic.toLowerCase().includes(query) ||
                             song.artist.toLowerCase().includes(query) ||
                             song.artistOrig.toLowerCase().includes(query) ||
+                            song.artistPhonetic.toLowerCase().includes(query) ||
                             song.work.toLowerCase().includes(query) ||
                             song.date.toLowerCase().includes(query) ||
                             song.note.toLowerCase().includes(query);
+                            
         const matchLang = (currentLang === 'ALL') || (song.lang === currentLang);
 
         if (matchSearch && matchLang) {
