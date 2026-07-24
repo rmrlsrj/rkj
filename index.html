@@ -324,6 +324,12 @@
       word-break: break-all;
     }
 
+    .stats-item .index-text {
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-right: 6px;
+    }
+
     .stats-item .title-text {
       font-weight: 700;
       color: #38bdf8;
@@ -336,6 +342,12 @@
     .stats-item .dates-text {
       color: var(--text-muted);
       font-size: 0.85rem;
+    }
+
+    .stats-item .count-text {
+      font-weight: 700;
+      color: #f59e0b;
+      margin-left: 4px;
     }
 
     .loading-state {
@@ -409,9 +421,10 @@
           <button class="filter-btn" onclick="setStatsLangFilter('EN', this)">양식</button>
           <button class="filter-btn" onclick="setStatsLangFilter('BUNSIK', this)">분식</button>
         </div>
-        <!-- 정렬 필터 (처음 부른 날짜순, 원제목 한/일/영 순) -->
+        <!-- 정렬 필터 (처음 부른 날짜순, 많이 부른 순, 원제목 한/일/영 순) -->
         <div class="filter-group">
           <button class="filter-btn active" onclick="setStatsSort('DATE_ASC', this)">처음 부른 날짜순</button>
+          <button class="filter-btn" onclick="setStatsSort('COUNT_DESC', this)">많이 부른 순</button>
           <button class="filter-btn" onclick="setStatsSort('TITLE_LANG', this)">원제목순 (한/일/영)</button>
         </div>
       </div>
@@ -748,15 +761,12 @@
       if (!str) return 4;
       const firstChar = str.trim().charAt(0);
 
-      // 한글 (가-힣, 자음, 모음)
       if (/[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/.test(firstChar)) {
         return 1;
       }
-      // 일본어 (히라가나, 카타카나, 한자)
       if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(firstChar)) {
         return 2;
       }
-      // 영어 (A-Z, a-z)
       if (/[A-Za-z]/.test(firstChar)) {
         return 3;
       }
@@ -780,6 +790,7 @@
 
         if (!songMap.has(key)) {
           songMap.set(key, {
+            title: song.title,
             titleOrig: song.titleOrig,
             artistOrig: song.artistOrig,
             lang: song.lang,
@@ -799,11 +810,18 @@
         item.rawDates.sort((a, b) => a.localeCompare(b));
         const shortDates = item.rawDates.map(d => formatShortDate(d));
 
+        let titleDisplay = item.titleOrig;
+        if ((item.lang === 'JA' || item.lang === 'EN') && item.title && item.title !== item.titleOrig) {
+          titleDisplay = `${item.titleOrig} (${item.title})`;
+        }
+
         return {
+          titleDisplay: titleDisplay,
           titleOrig: item.titleOrig,
           artistOrig: item.artistOrig,
           lang: item.lang,
           sourceType: item.sourceType,
+          count: item.rawDates.length,
           firstDate: item.rawDates[0] || '',
           datesFormatted: shortDates.join(' / ')
         };
@@ -824,6 +842,14 @@
       if (currentStatsSort === 'DATE_ASC') {
         // 처음 부른 날짜순
         groupedList.sort((a, b) => a.firstDate.localeCompare(b.firstDate));
+      } else if (currentStatsSort === 'COUNT_DESC') {
+        // 많이 부른 순 (내림차순) -> 횟수 같으면 처음 부른 날짜순
+        groupedList.sort((a, b) => {
+          if (b.count !== a.count) {
+            return b.count - a.count;
+          }
+          return a.firstDate.localeCompare(b.firstDate);
+        });
       } else if (currentStatsSort === 'TITLE_LANG') {
         // 원제목 기준 (한글 -> 일본어 -> 영어 -> 기타)
         groupedList.sort((a, b) => {
@@ -842,14 +868,16 @@
         return;
       }
 
-      // 5. DOM 출력 (포맷: ETERNAL BLAZE / Mizuki Nana / 25.10.12 / 25.12.13 / 26.03.01)
-      groupedList.forEach(item => {
+      // 5. DOM 출력 (제일 좌측에 순번 추가)
+      groupedList.forEach((item, idx) => {
         const div = document.createElement('div');
         div.className = 'stats-item';
         div.innerHTML = `
-          <span class="title-text">${item.titleOrig}</span> / 
+          <span class="index-text">${idx + 1}.</span>
+          <span class="title-text">${item.titleDisplay}</span> / 
           <span class="artist-text">${item.artistOrig}</span> / 
           <span class="dates-text">${item.datesFormatted}</span>
+          <span class="count-text">(${item.count}회)</span>
         `;
         container.appendChild(div);
       });
