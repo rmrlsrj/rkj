@@ -393,7 +393,7 @@
 
       <div class="playlist-section">
         <div class="search-filter-box">
-          <input type="text" id="searchInput" class="search-input" placeholder="곡명, 가수(한글 발음 포함), 날짜, 특이사항 검색..." oninput="filterSongs()">
+          <input type="text" id="searchInput" class="search-input" placeholder="곡명, 가수, 날짜 등 (띄어쓰기로 단어별 정확히 검색)..." oninput="filterSongs()">
           <div class="filter-group">
             <button class="filter-btn active" onclick="setLangFilter('ALL', this)">전체</button>
             <button class="filter-btn" onclick="setLangFilter('KO', this)">한식</button>
@@ -650,19 +650,30 @@
 
     function renderPlaylist() {
       const container = document.getElementById('playlist');
-      const query = document.getElementById('searchInput').value.toLowerCase();
+      // 사용자가 입력한 검색어를 띄어쓰기 기준으로 나눕니다.
+      const searchInput = document.getElementById('searchInput').value.trim().toLowerCase();
+      const queries = searchInput ? searchInput.split(/\s+/) : [];
       container.innerHTML = '';
 
       songs.forEach((song, idx) => {
-        const matchSearch = song.title.toLowerCase().includes(query) ||
-                            song.titleOrig.toLowerCase().includes(query) ||
-                            song.titlePhonetic.toLowerCase().includes(query) ||
-                            song.artist.toLowerCase().includes(query) ||
-                            song.artistOrig.toLowerCase().includes(query) ||
-                            song.artistPhonetic.toLowerCase().includes(query) ||
-                            song.work.toLowerCase().includes(query) ||
-                            song.date.toLowerCase().includes(query) ||
-                            song.note.toLowerCase().includes(query);
+        let matchSearch = true;
+        
+        if (queries.length > 0) {
+          // 노래가 가진 모든 정보를 띄어쓰기로 합쳐 하나의 문자열로 만듭니다.
+          const searchableText = [
+            song.title, song.titleOrig, song.titlePhonetic,
+            song.artist, song.artistOrig, song.artistPhonetic,
+            song.work, song.date, song.note
+          ].join(' ').toLowerCase();
+
+          // 각 검색어(query)가 "단어 단위"로 정확히 일치하는지 검사합니다.
+          // 예: 앞뒤에 공백이나 기호(괄호, 쉼표 등)가 있는 경우에만 참(True)
+          matchSearch = queries.every(q => {
+            const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // 정규식 기호 보호
+            const regex = new RegExp(`(^|[\\s,./\\-()\\[\\]_:;~])` + escapedQ + `(?=[\\s,./\\-()\\[\\]_:;~]|$)`);
+            return regex.test(searchableText);
+          });
+        }
                             
         const matchCategory = matchCategoryFilter(song, currentLang);
 
@@ -756,7 +767,6 @@
       renderStatistics();
     }
 
-    // 원제목 언어 종류 판별 (1: 한글, 2: 일어, 3: 영어, 4: 기타)
     function getTitleLangCategory(str) {
       if (!str) return 4;
       const firstChar = str.trim().charAt(0);
