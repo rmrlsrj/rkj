@@ -596,7 +596,7 @@
       }
       const targetKey = colName.toLowerCase();
       for (const key of Object.keys(row)) {
-        const cleanKey = key.replace(/^﻿/, '').trim().toLowerCase();
+        const cleanKey = key.replace(/^\ufeff/, '').trim().toLowerCase();
         if (cleanKey === targetKey) {
           return String(row[key] || '').trim();
         }
@@ -626,7 +626,7 @@
           header: true,
           skipEmptyLines: 'greedy',
           transformHeader: function(h) {
-            return h.replace(/^﻿/, '').trim();
+            return h.replace(/^\ufeff/, '').trim();
           },
           complete: function(results) {
             try {
@@ -824,8 +824,8 @@
           ].join(' ').toLowerCase();
 
           matchSearch = queries.every(q => {
-            const escapedQ = q.replace(/[.*+?^${}()|[\]\]/g, '\$&');
-            const regex = new RegExp(`(^|[\s,./\-()\[\]_:;~])` + escapedQ + `(?=[\s,./\-()\[\]_:;~]|$)`);
+            const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(^|[\\s,./\\-()\\[\\]_:;~])` + escapedQ + `(?=[\\s,./\\-()\\[\\]_:;~]|$)`);
             return regex.test(searchableText);
           });
         }
@@ -926,10 +926,10 @@
       if (!str) return 4;
       const firstChar = str.trim().charAt(0);
 
-      if (/[가-힯ᄀ-ᇿ㄰-㆏]/.test(firstChar)) {
+      if (/[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/.test(firstChar)) {
         return 1;
       }
-      if (/[぀-ゟ゠-ヿ一-龯]/.test(firstChar)) {
+      if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(firstChar)) {
         return 2;
       }
       if (/[A-Za-z]/.test(firstChar)) {
