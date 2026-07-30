@@ -479,15 +479,15 @@
   </footer>
 
   <script>
-    // [스트리머별 DB CSV URL 설정]
+    // [스트리머별 독립된 CSV URL 설정]
     const STREAMERS = {
       kira: {
         name: '세이로쿠 키라',
-        csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRtj9gPbkqj8_BFhsa4G_8ifKB4OaATKlIoFMUS58E1lRNzL6g-ftU1RSRiTEqWpPtFTvnlQK5Xmq95/pub?gid=0&single=true&output=csv'
+        csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRtj9gPbkqj8_BFhsa4G_8ifKB4OaATKlIoFMUS58E1lRNzL6g-ftU1RSRiTEqWpPtFTvnlQK5Xmq95/pub?output=csv'
       },
       tenten: {
         name: '텐플라스텐 텐텐',
-        csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRtj9gPbkqj8_BFhsa4G_8ifKB4OaATKlIoFMUS58E1lRNzL6g-ftU1RSRiTEqWpPtFTvnlQK5Xmq95/pub?gid=1643397383&single=true&output=csv'
+        csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQI6oPNRvHCY05H_XHPFp1q0bIpB4XcJOz9A5_wJtG4AJCuFxy5dLozmYOBlfyvj2mfSvWismHUHkUq/pub?output=csv'
       }
     };
 
@@ -507,6 +507,8 @@
 
     // 스트리머 전환 제어
     function switchStreamer(streamerKey, btn) {
+      if (currentStreamerKey === streamerKey && songs.length > 0) return;
+
       currentStreamerKey = streamerKey;
       document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -631,16 +633,16 @@
               if (results.data && results.data.length > 0) {
                 parseAndLoadSongs(results.data);
               } else {
-                showError('구글 시트에서 데이터를 찾을 수 없습니다.');
+                showError('구글 시트에서 데이터를 찾을 수 없습니다. (데이터 입력 대기 중)');
               }
             } catch (err) {
-              console.error('Data Process Exception:', err);
+              console.error('Data Process Error:', err);
               showError('데이터 처리 중 오류가 발생했습니다: ' + err.message);
             }
           },
           error: function(err) {
             console.error('CSV Load Error:', err);
-            showError('구글 시트 데이터를 불러오는데 실패했습니다. 웹 게시 설정을 확인해 주세요.');
+            showError('구글 시트 데이터를 불러오는데 실패했습니다.');
           }
         });
       } catch (err) {
@@ -689,7 +691,7 @@
       }).filter(s => s.videoId && s.title);
 
       if (songs.length === 0) {
-        showError('유효한 노래 데이터가 없습니다.');
+        showError('구글 시트에 유효한 노래 데이터가 아직 입력되지 않았습니다.');
         return;
       }
 
@@ -723,7 +725,7 @@
     function showError(msg) {
       document.getElementById('playlist').innerHTML = `<div class="loading-state" style="color:#f43f5e;">${msg}</div>`;
       document.getElementById('statsList').innerHTML = `<div class="loading-state" style="color:#f43f5e;">${msg}</div>`;
-      document.getElementById('npTitle').innerText = '데이터 오류';
+      document.getElementById('npTitle').innerText = '데이터 입력 대기 중';
       document.getElementById('npDate').innerText = '';
     }
 
