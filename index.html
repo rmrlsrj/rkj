@@ -596,7 +596,7 @@
       }
       const targetKey = colName.toLowerCase();
       for (const key of Object.keys(row)) {
-        const cleanKey = key.replace(/^\ufeff/, '').trim().toLowerCase();
+        const cleanKey = key.replace(/^﻿/, '').trim().toLowerCase();
         if (cleanKey === targetKey) {
           return String(row[key] || '').trim();
         }
@@ -626,7 +626,7 @@
           header: true,
           skipEmptyLines: 'greedy',
           transformHeader: function(h) {
-            return h.replace(/^\ufeff/, '').trim();
+            return h.replace(/^﻿/, '').trim();
           },
           complete: function(results) {
             try {
@@ -695,13 +695,8 @@
         return;
       }
 
-      // 초기 로딩 시 기본 정렬: 날짜순(과거순)
-      songs.sort((a, b) => {
-        if (a.date !== b.date) {
-          return a.date.localeCompare(b.date);
-        }
-        return a.start - b.start;
-      });
+      // 초기 로딩 시 기본 정렬: ID 기준 (날짜 및 순번 순)
+      songs.sort((a, b) => a.id.localeCompare(b.id));
 
       currentIndex = 0;
       renderPlaylist();
@@ -790,15 +785,11 @@
       const currentSongId = songs[currentIndex]?.id;
 
       if (sortType === 'DATE_DESC') {
-        songs.sort((a, b) => {
-          if (a.date !== b.date) return b.date.localeCompare(a.date);
-          return a.start - b.start;
-        });
+        // 최신순 (ID 역순: YYYYMMDD_XX 내림차순)
+        songs.sort((a, b) => b.id.localeCompare(a.id));
       } else if (sortType === 'DATE_ASC') {
-        songs.sort((a, b) => {
-          if (a.date !== b.date) return a.date.localeCompare(b.date);
-          return a.start - b.start;
-        });
+        // 날짜순 (ID 순: YYYYMMDD_XX 오름차순)
+        songs.sort((a, b) => a.id.localeCompare(b.id));
       } else if (sortType === 'TITLE_ASC') {
         songs.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
       } else if (sortType === 'SHUFFLE') {
@@ -833,8 +824,8 @@
           ].join(' ').toLowerCase();
 
           matchSearch = queries.every(q => {
-            const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(`(^|[\\s,./\\-()\\[\\]_:;~])` + escapedQ + `(?=[\\s,./\\-()\\[\\]_:;~]|$)`);
+            const escapedQ = q.replace(/[.*+?^${}()|[\]\]/g, '\$&');
+            const regex = new RegExp(`(^|[\s,./\-()\[\]_:;~])` + escapedQ + `(?=[\s,./\-()\[\]_:;~]|$)`);
             return regex.test(searchableText);
           });
         }
@@ -935,10 +926,10 @@
       if (!str) return 4;
       const firstChar = str.trim().charAt(0);
 
-      if (/[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/.test(firstChar)) {
+      if (/[가-힯ᄀ-ᇿ㄰-㆏]/.test(firstChar)) {
         return 1;
       }
-      if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(firstChar)) {
+      if (/[぀-ゟ゠-ヿ一-龯]/.test(firstChar)) {
         return 2;
       }
       if (/[A-Za-z]/.test(firstChar)) {
