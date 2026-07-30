@@ -53,14 +53,38 @@
       color: var(--text);
     }
 
-    /* Tab Controls */
-    .tab-nav {
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* Streamer Nav & Tab Controls */
+    .streamer-nav, .tab-nav {
       display: flex;
       gap: 4px;
       background-color: var(--bg-color);
       padding: 4px;
       border-radius: 8px;
       border: 1px solid var(--border);
+    }
+
+    .streamer-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: none;
+      background-color: transparent;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .streamer-btn.active {
+      background-color: #38bdf8;
+      color: #0f172a;
     }
 
     .tab-btn {
@@ -371,9 +395,17 @@
 
   <header>
     <h1>비공식 통계</h1>
-    <div class="tab-nav">
-      <button class="tab-btn active" onclick="switchMainTab('player', this)">재생</button>
-      <button class="tab-btn" onclick="switchMainTab('stats', this)">통계</button>
+    <div class="header-controls">
+      <!-- 스트리머 선택 탭 -->
+      <div class="streamer-nav">
+        <button class="streamer-btn active" onclick="switchStreamer('kira', this)">세이로쿠 키라</button>
+        <button class="streamer-btn" onclick="switchStreamer('tenten', this)">텐플라스텐 텐텐</button>
+      </div>
+      <!-- 메인 기능 선택 탭 -->
+      <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchMainTab('player', this)">재생</button>
+        <button class="tab-btn" onclick="switchMainTab('stats', this)">통계</button>
+      </div>
     </div>
   </header>
 
@@ -401,7 +433,7 @@
             <button class="filter-btn" onclick="setLangFilter('EN', this)">양식</button>
             <button class="filter-btn" onclick="setLangFilter('BUNSIK', this)">분식</button>
           </div>
-          <!-- 재생 파트 정렬 버튼 (최신순, 날짜순, 가나다순, 랜덤) -->
+          <!-- 재생 파트 정렬 버튼 -->
           <div class="filter-group">
             <button class="filter-btn" onclick="setPlayerSort('DATE_DESC', this)">최신순</button>
             <button class="filter-btn active" onclick="setPlayerSort('DATE_ASC', this)">날짜순</button>
@@ -420,7 +452,6 @@
   <div id="tab-stats" class="tab-content">
     <div class="stats-container">
       <div class="stats-header-box">
-        <!-- 필터 (전체, 한식, 일식, 양식, 분식) -->
         <div class="filter-group">
           <button class="filter-btn active" onclick="setStatsLangFilter('ALL', this)">전체</button>
           <button class="filter-btn" onclick="setStatsLangFilter('KO', this)">한식</button>
@@ -428,7 +459,6 @@
           <button class="filter-btn" onclick="setStatsLangFilter('EN', this)">양식</button>
           <button class="filter-btn" onclick="setStatsLangFilter('BUNSIK', this)">분식</button>
         </div>
-        <!-- 정렬 필터 (처음 부른 날짜순, 많이 부른 순, 원제목 한/일/영 순) -->
         <div class="filter-group">
           <button class="filter-btn active" onclick="setStatsSort('DATE_ASC', this)">처음 부른 날짜순</button>
           <button class="filter-btn" onclick="setStatsSort('COUNT_DESC', this)">많이 부른 순</button>
@@ -447,21 +477,55 @@
   </footer>
 
   <script>
-    // [구글 시트 CSV 게시 URL]
-    const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRtj9gPbkqj8_BFhsa4G_8ifKB4OaATKlIoFMUS58E1lRNzL6g-ftU1RSRiTEqWpPtFTvnlQK5Xmq95/pub?output=csv';
+    // [스트리머별 DB CSV URL 설정]
+    const STREAMERS = {
+      kira: {
+        name: '세이로쿠 키라',
+        csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRtj9gPbkqj8_BFhsa4G_8ifKB4OaATKlIoFMUS58E1lRNzL6g-ftU1RSRiTEqWpPtFTvnlQK5Xmq95/pub?gid=0&single=true&output=csv'
+      },
+      tenten: {
+        name: '텐플라스텐 텐텐',
+        csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRtj9gPbkqj8_BFhsa4G_8ifKB4OaATKlIoFMUS58E1lRNzL6g-ftU1RSRiTEqWpPtFTvnlQK5Xmq95/pub?gid=1643397383&single=true&output=csv'
+      }
+    };
 
+    let currentStreamerKey = 'kira';
     let songs = [];
     let player = null;
     let isPlayerReady = false;
     let currentIndex = 0;
     let currentLang = 'ALL';
-    let currentPlayerSort = 'DATE_ASC'; // 재생 파트 정렬 상태
+    let currentPlayerSort = 'DATE_ASC';
     let timerCheck = null;
     let currentVideoId = null;
 
     // 통계 파트 전용 상태 변수
     let currentStatsLang = 'ALL';
     let currentStatsSort = 'DATE_ASC';
+
+    // 스트리머 전환 제어
+    function switchStreamer(streamerKey, btn) {
+      if (currentStreamerKey === streamerKey) return;
+
+      currentStreamerKey = streamerKey;
+      document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      // 기존 재생 타이머 및 비디오 정지
+      clearInterval(timerCheck);
+      if (player && typeof player.stopVideo === 'function') {
+        player.stopVideo();
+      }
+
+      // 화면 초기화 및 새 데이터 수신
+      document.getElementById('playlist').innerHTML = `<div class="loading-state">${STREAMERS[streamerKey].name} 님의 데이터를 불러오는 중입니다... 🎵</div>`;
+      document.getElementById('statsList').innerHTML = `<div class="loading-state">통계 데이터를 계산 중입니다... 📊</div>`;
+      document.getElementById('npTitle').innerText = '노래목록 불러오는 중...';
+      document.getElementById('npDate').innerText = '';
+      document.getElementById('npArtist').innerText = STREAMERS[streamerKey].name;
+
+      fetchGoogleSheetData();
+    }
 
     // 탭 전환 제어
     function switchMainTab(tabId, btn) {
@@ -529,7 +593,9 @@
     });
 
     function fetchGoogleSheetData() {
-      Papa.parse(GOOGLE_SHEET_CSV_URL, {
+      const targetUrl = STREAMERS[currentStreamerKey].csvUrl;
+
+      Papa.parse(targetUrl, {
         download: true,
         header: true,
         skipEmptyLines: true,
@@ -599,9 +665,26 @@
         return a.start - b.start;
       });
 
+      currentIndex = 0;
       renderPlaylist();
       updateNowPlaying(0);
-      loadYouTubeAPI();
+
+      if (!player) {
+        loadYouTubeAPI();
+      } else {
+        currentVideoId = songs[0].videoId;
+        if (typeof player.cueVideoById === 'function') {
+          player.cueVideoById({
+            videoId: songs[0].videoId,
+            startSeconds: songs[0].start
+          });
+        }
+      }
+
+      // 통계 탭이 열려 있다면 즉시 갱신
+      if (document.getElementById('tab-stats').classList.contains('active')) {
+        renderStatistics();
+      }
     }
 
     function showError(msg) {
@@ -654,7 +737,6 @@
       }
     }
 
-    // 재생 파트 필터 판별 함수 (한식, 일식, 양식, 분식)
     function matchCategoryFilter(song, category) {
       if (category === 'ALL') return true;
       if (category === 'BUNSIK') return song.sourceType === '동요';
@@ -664,7 +746,6 @@
       return false;
     }
 
-    // 재생 파트 정렬 제어 함수 (최신순, 날짜순, 가나다순, 랜덤)
     function setPlayerSort(sortType, btn) {
       currentPlayerSort = sortType;
       btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -673,29 +754,24 @@
       const currentSongId = songs[currentIndex]?.id;
 
       if (sortType === 'DATE_DESC') {
-        // 최신순 (날짜 내림차순, 같은 날짜면 타임스탬프 순)
         songs.sort((a, b) => {
           if (a.date !== b.date) return b.date.localeCompare(a.date);
           return a.start - b.start;
         });
       } else if (sortType === 'DATE_ASC') {
-        // 날짜순 (과거순 오름차순)
         songs.sort((a, b) => {
           if (a.date !== b.date) return a.date.localeCompare(b.date);
           return a.start - b.start;
         });
       } else if (sortType === 'TITLE_ASC') {
-        // 가나다순
         songs.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
       } else if (sortType === 'SHUFFLE') {
-        // Fisher-Yates 셔플 알고리즘으로 무작위 교환
         for (let i = songs.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [songs[i], songs[j]] = [songs[j], songs[i]];
         }
       }
 
-      // 정렬 완료 후 재생 중인 곡 인덱스 보존
       if (currentSongId) {
         const newIndex = songs.findIndex(s => s.id === currentSongId);
         currentIndex = newIndex !== -1 ? newIndex : 0;
@@ -721,8 +797,8 @@
           ].join(' ').toLowerCase();
 
           matchSearch = queries.every(q => {
-            const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(`(^|[\\s,./\\-()\\[\\]_:;~])` + escapedQ + `(?=[\\s,./\\-()\\[\\]_:;~]|$)`);
+            const escapedQ = q.replace(/[.*+?^${}()|[\]\]/g, '\$&');
+            const regex = new RegExp(`(^|[\s,./\-()\[\]_:;~])` + escapedQ + `(?=[\s,./\-()\[\]_:;~]|$)`);
             return regex.test(searchableText);
           });
         }
@@ -823,10 +899,10 @@
       if (!str) return 4;
       const firstChar = str.trim().charAt(0);
 
-      if (/[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/.test(firstChar)) {
+      if (/[가-힯ᄀ-ᇿ㄰-㆏]/.test(firstChar)) {
         return 1;
       }
-      if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(firstChar)) {
+      if (/[぀-ゟ゠-ヿ一-龯]/.test(firstChar)) {
         return 2;
       }
       if (/[A-Za-z]/.test(firstChar)) {
@@ -844,7 +920,6 @@
         return;
       }
 
-      // 1. 중복 곡 통합 (원곡명 + 원가수명 기준 맵핑)
       const songMap = new Map();
 
       songs.forEach(song => {
@@ -867,7 +942,6 @@
         }
       });
 
-      // 2. 통합 배열 변환 및 날짜 정렬
       let groupedList = Array.from(songMap.values()).map(item => {
         item.rawDates.sort((a, b) => a.localeCompare(b));
         const shortDates = item.rawDates.map(d => formatShortDate(d));
@@ -889,7 +963,6 @@
         };
       });
 
-      // 3. 필터링 (전체, 한식, 일식, 양식, 분식)
       if (currentStatsLang !== 'ALL') {
         groupedList = groupedList.filter(item => {
           if (currentStatsLang === 'BUNSIK') return item.sourceType === '동요';
@@ -900,12 +973,9 @@
         });
       }
 
-      // 4. 정렬 로직 적용
       if (currentStatsSort === 'DATE_ASC') {
-        // 처음 부른 날짜순
         groupedList.sort((a, b) => a.firstDate.localeCompare(b.firstDate));
       } else if (currentStatsSort === 'COUNT_DESC') {
-        // 많이 부른 순 (내림차순) -> 횟수 같으면 처음 부른 날짜순
         groupedList.sort((a, b) => {
           if (b.count !== a.count) {
             return b.count - a.count;
@@ -913,7 +983,6 @@
           return a.firstDate.localeCompare(b.firstDate);
         });
       } else if (currentStatsSort === 'TITLE_LANG') {
-        // 원제목 기준 (한글 -> 일본어 -> 영어 -> 기타)
         groupedList.sort((a, b) => {
           const catA = getTitleLangCategory(a.titleOrig);
           const catB = getTitleLangCategory(b.titleOrig);
@@ -930,7 +999,6 @@
         return;
       }
 
-      // 5. DOM 출력 (제일 좌측에 순번 추가)
       groupedList.forEach((item, idx) => {
         const div = document.createElement('div');
         div.className = 'stats-item';
