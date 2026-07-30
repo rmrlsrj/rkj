@@ -433,7 +433,7 @@
             <button class="filter-btn" onclick="setLangFilter('EN', this)">양식</button>
             <button class="filter-btn" onclick="setLangFilter('BUNSIK', this)">분식</button>
           </div>
-          <!-- 재생 파트 정렬 버튼 -->
+          <!-- 재생 파트 정렬 버튼 (최신순, 날짜순, 가나다순, 랜덤) -->
           <div class="filter-group">
             <button class="filter-btn" onclick="setPlayerSort('DATE_DESC', this)">최신순</button>
             <button class="filter-btn active" onclick="setPlayerSort('DATE_ASC', this)">날짜순</button>
@@ -452,6 +452,7 @@
   <div id="tab-stats" class="tab-content">
     <div class="stats-container">
       <div class="stats-header-box">
+        <!-- 필터 (전체, 한식, 일식, 양식, 분식) -->
         <div class="filter-group">
           <button class="filter-btn active" onclick="setStatsLangFilter('ALL', this)">전체</button>
           <button class="filter-btn" onclick="setStatsLangFilter('KO', this)">한식</button>
@@ -459,6 +460,7 @@
           <button class="filter-btn" onclick="setStatsLangFilter('EN', this)">양식</button>
           <button class="filter-btn" onclick="setStatsLangFilter('BUNSIK', this)">분식</button>
         </div>
+        <!-- 정렬 필터 (처음 부른 날짜순, 많이 부른 순, 원제목 한/일/영 순) -->
         <div class="filter-group">
           <button class="filter-btn active" onclick="setStatsSort('DATE_ASC', this)">처음 부른 날짜순</button>
           <button class="filter-btn" onclick="setStatsSort('COUNT_DESC', this)">많이 부른 순</button>
@@ -505,19 +507,15 @@
 
     // 스트리머 전환 제어
     function switchStreamer(streamerKey, btn) {
-      if (currentStreamerKey === streamerKey) return;
-
       currentStreamerKey = streamerKey;
       document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
-      // 기존 재생 타이머 및 비디오 정지
       clearInterval(timerCheck);
       if (player && typeof player.stopVideo === 'function') {
         player.stopVideo();
       }
 
-      // 화면 초기화 및 새 데이터 수신
       document.getElementById('playlist').innerHTML = `<div class="loading-state">${STREAMERS[streamerKey].name} 님의 데이터를 불러오는 중입니다... 🎵</div>`;
       document.getElementById('statsList').innerHTML = `<div class="loading-state">통계 데이터를 계산 중입니다... 📊</div>`;
       document.getElementById('npTitle').innerText = '노래목록 불러오는 중...';
@@ -588,50 +586,88 @@
       return fullDate;
     }
 
+    // 안전한 행 값 추출 함수 (BOM 및 대소문자 방어)
+    function getRowVal(row, colName) {
+      if (!row) return '';
+      if (row[colName] !== undefined && row[colName] !== null) {
+        return String(row[colName]).trim();
+      }
+      const targetKey = colName.toLowerCase();
+      for (const key of Object.keys(row)) {
+        const cleanKey = key.replace(/^\ufeff/, '').trim().toLowerCase();
+        if (cleanKey === targetKey) {
+          return String(row[key] || '').trim();
+        }
+      }
+      return '';
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       fetchGoogleSheetData();
     });
 
     function fetchGoogleSheetData() {
-      const targetUrl = STREAMERS[currentStreamerKey].csvUrl;
+      const streamer = STREAMERS[currentStreamerKey];
+      if (!streamer) {
+        showError('선택된 스트리머 정보를 찾을 수 없습니다.');
+        return;
+      }
 
-      Papa.parse(targetUrl, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: function(results) {
-          if (results.data && results.data.length > 0) {
-            parseAndLoadSongs(results.data);
-          } else {
-            showError('구글 시트에서 데이터를 찾을 수 없습니다.');
+      if (typeof Papa === 'undefined') {
+        showError('PapaParse 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인하세요.');
+        return;
+      }
+
+      try {
+        Papa.parse(streamer.csvUrl, {
+          download: true,
+          header: true,
+          skipEmptyLines: 'greedy',
+          transformHeader: function(h) {
+            return h.replace(/^\ufeff/, '').trim();
+          },
+          complete: function(results) {
+            try {
+              if (results.data && results.data.length > 0) {
+                parseAndLoadSongs(results.data);
+              } else {
+                showError('구글 시트에서 데이터를 찾을 수 없습니다.');
+              }
+            } catch (err) {
+              console.error('Data Process Exception:', err);
+              showError('데이터 처리 중 오류가 발생했습니다: ' + err.message);
+            }
+          },
+          error: function(err) {
+            console.error('CSV Load Error:', err);
+            showError('구글 시트 데이터를 불러오는데 실패했습니다. 웹 게시 설정을 확인해 주세요.');
           }
-        },
-        error: function(err) {
-          console.error('CSV Load Error:', err);
-          showError('구글 시트 데이터를 불러오는데 실패했습니다.');
-        }
-      });
+        });
+      } catch (err) {
+        console.error('Fetch Exception:', err);
+        showError('데이터 연결 실패: ' + err.message);
+      }
     }
 
     function parseAndLoadSongs(rawData) {
       songs = rawData.map((row, idx) => {
-        const id = (row['id'] || '').trim();
-        const title = (row['uniform_title'] || row['title_orig'] || '').trim();
-        const titleOrig = (row['title_orig'] || title).trim();
-        const artist = (row['uniform_artist'] || row['artist_orig'] || '').trim();
-        const artistOrig = (row['artist_orig'] || artist).trim();
-        const work = (row['source_work'] || '').trim();
-        const sourceType = (row['source_type'] || '').trim();
-        const lang = (row['lang'] || 'JA').trim().toUpperCase();
-        const dateRaw = (row['date'] || '').trim();
+        const id = getRowVal(row, 'id');
+        const title = getRowVal(row, 'uniform_title') || getRowVal(row, 'title_orig');
+        const titleOrig = getRowVal(row, 'title_orig') || title;
+        const artist = getRowVal(row, 'uniform_artist') || getRowVal(row, 'artist_orig');
+        const artistOrig = getRowVal(row, 'artist_orig') || artist;
+        const work = getRowVal(row, 'source_work');
+        const sourceType = getRowVal(row, 'source_type');
+        const lang = (getRowVal(row, 'lang') || 'JA').toUpperCase();
+        const dateRaw = getRowVal(row, 'date');
         const date = formatDate(dateRaw, id);
-        const start = timeToSeconds(row['start_time']);
-        const end = timeToSeconds(row['end_time']);
-        const videoId = (row['video_id'] || '').trim();
-        const note = (row['note'] || '').trim();
+        const start = timeToSeconds(getRowVal(row, 'start_time'));
+        const end = timeToSeconds(getRowVal(row, 'end_time'));
+        const videoId = getRowVal(row, 'video_id');
+        const note = getRowVal(row, 'note');
         
-        const titlePhonetic = (row['title_phonetic'] || '').trim();
-        const artistPhonetic = (row['artist_phonetic'] || '').trim();
+        const titlePhonetic = getRowVal(row, 'title_phonetic');
+        const artistPhonetic = getRowVal(row, 'artist_phonetic');
 
         return {
           id: id || `song_${idx}`,
@@ -671,17 +707,14 @@
 
       if (!player) {
         loadYouTubeAPI();
-      } else {
+      } else if (typeof player.cueVideoById === 'function') {
         currentVideoId = songs[0].videoId;
-        if (typeof player.cueVideoById === 'function') {
-          player.cueVideoById({
-            videoId: songs[0].videoId,
-            startSeconds: songs[0].start
-          });
-        }
+        player.cueVideoById({
+          videoId: songs[0].videoId,
+          startSeconds: songs[0].start
+        });
       }
 
-      // 통계 탭이 열려 있다면 즉시 갱신
       if (document.getElementById('tab-stats').classList.contains('active')) {
         renderStatistics();
       }
@@ -689,6 +722,7 @@
 
     function showError(msg) {
       document.getElementById('playlist').innerHTML = `<div class="loading-state" style="color:#f43f5e;">${msg}</div>`;
+      document.getElementById('statsList').innerHTML = `<div class="loading-state" style="color:#f43f5e;">${msg}</div>`;
       document.getElementById('npTitle').innerText = '데이터 오류';
       document.getElementById('npDate').innerText = '';
     }
@@ -797,8 +831,8 @@
           ].join(' ').toLowerCase();
 
           matchSearch = queries.every(q => {
-            const escapedQ = q.replace(/[.*+?^${}()|[\]\]/g, '\$&');
-            const regex = new RegExp(`(^|[\s,./\-()\[\]_:;~])` + escapedQ + `(?=[\s,./\-()\[\]_:;~]|$)`);
+            const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(^|[\\s,./\\-()\\[\\]_:;~])` + escapedQ + `(?=[\\s,./\\-()\\[\\]_:;~]|$)`);
             return regex.test(searchableText);
           });
         }
@@ -899,10 +933,10 @@
       if (!str) return 4;
       const firstChar = str.trim().charAt(0);
 
-      if (/[가-힯ᄀ-ᇿ㄰-㆏]/.test(firstChar)) {
+      if (/[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/.test(firstChar)) {
         return 1;
       }
-      if (/[぀-ゟ゠-ヿ一-龯]/.test(firstChar)) {
+      if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(firstChar)) {
         return 2;
       }
       if (/[A-Za-z]/.test(firstChar)) {
