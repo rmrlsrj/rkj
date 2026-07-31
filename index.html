@@ -314,7 +314,6 @@
       align-items: center;
     }
 
-    /* 현재 재생 중인 곡 애니메이션 아이콘 */
     .playing-icon {
       display: inline-block;
       margin-right: 6px;
@@ -344,7 +343,6 @@
       white-space: nowrap;
     }
 
-    /* 검색 결과 없음 빈 화면 */
     .empty-state {
       text-align: center;
       padding: 40px 20px;
@@ -530,11 +528,14 @@
           <button class="filter-btn" onclick="setStatsLangFilter('EN', this)">양식</button>
           <button class="filter-btn" onclick="setStatsLangFilter('BUNSIK', this)">분식</button>
         </div>
-        <!-- 정렬 필터 (처음 부른 날짜순, 많이 부른 순, 원제목 한/일/영 순) -->
+        <!-- 정렬 필터 추가 및 개선 -->
         <div class="filter-group">
           <button class="filter-btn active" onclick="setStatsSort('DATE_ASC', this)">처음 부른 날짜순</button>
+          <button class="filter-btn" onclick="setStatsSort('RECENT_DESC', this)">최근에 부른 날짜순</button>
           <button class="filter-btn" onclick="setStatsSort('COUNT_DESC', this)">많이 부른 순</button>
           <button class="filter-btn" onclick="setStatsSort('TITLE_LANG', this)">원제목순 (한/일/영)</button>
+          <button class="filter-btn" onclick="setStatsSort('OLD_ASC', this)">오래 묵은 곡 순</button>
+          <button class="filter-btn" onclick="setStatsSort('SHUFFLE', this)">🎲 랜덤</button>
         </div>
       </div>
 
@@ -840,7 +841,7 @@
       }
 
       // 초기 로딩 시 기본 정렬: ID 기준 (날짜 및 순번 순)
-      songs.sort((a, b) => a.id.localeCompare(b.id));
+      songs.sort((a, b) => a.id.localeCompare(b.id, undefined, {numeric: true}));
 
       if (invalidRows.length > 0) {
         console.warn(`Skipping invalid spreadsheet rows: ${invalidRows.join(', ')}`);
@@ -952,9 +953,9 @@
       const currentSongId = songs[currentIndex]?.id;
 
       if (sortType === 'DATE_DESC') {
-        songs.sort((a, b) => b.id.localeCompare(a.id));
+        songs.sort((a, b) => b.id.localeCompare(a.id, undefined, {numeric: true}));
       } else if (sortType === 'DATE_ASC') {
-        songs.sort((a, b) => a.id.localeCompare(b.id));
+        songs.sort((a, b) => a.id.localeCompare(b.id, undefined, {numeric: true}));
       } else if (sortType === 'TITLE_ASC') {
         songs.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
       } else if (sortType === 'SHUFFLE') {
@@ -1154,17 +1155,20 @@
         const entry = songMap.get(key);
         entry.playCount += 1;
         
+        // 날짜, 유튜브 ID, 시작 시간 외에 정확한 순서 정렬을 위해 id도 함께 저장합니다.
         if (song.date) {
           entry.playEvents.push({
             date: song.date,
             videoId: song.videoId,
-            start: song.start
+            start: song.start,
+            id: song.id
           });
         }
       });
 
       return Array.from(songMap.values()).map(item => {
-        const sortedEvents = item.playEvents.sort((a, b) => a.date.localeCompare(b.date));
+        // ID 기준으로 이벤트 정렬 (시간/순서 완벽 반영)
+        const sortedEvents = item.playEvents.sort((a, b) => a.id.localeCompare(b.id, undefined, {numeric: true}));
         
         const titleDisplay = (item.lang === 'JA' || item.lang === 'EN')
           && item.title && item.title !== item.titleOrig
@@ -1174,7 +1178,8 @@
         return {
           ...item,
           titleDisplay,
-          firstDate: sortedEvents.length > 0 ? sortedEvents[0].date : '',
+          firstId: sortedEvents.length > 0 ? sortedEvents[0].id : '',
+          lastId: sortedEvents.length > 0 ? sortedEvents[sortedEvents.length - 1].id : '',
           sortedEvents: sortedEvents
         };
       });
@@ -1185,15 +1190,36 @@
     }
 
     function sortStatistics(items, sortType) {
-      return [...items].sort((a, b) => {
-        if (sortType === 'COUNT_DESC') {
-          return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate);
+      // 랜덤 정렬
+      if (sortType === 'SHUFFLE') {
+        const shuffled = [...items];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
+        return shuffled;
+      }
+
+      return [...items].sort((a, b) => {
+        // 많이 부른 순
+        if (sortType === 'COUNT_DESC') {
+          return b.playCount - a.playCount || a.firstId.localeCompare(b.firstId, undefined, {numeric: true});
+        }
+        // 원제목순
         if (sortType === 'TITLE_LANG') {
           return getTitleLangCategory(a.titleOrig) - getTitleLangCategory(b.titleOrig)
             || a.titleOrig.localeCompare(b.titleOrig, 'ko');
         }
-        return a.firstDate.localeCompare(b.firstDate);
+        // 최근에 부른 날짜순 (가장 마지막에 부른 ID 역순)
+        if (sortType === 'RECENT_DESC') {
+          return b.lastId.localeCompare(a.lastId, undefined, {numeric: true});
+        }
+        // 오래 묵은 곡 순 (가장 마지막에 부른 ID 순)
+        if (sortType === 'OLD_ASC') {
+          return a.lastId.localeCompare(b.lastId, undefined, {numeric: true});
+        }
+        // 기본값: 처음 부른 날짜순
+        return a.firstId.localeCompare(b.firstId, undefined, {numeric: true});
       });
     }
 
@@ -1244,7 +1270,6 @@
         
         div.appendChild(datesSpan);
         
-        // 요청하신 대로 n회만 남김
         addText('count-text', `(${item.playCount}회)`);
         
         fragment.appendChild(div);
