@@ -370,7 +370,7 @@
       border-radius: 12px;
       padding: 16px;
       display: flex;
-      flex-direction: column; /* 검색창 추가를 위해 세로 정렬로 변경 */
+      flex-direction: column; 
       gap: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
@@ -508,7 +508,7 @@
             <button class="filter-btn" onclick="setLangFilter('EN', this)">양식</button>
             <button class="filter-btn" onclick="setLangFilter('BUNSIK', this)">분식</button>
           </div>
-          <!-- 재생 파트 정렬 버튼 (최신순, 날짜순, 가나다순, 랜덤) -->
+          <!-- 재생 파트 정렬 버튼 -->
           <div class="filter-group">
             <button class="filter-btn" onclick="setPlayerSort('DATE_DESC', this)">최신순</button>
             <button class="filter-btn active" onclick="setPlayerSort('DATE_ASC', this)">날짜순</button>
@@ -531,7 +531,7 @@
         <input type="text" id="statsSearchInput" class="search-input" placeholder="통계 내 곡명, 가수 등 검색 (띄어쓰기로 단어별 정확히 검색)..." oninput="filterStats()">
         
         <div class="stats-header-controls">
-          <!-- 필터 (전체, 한식, 일식, 양식, 분식) -->
+          <!-- 필터 -->
           <div class="filter-group">
             <button class="filter-btn active" onclick="setStatsLangFilter('ALL', this)">전체</button>
             <button class="filter-btn" onclick="setStatsLangFilter('KO', this)">한식</button>
@@ -539,7 +539,7 @@
             <button class="filter-btn" onclick="setStatsLangFilter('EN', this)">양식</button>
             <button class="filter-btn" onclick="setStatsLangFilter('BUNSIK', this)">분식</button>
           </div>
-          <!-- 정렬 필터 추가 및 개선 -->
+          <!-- 정렬 필터 -->
           <div class="filter-group">
             <button class="filter-btn active" onclick="setStatsSort('DATE_ASC', this)">처음 부른 날짜순</button>
             <button class="filter-btn" onclick="setStatsSort('RECENT_DESC', this)">최근에 부른 날짜순</button>
@@ -574,11 +574,16 @@
       }
     };
 
+    // 상태 변수 (원본 목록, 화면 표시 목록, 현재 재생 상태)
     let currentStreamerKey = 'kira';
     let songs = [];
+    let displayedSongs = []; // 검색/정렬 필터링된 현재 화면의 곡 목록
+    
     let player = null;
     let isPlayerReady = false;
-    let currentIndex = 0;
+    let currentDisplayIndex = -1; // displayedSongs 내의 현재 인덱스
+    let currentPlayingSongId = null; // 곡 변경에도 재생 상태 유지를 위해 ID 추적
+    
     let currentLang = 'ALL';
     let currentPlayerSort = 'DATE_ASC';
     let timerCheck = null;
@@ -601,7 +606,7 @@
       document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
-      // 선택한 스트리머에 맞게 메인/보조/배경 테마 컬러 모두 변경
+      // 선택한 스트리머에 맞게 메인/보조/배경 테마 컬러 변경
       if (streamerKey === 'kira') {
         document.documentElement.style.setProperty('--accent-primary', 'var(--kira-primary)');
         document.documentElement.style.setProperty('--accent-secondary', 'var(--kira-secondary)');
@@ -683,7 +688,7 @@
       return '';
     }
 
-    // YYYY.MM.DD -> YY.MM.DD 변환 (통계 출력용)
+    // YYYY.MM.DD -> YY.MM.DD 변환
     function formatShortDate(fullDate) {
       if (!fullDate) return '';
       const parts = fullDate.split('.');
@@ -792,31 +797,19 @@
         
         const titlePhonetic = getRowVal(row, 'title_phonetic');
         const artistPhonetic = getRowVal(row, 'artist_phonetic');
-        
         const songKey = getRowVal(row, 'song_key');
         const normalization = getRowVal(row, 'normalization');
 
         const searchText = [
-          title,
-          titleOrig,
-          titlePhonetic,
-          artist,
-          artistOrig,
-          artistPhonetic,
-          work,
-          date,
-          note,
-          songKey
-        ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
+          title, titleOrig, titlePhonetic, artist, artistOrig,
+          artistPhonetic, work, date, note, songKey
+        ].filter(Boolean).join(' ').toLowerCase();
 
         const isValidVideoId = /^[A-Za-z0-9_-]{11}$/.test(videoId);
         const hasInvalidTimestamp = (
-          (startValue === null && Boolean(getRowVal(row, 'start_time')))
-          || (endValue === null && Boolean(getRowVal(row, 'end_time')))
-          || (end > 0 && end <= start)
+          (startValue === null && Boolean(getRowVal(row, 'start_time'))) ||
+          (endValue === null && Boolean(getRowVal(row, 'end_time'))) ||
+          (end > 0 && end <= start)
         );
 
         if (!isValidVideoId || !title || hasInvalidTimestamp) {
@@ -826,24 +819,9 @@
 
         return {
           id: id || `song_${idx}`,
-          title: title,
-          titleOrig: titleOrig,
-          artist: artist,
-          artistOrig: artistOrig,
-          work: work,
-          sourceType: sourceType,
-          lang: lang,
-          date: date,
-          start: start,
-          end: end,
-          duration: Math.max(0, end - start),
-          videoId: videoId,
-          note: note,
-          titlePhonetic: titlePhonetic,
-          artistPhonetic: artistPhonetic,
-          songKey: songKey,
-          normalization: normalization,
-          searchText: searchText
+          title, titleOrig, artist, artistOrig, work, sourceType, lang, date,
+          start, end, duration: Math.max(0, end - start), videoId, note,
+          titlePhonetic, artistPhonetic, songKey, normalization, searchText
         };
       }).filter(Boolean);
 
@@ -852,25 +830,36 @@
         return;
       }
 
-      // 초기 로딩 시 기본 정렬: ID 기준 (날짜 및 순번 순)
+      // 기본 정렬: ID 기준
       songs.sort((a, b) => a.id.localeCompare(b.id, undefined, {numeric: true}));
 
       if (invalidRows.length > 0) {
         console.warn(`Skipping invalid spreadsheet rows: ${invalidRows.join(', ')}`);
       }
 
-      currentIndex = 0;
+      // 초기화 및 첫 번째 곡 큐잉
+      currentPlayingSongId = null;
       renderPlaylist();
-      updateNowPlaying(0);
+
+      if (displayedSongs.length > 0) {
+        const firstSong = displayedSongs[0];
+        currentPlayingSongId = firstSong.id;
+        currentDisplayIndex = 0;
+        updateNowPlaying(firstSong);
+      } else {
+        document.getElementById('npTitle').innerText = '검색 결과 없음';
+        document.getElementById('npDate').innerText = '';
+        document.getElementById('npArtist').innerText = '-';
+      }
 
       if (!player) {
         loadYouTubeAPI();
-      } else if (typeof player.cueVideoById === 'function') {
-        currentVideoId = songs[0].videoId;
-        player.cueVideoById({
-          videoId: songs[0].videoId,
-          startSeconds: songs[0].start
-        });
+      } else if (displayedSongs.length > 0) {
+        const firstSong = displayedSongs[0];
+        currentVideoId = firstSong.videoId;
+        if (typeof player.cueVideoById === 'function') {
+          player.cueVideoById({ videoId: firstSong.videoId, startSeconds: firstSong.start });
+        }
       }
 
       if (document.getElementById('tab-stats').classList.contains('active')) {
@@ -914,16 +903,17 @@
     };
 
     function initPlayer() {
-      if (player || songs.length === 0) return;
-      currentVideoId = songs[0].videoId;
+      if (player || displayedSongs.length === 0) return;
+      const firstSong = displayedSongs[0];
+      currentVideoId = firstSong.videoId;
       player = new YT.Player('player', {
         height: '100%',
         width: '100%',
-        videoId: songs[0].videoId,
+        videoId: firstSong.videoId,
         playerVars: { 
           'autoplay': 0, 
           'controls': 1,
-          'start': songs[0].start
+          'start': firstSong.start
         },
         events: {
           'onReady': () => {
@@ -937,9 +927,7 @@
     function onPlayerStateChange(event) {
       if (event.data === YT.PlayerState.ENDED) {
         clearPlaybackMonitor();
-        if (currentIndex + 1 < songs.length) {
-          playSong(currentIndex + 1);
-        }
+        playNextSong();
       }
     }
 
@@ -962,8 +950,6 @@
       btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
-      const currentSongId = songs[currentIndex]?.id;
-
       if (sortType === 'DATE_DESC') {
         songs.sort((a, b) => b.id.localeCompare(a.id, undefined, {numeric: true}));
       } else if (sortType === 'DATE_ASC') {
@@ -977,63 +963,62 @@
         }
       }
 
-      if (currentSongId) {
-        const newIndex = songs.findIndex(s => s.id === currentSongId);
-        currentIndex = newIndex !== -1 ? newIndex : 0;
-      }
-
       renderPlaylist();
     }
 
+    // 화면에 보여지는 목록(displayedSongs)에 맞춰 재생하도록 수정
     function renderPlaylist() {
       const container = document.getElementById('playlist');
       const searchInput = document.getElementById('searchInput').value.trim().toLowerCase();
       const queries = searchInput ? searchInput.split(/\s+/) : [];
 
-      const fragment = document.createDocumentFragment();
-      let matchCount = 0;
-
-      songs.forEach((song, idx) => {
+      // 필터링 적용된 목록 추출
+      displayedSongs = songs.filter(song => {
         let matchSearch = true;
-        
         if (queries.length > 0) {
           const searchableText = song.searchText;
-          matchSearch = queries.every(q => {
-            return searchableText.includes(q);
-          });
+          matchSearch = queries.every(q => searchableText.includes(q));
         }
-                            
         const matchCategory = matchCategoryFilter(song, currentLang);
-
-        if (matchSearch && matchCategory) {
-          matchCount++;
-          const isActive = (idx === currentIndex);
-          const card = document.createElement('div');
-          card.className = `song-card ${isActive ? 'active' : ''}`;
-          card.onclick = () => playSong(idx);
-          card.tabIndex = 0;
-          card.onkeydown = event => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              playSong(idx);
-            }
-          };
-
-          const playIcon = isActive ? `<span class="playing-icon">▶️</span>` : '';
-
-          card.innerHTML = `
-            <div>
-              <div class="song-info-date">${escapeHtml(song.date)}</div>
-              <div class="song-info-main">${playIcon}${escapeHtml(song.title)}</div>
-              <div class="song-info-sub">${escapeHtml(song.artist)}${song.work ? ' • ' + escapeHtml(song.work) : ''}</div>
-            </div>
-            <span class="song-badge">${escapeHtml(song.lang)}</span>
-          `;
-          fragment.appendChild(card);
-        }
+        return matchSearch && matchCategory;
       });
 
-      if (matchCount === 0) {
+      // 변경된 목록 내에서 현재 재생 중이던 곡의 위치 다시 찾기
+      if (currentPlayingSongId) {
+        currentDisplayIndex = displayedSongs.findIndex(s => s.id === currentPlayingSongId);
+      } else {
+        currentDisplayIndex = displayedSongs.length > 0 ? 0 : -1;
+      }
+
+      const fragment = document.createDocumentFragment();
+
+      displayedSongs.forEach((song, idx) => {
+        const isActive = (song.id === currentPlayingSongId);
+        const card = document.createElement('div');
+        card.className = `song-card ${isActive ? 'active' : ''}`;
+        card.onclick = () => playSong(idx);
+        card.tabIndex = 0;
+        card.onkeydown = event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            playSong(idx);
+          }
+        };
+
+        const playIcon = isActive ? `<span class="playing-icon">▶️</span>` : '';
+
+        card.innerHTML = `
+          <div>
+            <div class="song-info-date">${escapeHtml(song.date)}</div>
+            <div class="song-info-main">${playIcon}${escapeHtml(song.title)}</div>
+            <div class="song-info-sub">${escapeHtml(song.artist)}${song.work ? ' • ' + escapeHtml(song.work) : ''}</div>
+          </div>
+          <span class="song-badge">${escapeHtml(song.lang)}</span>
+        `;
+        fragment.appendChild(card);
+      });
+
+      if (displayedSongs.length === 0) {
         const emptyState = document.createElement('div');
         emptyState.className = 'empty-state';
         emptyState.innerHTML = '조건에 맞는 곡이 없습니다. 텅~ 👻<br><br><small>검색어나 필터를 다시 확인해 보세요!</small>';
@@ -1043,29 +1028,34 @@
       container.replaceChildren(fragment);
     }
 
-    function playSong(index) {
-      currentIndex = index;
-      const song = songs[index];
-      if (!song) return;
+    // index는 displayedSongs 안에서의 인덱스
+    function playSong(index, cueOnly = false) {
+      if (index < 0 || index >= displayedSongs.length) return;
+      
+      currentDisplayIndex = index;
+      const song = displayedSongs[index];
+      currentPlayingSongId = song.id;
+      
       clearTimeout(playerRetryTimeout);
-      renderPlaylist();
-      updateNowPlaying(index);
+      renderPlaylist(); // 곡을 선택하면 active 상태 업데이트를 위해 리렌더링
+      updateNowPlaying(song);
 
       if (isPlayerReady && player) {
         if (currentVideoId === song.videoId && typeof player.seekTo === 'function') {
           player.seekTo(song.start, true);
-          player.playVideo();
+          if (!cueOnly) player.playVideo();
         } else if (typeof player.loadVideoById === 'function') {
           currentVideoId = song.videoId;
-          player.loadVideoById({
-            videoId: song.videoId,
-            startSeconds: song.start
-          });
+          if (cueOnly) {
+            player.cueVideoById({ videoId: song.videoId, startSeconds: song.start });
+          } else {
+            player.loadVideoById({ videoId: song.videoId, startSeconds: song.start });
+          }
         }
       } else {
         const songId = song.id;
         playerRetryTimeout = setTimeout(() => {
-          if (songs[index]?.id === songId && currentIndex === index) playSong(index);
+          if (currentPlayingSongId === songId) playSong(index, cueOnly);
         }, 300);
         return;
       }
@@ -1076,16 +1066,22 @@
           const currentTime = player.getCurrentTime();
           if (currentTime >= song.end && song.end > 0) {
             clearPlaybackMonitor();
-            if (currentIndex + 1 < songs.length) {
-              playSong(currentIndex + 1);
-            }
+            playNextSong();
           }
         }
       }, 250);
     }
 
-    function updateNowPlaying(index) {
-      const song = songs[index];
+    function playNextSong() {
+      // 현재 리스트에 곡이 남아있을 때만 다음 곡 재생, 마지막이면 정지
+      if (currentDisplayIndex !== -1 && currentDisplayIndex + 1 < displayedSongs.length) {
+        playSong(currentDisplayIndex + 1);
+      } else if (player && typeof player.stopVideo === 'function') {
+        player.stopVideo();
+      }
+    }
+
+    function updateNowPlaying(song) {
       if (!song) return;
       document.getElementById('npDate').innerText = song.date;
       document.getElementById('npTitle').innerText = song.title;
@@ -1095,6 +1091,13 @@
     function filterSongs() {
       clearTimeout(searchDebounceTimer);
       searchDebounceTimer = setTimeout(renderPlaylist, 180);
+    }
+
+    function setLangFilter(lang, btn) {
+      currentLang = lang;
+      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderPlaylist();
     }
 
     // ==========================================
