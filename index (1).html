@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>비공식 통계</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- PapaParse CDN for robust CSV parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --panel-bg: #1e293b;
+      --card-bg: #334155;
+      --accent: #f43f5e;
+      --accent-hover: #e11d48;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #475569;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: var(--panel-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* Streamer Nav & Tab Controls */
+    .streamer-nav, .tab-nav {
+      display: flex;
+      gap: 4px;
+      background-color: var(--bg-color);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .streamer-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: none;
+      background-color: transparent;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .streamer-btn.active {
+      background-color: #38bdf8;
+      color: #0f172a;
+    }
+
+    .tab-btn {
+      padding: 6px 16px;
+      border-radius: 6px;
+      border: none;
+      background-color: transparent;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background-color: var(--accent);
+      color: #fff;
+    }
+
+    .tab-content {
+      display: none;
+      width: 100%;
+      flex: 1;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .main-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    @media (min-width: 900px) {
+      .main-container {
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+    }
+
+    /* Player Box */
+    .player-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .player-container {
+      position: relative;
+      padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+      height: 0;
+      background-color: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .player-container iframe, .player-container div#player {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .now-playing-card {
+      background-color: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+
+    .now-playing-date {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .now-playing-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .now-playing-artist {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Playlist Section */
+    .playlist-section {
+      background-color: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+    }
+
+    .search-filter-box {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background-color: var(--bg-color);
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background-color: var(--bg-color);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active, .filter-btn:hover {
+      background-color: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .playlist-scroll {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+    }
+
+    .playlist-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .playlist-scroll::-webkit-scrollbar-thumb {
+      background-color: var(--border);
+      border-radius: 3px;
+    }
+
+    .song-card {
+      padding: 12px 14px;
+      border-radius: 8px;
+      background-color: var(--bg-color);
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+    }
+
+    .song-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .song-card.active {
+      border-left: 4px solid var(--accent);
+      background-color: #1e293b;
+    }
+
+    .song-info-date {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .song-info-main {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .song-info-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .song-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 6px;
+      border-radius: 4px;
+      background-color: var(--card-bg);
+      color: #38bdf8;
+    }
+
+    /* Statistics Section */
+    .stats-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .stats-header-box {
+      background-color: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .stats-list {
+      background-color: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 500px;
+    }
+
+    .stats-item {
+      background-color: var(--bg-color);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    .stats-item .index-text {
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-right: 6px;
+    }
+
+    .stats-item .title-text {
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    .stats-item .artist-text {
+      color: #f43f5e;
+    }
+
+    .stats-item .dates-text {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .stats-item .count-text {
+      font-weight: 700;
+      color: #f59e0b;
+      margin-left: 4px;
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 40px 10px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 16px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+      background-color: var(--panel-bg);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>비공식 통계</h1>
+    <div class="header-controls">
+      <!-- 스트리머 선택 탭 -->
+      <div class="streamer-nav">
+        <button class="streamer-btn active" onclick="switchStreamer('kira', this)">세이로쿠 키라</button>
+        <button class="streamer-btn" onclick="switchStreamer('tenten', this)">텐플라스텐 텐텐</button>
+      </div>
+      <!-- 메인 기능 선택 탭 -->
+      <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchMainTab('player', this)">재생</button>
+        <button class="tab-btn" onclick="switchMainTab('stats', this)">통계</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- [1. 재생 파트] -->
+  <div id="tab-player" class="tab-content active">
+    <div class="main-container">
+      <div class="player-section">
+        <div class="player-container">
+          <div id="player"></div>
+        </div>
+        <div class="now-playing-card">
+          <div class="now-playing-date" id="npDate">데이터 로딩 중...</div>
+          <div class="now-playing-title" id="npTitle">노래목록 불러오는 중...</div>
+          <div class="now-playing-artist" id="npArtist">노래 아카이브 플레이어</div>
+        </div>
+      </div>
+
+      <div class="playlist-section">
+        <div class="search-filter-box">
+          <input type="text" id="searchInput" class="search-input" placeholder="곡명, 가수, 날짜 등 (띄어쓰기로 단어별 정확히 검색)..." oninput="filterSongs()">
+          <div class="filter-group">
+            <button class="filter-btn active" onclick="setLangFilter('ALL', this)">전체</button>
+            <button class="filter-btn" onclick="setLangFilter('KO', this)">한식</button>
+            <button class="filter-btn" onclick="setLangFilter('JA', this)">일식</button>
+            <button class="filter-btn" onclick="setLangFilter('EN', this)">양식</button>
+            <button class="filter-btn" onclick="setLangFilter('BUNSIK', this)">분식</button>
+          </div>
+          <!-- 재생 파트 정렬 버튼 (최신순, 날짜순, 가나다순, 랜덤) -->
+          <div class="filter-group">
+            <button class="filter-btn" onclick="setPlayerSort('DATE_DESC', this)">최신순</button>
+            <button class="filter-btn active" onclick="setPlayerSort('DATE_ASC', this)">날짜순</button>
+            <button class="filter-btn" onclick="setPlayerSort('TITLE_ASC', this)">가나다순</button>
+            <button class="filter-btn" onclick="setPlayerSort('SHUFFLE', this)">🎲 랜덤</button>
+          </div>
+        </div>
+        <div class="playlist-scroll" id="playlist">
+          <div class="loading-state">구글 시트에서 노래 데이터를 불러오는 중입니다... 🎵</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- [2. 통계 파트] -->
+  <div id="tab-stats" class="tab-content">
+    <div class="stats-container">
+      <div class="stats-header-box">
+        <!-- 필터 (전체, 한식, 일식, 양식, 분식) -->
+        <div class="filter-group">
+          <button class="filter-btn active" onclick="setStatsLangFilter('ALL', this)">전체</button>
+          <button class="filter-btn" onclick="setStatsLangFilter('KO', this)">한식</button>
+          <button class="filter-btn" onclick="setStatsLangFilter('JA', this)">일식</button>
+          <button class="filter-btn" onclick="setStatsLangFilter('EN', this)">양식</button>
+          <button class="filter-btn" onclick="setStatsLangFilter('BUNSIK', this)">분식</button>
+        </div>
+        <!-- 정렬 필터 (처음 부른 날짜순, 많이 부른 순, 원제목 한/일/영 순) -->
+        <div class="filter-group">
+          <button class="filter-btn active" onclick="setStatsSort('DATE_ASC', this)">처음 부른 날짜순</button>
+          <button class="filter-btn" onclick="setStatsSort('COUNT_DESC', this)">많이 부른 순</button>
+          <button class="filter-btn" onclick="setStatsSort('TITLE_LANG', this)">원제목순 (한/일/영)</button>
+        </div>
+      </div>
+
+      <div class="stats-list" id="statsList">
+        <div class="loading-state">통계 데이터를 계산 중입니다... 📊</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    비공식 통계
+  </footer>
+
+  <script>
+    // [스트리머별 독립된 CSV URL 설정]
+    const STREAMERS = {
+      kira: {
+        name: '세이로쿠 키라',
+        csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRtj9gPbkqj8_BFhsa4G_8ifKB4OaATKlIoFMUS58E1lRNzL6g-ftU1RSRiTEqWpPtFTvnlQK5Xmq95/pub?output=csv'
+      },
+      tenten: {
+        name: '텐플라스텐 텐텐',
+        csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQI6oPNRvHCY05H_XHPFp1q0bIpB4XcJOz9A5_wJtG4AJCuFxy5dLozmYOBlfyvj2mfSvWismHUHkUq/pub?output=csv'
+      }
+    };
+
+    let currentStreamerKey = 'kira';
+    let songs = [];
+    let player = null;
+    let isPlayerReady = false;
+    let currentIndex = 0;
+    let currentLang = 'ALL';
+    let currentPlayerSort = 'DATE_ASC';
+    let timerCheck = null;
+    let currentVideoId = null;
+
+    // 통계 파트 전용 상태 변수
+    let currentStatsLang = 'ALL';
+    let currentStatsSort = 'DATE_ASC';
+
+    // 스트리머 전환 제어
+    function switchStreamer(streamerKey, btn) {
+      if (currentStreamerKey === streamerKey && songs.length > 0) return;
+
+      currentStreamerKey = streamerKey;
+      document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      clearInterval(timerCheck);
+      if (player && typeof player.stopVideo === 'function') {
+        player.stopVideo();
+      }
+
+      document.getElementById('playlist').innerHTML = `<div class="loading-state">${STREAMERS[streamerKey].name} 님의 데이터를 불러오는 중입니다... 🎵</div>`;
+      document.getElementById('statsList').innerHTML = `<div class="loading-state">통계 데이터를 계산 중입니다... 📊</div>`;
+      document.getElementById('npTitle').innerText = '노래목록 불러오는 중...';
+      document.getElementById('npDate').innerText = '';
+      document.getElementById('npArtist').innerText = STREAMERS[streamerKey].name;
+
+      fetchGoogleSheetData();
+    }
+
+    // 탭 전환 제어
+    function switchMainTab(tabId, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      btn.classList.add('active');
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+
+      if (tabId === 'stats') {
+        renderStatistics();
+      }
+    }
+
+    // 초 정밀 변환
+    function timeToSeconds(timeStr) {
+      if (!timeStr) return 0;
+      if (typeof timeStr === 'number') return timeStr;
+      
+      const cleanStr = timeStr.toString().trim();
+      if (!cleanStr) return 0;
+
+      if (/^\d+$/.test(cleanStr)) {
+        return parseInt(cleanStr, 10);
+      }
+
+      const parts = cleanStr.split(':').map(val => parseInt(val.trim(), 10) || 0);
+      if (parts.length === 3) {
+        return parts[0] * 3600 + parts[1] * 60 + parts[2];
+      } else if (parts.length === 2) {
+        return parts[0] * 60 + parts[1];
+      } else if (parts.length === 1) {
+        return parts[0] || 0;
+      }
+      return 0;
+    }
+
+    // YYYY-MM-DD -> YYYY.MM.DD
+    function formatDate(dateStr, idStr) {
+      if (dateStr && dateStr.trim()) {
+        return dateStr.trim().replace(/-/g, '.');
+      }
+      if (idStr && idStr.length >= 8) {
+        const year = idStr.substring(0, 4);
+        const month = idStr.substring(4, 6);
+        const day = idStr.substring(6, 8);
+        return `${year}.${month}.${day}`;
+      }
+      return '';
+    }
+
+    // YYYY.MM.DD -> YY.MM.DD 변환 (통계 출력용)
+    function formatShortDate(fullDate) {
+      if (!fullDate) return '';
+      const parts = fullDate.split('.');
+      if (parts.length === 3) {
+        const yy = parts[0].length === 4 ? parts[0].substring(2) : parts[0];
+        return `${yy}.${parts[1]}.${parts[2]}`;
+      }
+      return fullDate;
+    }
+
+    // 안전한 행 값 추출 함수 (BOM 및 대소문자 방어)
+    function getRowVal(row, colName) {
+      if (!row) return '';
+      if (row[colName] !== undefined && row[colName] !== null) {
+        return String(row[colName]).trim();
+      }
+      const targetKey = colName.toLowerCase();
+      for (const key of Object.keys(row)) {
+        const cleanKey = key.replace(/^\ufeff/, '').trim().toLowerCase();
+        if (cleanKey === targetKey) {
+          return String(row[key] || '').trim();
+        }
+      }
+      return '';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchGoogleSheetData();
+    });
+
+    function fetchGoogleSheetData() {
+      const streamer = STREAMERS[currentStreamerKey];
+      if (!streamer) {
+        showError('선택된 스트리머 정보를 찾을 수 없습니다.');
+        return;
+      }
+
+      if (typeof Papa === 'undefined') {
+        showError('PapaParse 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인하세요.');
+        return;
+      }
+
+      try {
+        Papa.parse(streamer.csvUrl, {
+          download: true,
+          header: true,
+          skipEmptyLines: 'greedy',
+          transformHeader: function(h) {
+            return h.replace(/^\ufeff/, '').trim();
+          },
+          complete: function(results) {
+            try {
+              if (results.data && results.data.length > 0) {
+                parseAndLoadSongs(results.data);
+              } else {
+                showError('구글 시트에서 데이터를 찾을 수 없습니다. (데이터 입력 대기 중)');
+              }
+            } catch (err) {
+              console.error('Data Process Error:', err);
+              showError('데이터 처리 중 오류가 발생했습니다: ' + err.message);
+            }
+          },
+          error: function(err) {
+            console.error('CSV Load Error:', err);
+            showError('구글 시트 데이터를 불러오는데 실패했습니다.');
+          }
+        });
+      } catch (err) {
+        console.error('Fetch Exception:', err);
+        showError('데이터 연결 실패: ' + err.message);
+      }
+    }
+
+    function parseAndLoadSongs(rawData) {
+      songs = rawData.map((row, idx) => {
+        const id = getRowVal(row, 'id');
+        const title = getRowVal(row, 'uniform_title') || getRowVal(row, 'title_orig');
+        const titleOrig = getRowVal(row, 'title_orig') || title;
+        const artist = getRowVal(row, 'uniform_artist') || getRowVal(row, 'artist_orig');
+        const artistOrig = getRowVal(row, 'artist_orig') || artist;
+        const work = getRowVal(row, 'source_work');
+        const sourceType = getRowVal(row, 'source_type');
+        const lang = (getRowVal(row, 'lang') || 'JA').toUpperCase();
+        const dateRaw = getRowVal(row, 'date');
+        const date = formatDate(dateRaw, id);
+        const start = timeToSeconds(getRowVal(row, 'start_time'));
+        const end = timeToSeconds(getRowVal(row, 'end_time'));
+        const videoId = getRowVal(row, 'video_id');
+        const note = getRowVal(row, 'note');
+        
+        const titlePhonetic = getRowVal(row, 'title_phonetic');
+        const artistPhonetic = getRowVal(row, 'artist_phonetic');
+
+        return {
+          id: id || `song_${idx}`,
+          title: title,
+          titleOrig: titleOrig,
+          artist: artist,
+          artistOrig: artistOrig,
+          work: work,
+          sourceType: sourceType,
+          lang: lang,
+          date: date,
+          start: start,
+          end: end,
+          videoId: videoId,
+          note: note,
+          titlePhonetic: titlePhonetic,
+          artistPhonetic: artistPhonetic
+        };
+      }).filter(s => s.videoId && s.title);
+
+      if (songs.length === 0) {
+        showError('구글 시트에 유효한 노래 데이터가 아직 입력되지 않았습니다.');
+        return;
+      }
+
+      // 초기 로딩 시 기본 정렬: ID 기준 (날짜 및 순번 순)
+      songs.sort((a, b) => a.id.localeCompare(b.id));
+
+      currentIndex = 0;
+      renderPlaylist();
+      updateNowPlaying(0);
+
+      if (!player) {
+        loadYouTubeAPI();
+      } else if (typeof player.cueVideoById === 'function') {
+        currentVideoId = songs[0].videoId;
+        player.cueVideoById({
+          videoId: songs[0].videoId,
+          startSeconds: songs[0].start
+        });
+      }
+
+      if (document.getElementById('tab-stats').classList.contains('active')) {
+        renderStatistics();
+      }
+    }
+
+    function showError(msg) {
+      document.getElementById('playlist').innerHTML = `<div class="loading-state" style="color:#f43f5e;">${msg}</div>`;
+      document.getElementById('statsList').innerHTML = `<div class="loading-state" style="color:#f43f5e;">${msg}</div>`;
+      document.getElementById('npTitle').innerText = '데이터 입력 대기 중';
+      document.getElementById('npDate').innerText = '';
+    }
+
+    function loadYouTubeAPI() {
+      if (window.YT && window.YT.Player) {
+        initPlayer();
+      } else {
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      }
+    }
+
+    window.onYouTubeIframeAPIReady = function() {
+      initPlayer();
+    };
+
+    function initPlayer() {
+      if (player || songs.length === 0) return;
+      currentVideoId = songs[0].videoId;
+      player = new YT.Player('player', {
+        height: '100%',
+        width: '100%',
+        videoId: songs[0].videoId,
+        playerVars: { 
+          'autoplay': 0, 
+          'controls': 1,
+          'start': songs[0].start
+        },
+        events: {
+          'onReady': () => {
+            isPlayerReady = true;
+          },
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    function onPlayerStateChange(event) {
+      if (event.data === YT.PlayerState.ENDED) {
+        if (currentIndex + 1 < songs.length) {
+          playSong(currentIndex + 1);
+        }
+      }
+    }
+
+    function matchCategoryFilter(song, category) {
+      if (category === 'ALL') return true;
+      if (category === 'BUNSIK') return song.sourceType === '동요';
+      if (category === 'KO') return song.lang === 'KO' && song.sourceType !== '동요';
+      if (category === 'JA') return song.lang === 'JA';
+      if (category === 'EN') return song.lang === 'EN';
+      return false;
+    }
+
+    function setPlayerSort(sortType, btn) {
+      currentPlayerSort = sortType;
+      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const currentSongId = songs[currentIndex]?.id;
+
+      if (sortType === 'DATE_DESC') {
+        // 최신순 (ID 역순: YYYYMMDD_XX 내림차순)
+        songs.sort((a, b) => b.id.localeCompare(a.id));
+      } else if (sortType === 'DATE_ASC') {
+        // 날짜순 (ID 순: YYYYMMDD_XX 오름차순)
+        songs.sort((a, b) => a.id.localeCompare(b.id));
+      } else if (sortType === 'TITLE_ASC') {
+        songs.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
+      } else if (sortType === 'SHUFFLE') {
+        for (let i = songs.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [songs[i], songs[j]] = [songs[j], songs[i]];
+        }
+      }
+
+      if (currentSongId) {
+        const newIndex = songs.findIndex(s => s.id === currentSongId);
+        currentIndex = newIndex !== -1 ? newIndex : 0;
+      }
+
+      renderPlaylist();
+    }
+
+    function renderPlaylist() {
+      const container = document.getElementById('playlist');
+      const searchInput = document.getElementById('searchInput').value.trim().toLowerCase();
+      const queries = searchInput ? searchInput.split(/\s+/) : [];
+      container.innerHTML = '';
+
+      songs.forEach((song, idx) => {
+        let matchSearch = true;
+        
+        if (queries.length > 0) {
+          const searchableText = [
+            song.title, song.titleOrig, song.titlePhonetic,
+            song.artist, song.artistOrig, song.artistPhonetic,
+            song.work, song.date, song.note
+          ].join(' ').toLowerCase();
+
+          matchSearch = queries.every(q => {
+            const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(^|[\\s,./\\-()\\[\\]_:;~])` + escapedQ + `(?=[\\s,./\\-()\\[\\]_:;~]|$)`);
+            return regex.test(searchableText);
+          });
+        }
+                            
+        const matchCategory = matchCategoryFilter(song, currentLang);
+
+        if (matchSearch && matchCategory) {
+          const card = document.createElement('div');
+          card.className = `song-card ${idx === currentIndex ? 'active' : ''}`;
+          card.onclick = () => playSong(idx);
+          card.innerHTML = `
+            <div>
+              <div class="song-info-date">${song.date}</div>
+              <div class="song-info-main">${song.title}</div>
+              <div class="song-info-sub">${song.artist}${song.work ? ' • ' + song.work : ''}</div>
+            </div>
+            <span class="song-badge">${song.lang}</span>
+          `;
+          container.appendChild(card);
+        }
+      });
+    }
+
+    function playSong(index) {
+      currentIndex = index;
+      const song = songs[index];
+      renderPlaylist();
+      updateNowPlaying(index);
+
+      if (isPlayerReady && player) {
+        if (currentVideoId === song.videoId && typeof player.seekTo === 'function') {
+          player.seekTo(song.start, true);
+          player.playVideo();
+        } else if (typeof player.loadVideoById === 'function') {
+          currentVideoId = song.videoId;
+          player.loadVideoById({
+            videoId: song.videoId,
+            startSeconds: song.start
+          });
+        }
+      } else {
+        setTimeout(() => playSong(index), 300);
+        return;
+      }
+
+      clearInterval(timerCheck);
+      timerCheck = setInterval(() => {
+        if (player && typeof player.getCurrentTime === 'function') {
+          const currentTime = player.getCurrentTime();
+          if (currentTime >= song.end && song.end > 0) {
+            clearInterval(timerCheck);
+            if (currentIndex + 1 < songs.length) {
+              playSong(currentIndex + 1);
+            }
+          }
+        }
+      }, 250);
+    }
+
+    function updateNowPlaying(index) {
+      const song = songs[index];
+      if (!song) return;
+      document.getElementById('npDate').innerText = song.date;
+      document.getElementById('npTitle').innerText = song.title;
+      document.getElementById('npArtist').innerText = `${song.artist}${song.work ? ' • ' + song.work : ''}`;
+    }
+
+    function filterSongs() {
+      renderPlaylist();
+    }
+
+    function setLangFilter(lang, btn) {
+      currentLang = lang;
+      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderPlaylist();
+    }
+
+    // ==========================================
+    // [통계 파트 집계 및 정렬 연산 로직]
+    // ==========================================
+
+    function setStatsLangFilter(lang, btn) {
+      currentStatsLang = lang;
+      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderStatistics();
+    }
+
+    function setStatsSort(sortType, btn) {
+      currentStatsSort = sortType;
+      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderStatistics();
+    }
+
+    function getTitleLangCategory(str) {
+      if (!str) return 4;
+      const firstChar = str.trim().charAt(0);
+
+      if (/[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/.test(firstChar)) {
+        return 1;
+      }
+      if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(firstChar)) {
+        return 2;
+      }
+      if (/[A-Za-z]/.test(firstChar)) {
+        return 3;
+      }
+      return 4;
+    }
+
+    function renderStatistics() {
+      const container = document.getElementById('statsList');
+      container.innerHTML = '';
+
+      if (songs.length === 0) {
+        container.innerHTML = `<div class="loading-state">집계할 데이터가 없습니다.</div>`;
+        return;
+      }
+
+      const songMap = new Map();
+
+      songs.forEach(song => {
+        const key = `${song.titleOrig}___${song.artistOrig}`;
+
+        if (!songMap.has(key)) {
+          songMap.set(key, {
+            title: song.title,
+            titleOrig: song.titleOrig,
+            artistOrig: song.artistOrig,
+            lang: song.lang,
+            sourceType: song.sourceType,
+            rawDates: [song.date]
+          });
+        } else {
+          const entry = songMap.get(key);
+          if (!entry.rawDates.includes(song.date)) {
+            entry.rawDates.push(song.date);
+          }
+        }
+      });
+
+      let groupedList = Array.from(songMap.values()).map(item => {
+        item.rawDates.sort((a, b) => a.localeCompare(b));
+        const shortDates = item.rawDates.map(d => formatShortDate(d));
+
+        let titleDisplay = item.titleOrig;
+        if ((item.lang === 'JA' || item.lang === 'EN') && item.title && item.title !== item.titleOrig) {
+          titleDisplay = `${item.titleOrig} (${item.title})`;
+        }
+
+        return {
+          titleDisplay: titleDisplay,
+          titleOrig: item.titleOrig,
+          artistOrig: item.artistOrig,
+          lang: item.lang,
+          sourceType: item.sourceType,
+          count: item.rawDates.length,
+          firstDate: item.rawDates[0] || '',
+          datesFormatted: shortDates.join(' / ')
+        };
+      });
+
+      if (currentStatsLang !== 'ALL') {
+        groupedList = groupedList.filter(item => {
+          if (currentStatsLang === 'BUNSIK') return item.sourceType === '동요';
+          if (currentStatsLang === 'KO') return item.lang === 'KO' && item.sourceType !== '동요';
+          if (currentStatsLang === 'JA') return item.lang === 'JA';
+          if (currentStatsLang === 'EN') return item.lang === 'EN';
+          return false;
+        });
+      }
+
+      if (currentStatsSort === 'DATE_ASC') {
+        groupedList.sort((a, b) => a.firstDate.localeCompare(b.firstDate));
+      } else if (currentStatsSort === 'COUNT_DESC') {
+        groupedList.sort((a, b) => {
+          if (b.count !== a.count) {
+            return b.count - a.count;
+          }
+          return a.firstDate.localeCompare(b.firstDate);
+        });
+      } else if (currentStatsSort === 'TITLE_LANG') {
+        groupedList.sort((a, b) => {
+          const catA = getTitleLangCategory(a.titleOrig);
+          const catB = getTitleLangCategory(b.titleOrig);
+
+          if (catA !== catB) {
+            return catA - catB;
+          }
+          return a.titleOrig.localeCompare(b.titleOrig, 'ko');
+        });
+      }
+
+      if (groupedList.length === 0) {
+        container.innerHTML = `<div class="loading-state">해당 조건에 부합하는 통계 데이터가 없습니다.</div>`;
+        return;
+      }
+
+      groupedList.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'stats-item';
+        div.innerHTML = `
+          <span class="index-text">${idx + 1}.</span>
+          <span class="title-text">${item.titleDisplay}</span> / 
+          <span class="artist-text">${item.artistOrig}</span> / 
+          <span class="dates-text">${item.datesFormatted}</span>
+          <span class="count-text">(${item.count}회)</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>
