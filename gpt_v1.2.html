@@ -1030,15 +1030,17 @@ const searchableText = song.searchText;
       return String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('ko');
     }
 
-    // 데이터 집계: 같은 곡의 실제 재생 행 수(playCount)와 고유 방송일 수(dateCount)를 모두 보존한다.
+    // 데이터 집계: 통계 키는 시트의 통합 제목/가수(uniform_title, uniform_artist)를 따른다.
+    // 원제목/원가수는 표시용으로 보존하고, 실제 재생 행 수(playCount)와 고유 방송일 수(dateCount)를 함께 계산한다.
     function aggregateSongStatistics(songList) {
       const songMap = new Map();
 
       songList.forEach(song => {
-        const key = `${normalizeStatKey(song.titleOrig)}___${normalizeStatKey(song.artistOrig)}`;
+        const key = `${normalizeStatKey(song.title)}___${normalizeStatKey(song.artist)}`;
         if (!songMap.has(key)) {
           songMap.set(key, {
             title: song.title,
+            artist: song.artist,
             titleOrig: song.titleOrig,
             artistOrig: song.artistOrig,
             lang: song.lang,
