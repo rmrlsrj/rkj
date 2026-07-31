@@ -370,11 +370,18 @@
       border-radius: 12px;
       padding: 16px;
       display: flex;
+      flex-direction: column; /* 검색창 추가를 위해 세로 정렬로 변경 */
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+
+    .stats-header-controls {
+      display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      width: 100%;
     }
 
     .stats-list {
@@ -520,22 +527,27 @@
   <div id="tab-stats" class="tab-content">
     <div class="stats-container">
       <div class="stats-header-box">
-        <!-- 필터 (전체, 한식, 일식, 양식, 분식) -->
-        <div class="filter-group">
-          <button class="filter-btn active" onclick="setStatsLangFilter('ALL', this)">전체</button>
-          <button class="filter-btn" onclick="setStatsLangFilter('KO', this)">한식</button>
-          <button class="filter-btn" onclick="setStatsLangFilter('JA', this)">일식</button>
-          <button class="filter-btn" onclick="setStatsLangFilter('EN', this)">양식</button>
-          <button class="filter-btn" onclick="setStatsLangFilter('BUNSIK', this)">분식</button>
-        </div>
-        <!-- 정렬 필터 추가 및 개선 -->
-        <div class="filter-group">
-          <button class="filter-btn active" onclick="setStatsSort('DATE_ASC', this)">처음 부른 날짜순</button>
-          <button class="filter-btn" onclick="setStatsSort('RECENT_DESC', this)">최근에 부른 날짜순</button>
-          <button class="filter-btn" onclick="setStatsSort('COUNT_DESC', this)">많이 부른 순</button>
-          <button class="filter-btn" onclick="setStatsSort('TITLE_LANG', this)">원제목순 (한/일/영)</button>
-          <button class="filter-btn" onclick="setStatsSort('OLD_ASC', this)">오래 묵은 곡 순</button>
-          <button class="filter-btn" onclick="setStatsSort('SHUFFLE', this)">🎲 랜덤</button>
+        <!-- 통계 파트 검색창 -->
+        <input type="text" id="statsSearchInput" class="search-input" placeholder="통계 내 곡명, 가수 등 검색 (띄어쓰기로 단어별 정확히 검색)..." oninput="filterStats()">
+        
+        <div class="stats-header-controls">
+          <!-- 필터 (전체, 한식, 일식, 양식, 분식) -->
+          <div class="filter-group">
+            <button class="filter-btn active" onclick="setStatsLangFilter('ALL', this)">전체</button>
+            <button class="filter-btn" onclick="setStatsLangFilter('KO', this)">한식</button>
+            <button class="filter-btn" onclick="setStatsLangFilter('JA', this)">일식</button>
+            <button class="filter-btn" onclick="setStatsLangFilter('EN', this)">양식</button>
+            <button class="filter-btn" onclick="setStatsLangFilter('BUNSIK', this)">분식</button>
+          </div>
+          <!-- 정렬 필터 추가 및 개선 -->
+          <div class="filter-group">
+            <button class="filter-btn active" onclick="setStatsSort('DATE_ASC', this)">처음 부른 날짜순</button>
+            <button class="filter-btn" onclick="setStatsSort('RECENT_DESC', this)">최근에 부른 날짜순</button>
+            <button class="filter-btn" onclick="setStatsSort('COUNT_DESC', this)">많이 부른 순</button>
+            <button class="filter-btn" onclick="setStatsSort('TITLE_LANG', this)">원제목순 (한/일/영)</button>
+            <button class="filter-btn" onclick="setStatsSort('OLD_ASC', this)">오래 묵은 곡 순</button>
+            <button class="filter-btn" onclick="setStatsSort('SHUFFLE', this)">🎲 랜덤</button>
+          </div>
         </div>
       </div>
 
@@ -575,10 +587,11 @@
     let isYouTubeApiLoading = false;
     let loadRequestId = 0;
     let searchDebounceTimer = null;
-
+    
     // 통계 파트 전용 상태 변수
     let currentStatsLang = 'ALL';
     let currentStatsSort = 'DATE_ASC';
+    let statsSearchDebounceTimer = null;
 
     // 스트리머 전환 제어
     function switchStreamer(streamerKey, btn) {
@@ -684,7 +697,6 @@
     // 안전한 행 값 추출 함수 (BOM 및 대소문자 방어)
     function getRowVal(row, colName) {
       if (!row) return '';
-      // 부분 일치 처리를 통해 추가된 열도 유연하게 대응
       for (const key of Object.keys(row)) {
         const cleanKey = key.replace(/^\ufeff/, '').trim().toLowerCase();
         if (cleanKey.startsWith(colName.toLowerCase())) {
@@ -978,7 +990,6 @@
       const searchInput = document.getElementById('searchInput').value.trim().toLowerCase();
       const queries = searchInput ? searchInput.split(/\s+/) : [];
 
-      // 렌더링 최적화를 위한 DocumentFragment 사용
       const fragment = document.createDocumentFragment();
       let matchCount = 0;
 
@@ -1008,7 +1019,6 @@
             }
           };
 
-          // 현재 재생 중인 곡에 깜빡이는 아이콘 표시
           const playIcon = isActive ? `<span class="playing-icon">▶️</span>` : '';
 
           card.innerHTML = `
@@ -1023,7 +1033,6 @@
         }
       });
 
-      // 검색 결과 없음 상태 안내
       if (matchCount === 0) {
         const emptyState = document.createElement('div');
         emptyState.className = 'empty-state';
@@ -1088,16 +1097,14 @@
       searchDebounceTimer = setTimeout(renderPlaylist, 180);
     }
 
-    function setLangFilter(lang, btn) {
-      currentLang = lang;
-      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderPlaylist();
-    }
-
     // ==========================================
     // [통계 파트 집계 및 정렬 연산 로직]
     // ==========================================
+
+    function filterStats() {
+      clearTimeout(statsSearchDebounceTimer);
+      statsSearchDebounceTimer = setTimeout(renderStatistics, 180);
+    }
 
     function setStatsLangFilter(lang, btn) {
       currentStatsLang = lang;
@@ -1155,7 +1162,6 @@
         const entry = songMap.get(key);
         entry.playCount += 1;
         
-        // 날짜, 유튜브 ID, 시작 시간 외에 정확한 순서 정렬을 위해 id도 함께 저장합니다.
         if (song.date) {
           entry.playEvents.push({
             date: song.date,
@@ -1167,7 +1173,6 @@
       });
 
       return Array.from(songMap.values()).map(item => {
-        // ID 기준으로 이벤트 정렬 (시간/순서 완벽 반영)
         const sortedEvents = item.playEvents.sort((a, b) => a.id.localeCompare(b.id, undefined, {numeric: true}));
         
         const titleDisplay = (item.lang === 'JA' || item.lang === 'EN')
@@ -1190,7 +1195,6 @@
     }
 
     function sortStatistics(items, sortType) {
-      // 랜덤 정렬
       if (sortType === 'SHUFFLE') {
         const shuffled = [...items];
         for (let i = shuffled.length - 1; i > 0; i--) {
@@ -1201,24 +1205,19 @@
       }
 
       return [...items].sort((a, b) => {
-        // 많이 부른 순
         if (sortType === 'COUNT_DESC') {
           return b.playCount - a.playCount || a.firstId.localeCompare(b.firstId, undefined, {numeric: true});
         }
-        // 원제목순
         if (sortType === 'TITLE_LANG') {
           return getTitleLangCategory(a.titleOrig) - getTitleLangCategory(b.titleOrig)
             || a.titleOrig.localeCompare(b.titleOrig, 'ko');
         }
-        // 최근에 부른 날짜순 (가장 마지막에 부른 ID 역순)
         if (sortType === 'RECENT_DESC') {
           return b.lastId.localeCompare(a.lastId, undefined, {numeric: true});
         }
-        // 오래 묵은 곡 순 (가장 마지막에 부른 ID 순)
         if (sortType === 'OLD_ASC') {
           return a.lastId.localeCompare(b.lastId, undefined, {numeric: true});
         }
-        // 기본값: 처음 부른 날짜순
         return a.firstId.localeCompare(b.firstId, undefined, {numeric: true});
       });
     }
@@ -1227,7 +1226,10 @@
     function renderStatisticsList(items) {
       const container = document.getElementById('statsList');
       if (items.length === 0) {
-        renderStatus('statsList', '해당 조건에 부합하는 통계 데이터가 없습니다.');
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.innerHTML = '조건에 맞는 곡이 없습니다. 텅~ 👻<br><br><small>검색어나 필터를 다시 확인해 보세요!</small>';
+        container.replaceChildren(emptyState);
         return;
       }
 
@@ -1283,9 +1285,27 @@
         return;
       }
 
-      const aggregated = aggregateSongStatistics(songs);
-      const filtered = filterStatistics(aggregated, currentStatsLang);
-      const sorted = sortStatistics(filtered, currentStatsSort);
+      let aggregated = aggregateSongStatistics(songs);
+      aggregated = filterStatistics(aggregated, currentStatsLang);
+
+      // 통계 탭 텍스트 검색 처리
+      const searchInput = document.getElementById('statsSearchInput').value.trim().toLowerCase();
+      const queries = searchInput ? searchInput.split(/\s+/) : [];
+
+      if (queries.length > 0) {
+        aggregated = aggregated.filter(item => {
+          const searchableText = [
+            item.title, 
+            item.titleOrig, 
+            item.artist, 
+            item.artistOrig
+          ].filter(Boolean).join(' ').toLowerCase();
+
+          return queries.every(q => searchableText.includes(q));
+        });
+      }
+
+      const sorted = sortStatistics(aggregated, currentStatsSort);
       renderStatisticsList(sorted);
     }
   </script>
