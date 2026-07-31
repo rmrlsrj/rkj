@@ -11,14 +11,23 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
     :root {
-      --bg-color: #0f172a;
-      --panel-bg: #1e293b;
-      --card-bg: #334155;
-      --accent: #f43f5e;
-      --accent-hover: #e11d48;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --border: #475569;
+      /* 라이트 테마 기본 색상 */
+      --bg-color: #f8fafc;
+      --panel-bg: #ffffff;
+      --card-bg: #f1f5f9;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+
+      /* 캐릭터별 포인트 색상 (사진 기반) */
+      --kira-color: #9b95c9;
+      --kira-hover: #837cb8;
+      --tenten-color: #f79697;
+      --tenten-hover: #e58283;
+
+      /* 기본 설정 (키라) */
+      --accent: var(--kira-color);
+      --accent-hover: var(--kira-hover);
     }
 
     * {
@@ -45,6 +54,7 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
 
     header h1 {
@@ -83,8 +93,8 @@
     }
 
     .streamer-btn.active {
-      background-color: #38bdf8;
-      color: #0f172a;
+      background-color: var(--accent);
+      color: #fff;
     }
 
     .tab-btn {
@@ -144,7 +154,7 @@
       background-color: #000;
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     }
 
     .player-container iframe, .player-container div#player {
@@ -161,6 +171,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 16px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
 
     .now-playing-date {
@@ -172,7 +183,7 @@
     .now-playing-title {
       font-size: 1.1rem;
       font-weight: 700;
-      color: #fff;
+      color: var(--text);
       margin-bottom: 4px;
     }
 
@@ -190,6 +201,7 @@
       display: flex;
       flex-direction: column;
       height: 600px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
 
     .search-filter-box {
@@ -204,10 +216,11 @@
       padding: 10px 14px;
       border-radius: 8px;
       border: 1px solid var(--border);
-      background-color: var(--bg-color);
+      background-color: var(--panel-bg);
       color: var(--text);
       font-size: 0.9rem;
       outline: none;
+      transition: border-color 0.2s;
     }
 
     .search-input:focus {
@@ -224,7 +237,7 @@
       padding: 6px 12px;
       border-radius: 6px;
       border: 1px solid var(--border);
-      background-color: var(--bg-color);
+      background-color: var(--panel-bg);
       color: var(--text-muted);
       font-size: 0.8rem;
       cursor: pointer;
@@ -251,15 +264,15 @@
     }
 
     .playlist-scroll::-webkit-scrollbar-thumb {
-      background-color: var(--border);
+      background-color: #cbd5e1;
       border-radius: 3px;
     }
 
     .song-card {
       padding: 12px 14px;
       border-radius: 8px;
-      background-color: var(--bg-color);
-      border: 1px solid transparent;
+      background-color: var(--panel-bg);
+      border: 1px solid var(--border);
       cursor: pointer;
       display: flex;
       justify-content: space-between;
@@ -274,7 +287,7 @@
 
     .song-card.active {
       border-left: 4px solid var(--accent);
-      background-color: #1e293b;
+      background-color: var(--card-bg);
     }
 
     .song-info-date {
@@ -301,7 +314,7 @@
       padding: 3px 6px;
       border-radius: 4px;
       background-color: var(--card-bg);
-      color: #38bdf8;
+      color: var(--accent);
     }
 
     /* Statistics Section */
@@ -324,6 +337,7 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
 
     .stats-list {
@@ -335,10 +349,11 @@
       flex-direction: column;
       gap: 10px;
       min-height: 500px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
 
     .stats-item {
-      background-color: var(--bg-color);
+      background-color: var(--panel-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 12px 16px;
@@ -356,11 +371,11 @@
 
     .stats-item .title-text {
       font-weight: 700;
-      color: #38bdf8;
+      color: var(--accent);
     }
 
     .stats-item .artist-text {
-      color: #f43f5e;
+      color: var(--text-muted);
     }
 
     .stats-item .dates-text {
@@ -370,7 +385,7 @@
 
     /* 통계 탭 유튜브 링크 스타일명확화 및 개선 */
     .stats-item .date-link {
-      color: #38bdf8;
+      color: var(--accent);
       text-decoration: underline;
       text-underline-offset: 2px;
       cursor: pointer;
@@ -380,14 +395,14 @@
     
     .stats-item .date-link:hover {
       color: #fff;
-      background-color: #f43f5e;
+      background-color: var(--accent-hover);
       border-radius: 4px;
       text-decoration: none;
     }
 
     .stats-item .count-text {
       font-weight: 700;
-      color: #f59e0b;
+      color: var(--accent);
       margin-left: 4px;
     }
 
@@ -533,6 +548,15 @@
       currentStreamerKey = streamerKey;
       document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+
+      // 선택한 스트리머에 맞게 테마 컬러(포인트 색상) 변경
+      if (streamerKey === 'kira') {
+        document.documentElement.style.setProperty('--accent', 'var(--kira-color)');
+        document.documentElement.style.setProperty('--accent-hover', 'var(--kira-hover)');
+      } else if (streamerKey === 'tenten') {
+        document.documentElement.style.setProperty('--accent', 'var(--tenten-color)');
+        document.documentElement.style.setProperty('--accent-hover', 'var(--tenten-hover)');
+      }
 
       clearPlaybackMonitor();
       clearTimeout(playerRetryTimeout);
@@ -1061,7 +1085,7 @@
             artistOrig: song.artistOrig,
             lang: song.lang,
             sourceType: song.sourceType,
-            playEvents: [], // 날짜 및 타임스탬프 중복 없이 모두 저장
+            playEvents: [], 
             playCount: 0
           });
         }
@@ -1069,7 +1093,6 @@
         const entry = songMap.get(key);
         entry.playCount += 1;
         
-        // 날짜, 유튜브 ID, 시작 시간을 저장 (동일 날짜라도 중복 제거 없이 모두 push)
         if (song.date) {
           entry.playEvents.push({
             date: song.date,
@@ -1080,11 +1103,7 @@
       });
 
       return Array.from(songMap.values()).map(item => {
-        // 이벤트를 날짜순으로 정렬
         const sortedEvents = item.playEvents.sort((a, b) => a.date.localeCompare(b.date));
-        
-        // 부른 날짜가 며칠인지(고유 일수) 카운팅하기 위해 Set 사용
-        const uniqueDates = new Set(sortedEvents.map(e => e.date));
         
         const titleDisplay = (item.lang === 'JA' || item.lang === 'EN')
           && item.title && item.title !== item.titleOrig
@@ -1094,9 +1113,8 @@
         return {
           ...item,
           titleDisplay,
-          dateCount: uniqueDates.size, // 고유 날짜 수
           firstDate: sortedEvents.length > 0 ? sortedEvents[0].date : '',
-          sortedEvents: sortedEvents // HTML 렌더링에 사용할 수 있도록 전달
+          sortedEvents: sortedEvents
         };
       });
     }
@@ -1144,7 +1162,6 @@
         addText('artist-text', item.artistOrig);
         div.append(' / ');
 
-        // 날짜들을 담을 컨테이너 
         const datesSpan = document.createElement('span');
         datesSpan.className = 'dates-text';
         
@@ -1152,7 +1169,6 @@
           const a = document.createElement('a');
           a.className = 'date-link';
           a.textContent = formatShortDate(ev.date);
-          // 유튜브 영상 링크 생성 (새 탭에서 열림 보장)
           a.href = `https://www.youtube.com/watch?v=${ev.videoId}&t=${ev.start}s`;
           a.target = '_blank';
           a.rel = 'noopener noreferrer';
@@ -1167,8 +1183,8 @@
         
         div.appendChild(datesSpan);
         
-        // n회 부름 / n일 부름 분리해서 표시
-        addText('count-text', `(${item.playCount}회 · ${item.dateCount}일)`);
+        // 요청하신 대로 n일은 삭제하고 n회만 남김
+        addText('count-text', `(${item.playCount}회)`);
         
         fragment.appendChild(div);
       });
