@@ -118,7 +118,7 @@
     }
 
     .tab-btn.active {
-      background-color: var(--accent-secondary); /* 탭은 눈에 잘 띄게 세컨더리 컬러 활용 */
+      background-color: var(--accent-secondary);
       color: #fff;
     }
 
@@ -177,7 +177,7 @@
     .now-playing-card {
       background-color: var(--panel-bg);
       border: 1px solid var(--border);
-      border-left: 4px solid var(--accent-primary); /* 현재 재생 곡 강조 라인 */
+      border-left: 4px solid var(--accent-primary);
       border-radius: 12px;
       padding: 16px 20px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.03);
@@ -296,7 +296,7 @@
 
     .song-card.active {
       border-left: 4px solid var(--accent-primary);
-      background-color: var(--accent-light); /* 활성화 시 연한 배경색 적용 */
+      background-color: var(--accent-light);
     }
 
     .song-info-date {
@@ -310,6 +310,22 @@
       font-weight: 600;
       color: var(--text);
       margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* 현재 재생 중인 곡 애니메이션 아이콘 */
+    .playing-icon {
+      display: inline-block;
+      margin-right: 6px;
+      font-size: 0.85rem;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.5; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.1); }
+      100% { opacity: 0.5; transform: scale(0.9); }
     }
 
     .song-info-sub {
@@ -323,8 +339,21 @@
       padding: 4px 8px;
       border-radius: 6px;
       background-color: var(--accent-light);
-      color: var(--accent-secondary); /* 배지는 가독성을 위해 진한 색 사용 */
+      color: var(--accent-secondary);
       border: 1px solid rgba(0,0,0,0.05);
+      white-space: nowrap;
+    }
+
+    /* 검색 결과 없음 빈 화면 */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      background-color: var(--panel-bg);
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+      margin-top: 10px;
     }
 
     /* Statistics Section */
@@ -381,7 +410,7 @@
 
     .stats-item .title-text {
       font-weight: 700;
-      color: var(--accent-secondary); /* 곡 제목은 눈에 띄게 진한 포인트 색상 */
+      color: var(--accent-secondary); 
     }
 
     .stats-item .artist-text {
@@ -393,7 +422,6 @@
       font-size: 0.85rem;
     }
 
-    /* 통계 탭 유튜브 링크 호버 최적화 */
     .stats-item .date-link {
       color: var(--accent-primary);
       text-decoration: underline;
@@ -405,7 +433,7 @@
     
     .stats-item .date-link:hover {
       color: #fff;
-      background-color: var(--accent-secondary); /* 호버 시 진한 포인트 색상으로 변환 */
+      background-color: var(--accent-secondary); 
       border-radius: 4px;
       text-decoration: none;
     }
@@ -849,7 +877,7 @@
       const status = document.createElement('div');
       status.className = 'loading-state';
       status.textContent = message;
-      if (isError) status.style.color = '#f43f5e';
+      if (isError) status.style.color = '#e65c5c';
       container.replaceChildren(status);
     }
 
@@ -948,7 +976,10 @@
       const container = document.getElementById('playlist');
       const searchInput = document.getElementById('searchInput').value.trim().toLowerCase();
       const queries = searchInput ? searchInput.split(/\s+/) : [];
-      container.innerHTML = '';
+
+      // 렌더링 최적화를 위한 DocumentFragment 사용
+      const fragment = document.createDocumentFragment();
+      let matchCount = 0;
 
       songs.forEach((song, idx) => {
         let matchSearch = true;
@@ -963,8 +994,10 @@
         const matchCategory = matchCategoryFilter(song, currentLang);
 
         if (matchSearch && matchCategory) {
+          matchCount++;
+          const isActive = (idx === currentIndex);
           const card = document.createElement('div');
-          card.className = `song-card ${idx === currentIndex ? 'active' : ''}`;
+          card.className = `song-card ${isActive ? 'active' : ''}`;
           card.onclick = () => playSong(idx);
           card.tabIndex = 0;
           card.onkeydown = event => {
@@ -973,17 +1006,31 @@
               playSong(idx);
             }
           };
+
+          // 현재 재생 중인 곡에 깜빡이는 아이콘 표시
+          const playIcon = isActive ? `<span class="playing-icon">▶️</span>` : '';
+
           card.innerHTML = `
             <div>
               <div class="song-info-date">${escapeHtml(song.date)}</div>
-              <div class="song-info-main">${escapeHtml(song.title)}</div>
+              <div class="song-info-main">${playIcon}${escapeHtml(song.title)}</div>
               <div class="song-info-sub">${escapeHtml(song.artist)}${song.work ? ' • ' + escapeHtml(song.work) : ''}</div>
             </div>
             <span class="song-badge">${escapeHtml(song.lang)}</span>
           `;
-          container.appendChild(card);
+          fragment.appendChild(card);
         }
       });
+
+      // 검색 결과 없음 상태 안내
+      if (matchCount === 0) {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.innerHTML = '조건에 맞는 곡이 없습니다. 텅~ 👻<br><br><small>검색어나 필터를 다시 확인해 보세요!</small>';
+        fragment.appendChild(emptyState);
+      }
+
+      container.replaceChildren(fragment);
     }
 
     function playSong(index) {
