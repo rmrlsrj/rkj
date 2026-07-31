@@ -528,7 +528,7 @@
     <div class="stats-container">
       <div class="stats-header-box">
         <!-- 통계 파트 검색창 -->
-        <input type="text" id="statsSearchInput" class="search-input" placeholder="통계 내 곡명, 가수 등 검색 (띄어쓰기로 단어별 정확히 검색)..." oninput="filterStats()">
+        <input type="text" id="statsSearchInput" class="search-input" placeholder="통계 내 곡명, 가수, 날짜 등 검색 (띄어쓰기로 단어별 정확히 검색)..." oninput="filterStats()">
         
         <div class="stats-header-controls">
           <!-- 필터 -->
@@ -1093,13 +1093,6 @@
       searchDebounceTimer = setTimeout(renderPlaylist, 180);
     }
 
-    function setLangFilter(lang, btn) {
-      currentLang = lang;
-      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderPlaylist();
-    }
-
     // ==========================================
     // [통계 파트 집계 및 정렬 연산 로직]
     // ==========================================
@@ -1297,11 +1290,15 @@
 
       if (queries.length > 0) {
         aggregated = aggregated.filter(item => {
+          // 날짜 텍스트 (2025.10.04, 25.10.04 형태 모두 포함)
+          const datesText = item.sortedEvents.map(ev => `${ev.date} ${formatShortDate(ev.date)}`).join(' ');
+
           const searchableText = [
             item.title, 
             item.titleOrig, 
             item.artist, 
-            item.artistOrig
+            item.artistOrig,
+            datesText
           ].filter(Boolean).join(' ').toLowerCase();
 
           return queries.every(q => searchableText.includes(q));
