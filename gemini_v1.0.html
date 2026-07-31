@@ -368,16 +368,21 @@
       font-size: 0.85rem;
     }
 
-    /* 통계 탭 유튜브 링크 스타일 추가 */
+    /* 통계 탭 유튜브 링크 스타일명확화 및 개선 */
     .stats-item .date-link {
-      color: var(--text-muted);
+      color: #38bdf8;
       text-decoration: underline;
       text-underline-offset: 2px;
-      transition: color 0.2s;
+      cursor: pointer;
+      transition: all 0.2s;
+      padding: 2px 4px;
     }
     
     .stats-item .date-link:hover {
-      color: #f8fafc;
+      color: #fff;
+      background-color: #f43f5e;
+      border-radius: 4px;
+      text-decoration: none;
     }
 
     .stats-item .count-text {
@@ -1042,7 +1047,7 @@
       return String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('ko');
     }
 
-    // 데이터 집계 (이벤트 저장으로 변경)
+    // 데이터 집계
     function aggregateSongStatistics(songList) {
       const songMap = new Map();
 
@@ -1056,7 +1061,7 @@
             artistOrig: song.artistOrig,
             lang: song.lang,
             sourceType: song.sourceType,
-            playEvents: [], // 날짜뿐 아니라 재생 정보 전체를 저장하는 배열
+            playEvents: [], // 날짜 및 타임스탬프 중복 없이 모두 저장
             playCount: 0
           });
         }
@@ -1064,7 +1069,7 @@
         const entry = songMap.get(key);
         entry.playCount += 1;
         
-        // 날짜, 유튜브 ID, 시작 시간을 저장
+        // 날짜, 유튜브 ID, 시작 시간을 저장 (동일 날짜라도 중복 제거 없이 모두 push)
         if (song.date) {
           entry.playEvents.push({
             date: song.date,
@@ -1078,7 +1083,7 @@
         // 이벤트를 날짜순으로 정렬
         const sortedEvents = item.playEvents.sort((a, b) => a.date.localeCompare(b.date));
         
-        // 고유 날짜 개수 파악
+        // 부른 날짜가 며칠인지(고유 일수) 카운팅하기 위해 Set 사용
         const uniqueDates = new Set(sortedEvents.map(e => e.date));
         
         const titleDisplay = (item.lang === 'JA' || item.lang === 'EN')
@@ -1089,7 +1094,7 @@
         return {
           ...item,
           titleDisplay,
-          dateCount: uniqueDates.size,
+          dateCount: uniqueDates.size, // 고유 날짜 수
           firstDate: sortedEvents.length > 0 ? sortedEvents[0].date : '',
           sortedEvents: sortedEvents // HTML 렌더링에 사용할 수 있도록 전달
         };
@@ -1147,9 +1152,10 @@
           const a = document.createElement('a');
           a.className = 'date-link';
           a.textContent = formatShortDate(ev.date);
-          // 유튜브 영상 링크 생성 (새 탭에서 열림)
+          // 유튜브 영상 링크 생성 (새 탭에서 열림 보장)
           a.href = `https://www.youtube.com/watch?v=${ev.videoId}&t=${ev.start}s`;
           a.target = '_blank';
+          a.rel = 'noopener noreferrer';
           a.title = '새 창에서 유튜브 영상 보기';
           
           datesSpan.appendChild(a);
@@ -1160,6 +1166,8 @@
         });
         
         div.appendChild(datesSpan);
+        
+        // n회 부름 / n일 부름 분리해서 표시
         addText('count-text', `(${item.playCount}회 · ${item.dateCount}일)`);
         
         fragment.appendChild(div);
