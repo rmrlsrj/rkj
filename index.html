@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- PapaParse CDN for robust CSV/TSV parsing -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
     :root {
@@ -323,17 +324,15 @@
       song: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRVDkY7NKTc2mjrbWPMf9a8ygJqRlyqOX5GIqO-k1MBdQsdqCebq-Y7AvuXcxfzCs1s_-psrajLylUj/pub?gid=0&single=true&output=tsv"
     };
 
-    // 스트리머 DB 연동 키 매핑 (비디오 DB의 streamer_id 와 일치해야 함)
     const STREAMER_MAP = {
       kira: { name: '세이로쿠 키라', dbId: '키라' },
       tenten: { name: '텐플라스텐 텐텐', dbId: '텐텐' }
     };
 
-    // 전역 상태 변수
     let currentStreamerKey = 'kira';
-    let allSongs = []; // 3개 DB를 JOIN한 전체 마스터 데이터
-    let songs = []; // 현재 선택된 스트리머의 곡 리스트
-    let displayedSongs = []; // 검색/정렬 필터링이 완료되어 현재 화면에 보이는 목록
+    let allSongs = []; 
+    let songs = []; 
+    let displayedSongs = []; 
     
     let player = null;
     let isPlayerReady = false;
@@ -352,7 +351,6 @@
     let currentStatsSort = 'DATE_ASC';
     let statsSearchDebounceTimer = null;
 
-    // 페이지 접속 시 데이터 로드 시작
     window.addEventListener('DOMContentLoaded', () => {
       loadAllData();
     });
@@ -377,26 +375,39 @@
         const songMap = {};
         songRes.forEach(s => songMap[s.song_id] = s);
 
-        // 가창 기록(Log)을 순회하며 Video 정보와 Song 정보를 연결 (JOIN)
         allSongs = logRes.map((log, idx) => {
           const video = videoMap[log.video_id];
           const song = songMap[log.song_id];
 
-          // 매핑 정보가 없거나 비정상 데이터면 제외
           if (!video || !song) return null;
 
-          const title = song.title_primary || song.title_original;
-          const titleOrig = song.title_original || title;
-          const artist = song.artist_primary || song.artist_original;
-          const artistOrig = song.artist_original || artist;
+          const lang = (song.lang || 'JA').toUpperCase();
+
+          // 1. 기본 표기: primary 값을 우선으로 가져옵니다.
+          let title = song.title_primary || song.title_original || '';
+          let artist = song.artist_primary || song.artist_original || '';
+
+          // 2. [추가된 로직] 일본어(JA)인 경우 한글 표기 병기 (예: "Lemon (레몬)")
+          if (lang === 'JA') {
+            if (song.title_ko_reading && song.title_ko_reading !== title) {
+              title = `${title} (${song.title_ko_reading})`;
+            }
+            if (song.artist_ko && song.artist_ko !== artist) {
+              artist = `${artist} (${song.artist_ko})`;
+            }
+          }
+
+          const titleOrig = song.title_original || song.title_primary || '';
+          const artistOrig = song.artist_original || song.artist_primary || '';
           
           const start = timeToSeconds(log.start_time) || 0;
           const end = timeToSeconds(log.end_time) || 0;
           const date = formatDate(video.stream_date);
           
-          // 통합 검색을 위한 문자열 (부출 키워드 포함)
+          // 검색어에도 새로 추가된 한글 독음들이 포함되도록 셋업
           const searchText = [
-            title, titleOrig, artist, artistOrig, 
+            title, titleOrig, song.title_ko_reading,
+            artist, artistOrig, song.artist_ko,
             song.search_keywords, song.source_work, date, log.perf_note
           ].filter(Boolean).join(' ').toLowerCase();
 
@@ -405,9 +416,7 @@
             title, titleOrig, artist, artistOrig,
             work: song.source_work || '',
             sourceType: song.source_type || '',
-            lang: (song.lang || 'JA').toUpperCase(),
-            date,
-            start, end, duration: Math.max(0, end - start),
+            lang, date, start, end, duration: Math.max(0, end - start),
             videoId: video.youtube_video_id,
             note: log.perf_note || '',
             streamer: video.streamer_id,
@@ -415,10 +424,7 @@
           };
         }).filter(Boolean);
 
-        // 기본 정렬: ID 기준 (시간순)
         allSongs.sort((a, b) => a.id.localeCompare(b.id, undefined, {numeric: true}));
-
-        // 데이터가 모두 준비되었으니 현재 선택된 스트리머 목록을 구성하여 렌더링
         applyStreamerData();
       } catch (err) {
         console.error(err);
@@ -426,22 +432,20 @@
       }
     }
 
-    // TSV 가져오기 유틸리티 함수
     function fetchTSV(url) {
       return new Promise((resolve, reject) => {
         Papa.parse(url, {
           download: true,
           header: true,
           skipEmptyLines: 'greedy',
-          delimiter: '\t', // TSV 강제 지정
-          transformHeader: h => h.replace(/^\ufeff/, '').trim().split(' ')[0], // 한글 설명 제거하고 영문 ID만 키로 사용
+          delimiter: '\t',
+          transformHeader: h => h.replace(/^\ufeff/, '').trim().split(' ')[0], 
           complete: res => resolve(res.data),
           error: err => reject(err)
         });
       });
     }
 
-    // 현재 선택된 스트리머의 데이터만 필터링 후 화면에 적용하는 함수
     function applyStreamerData() {
       const targetStreamerDbId = STREAMER_MAP[currentStreamerKey].dbId;
       songs = allSongs.filter(s => s.streamer === targetStreamerDbId);
@@ -483,7 +487,6 @@
     // ==========================================
     // 3. UI 및 플레이어 제어 로직
     // ==========================================
-    
     function switchStreamer(streamerKey, btn) {
       if (currentStreamerKey === streamerKey && songs.length > 0) return;
 
@@ -514,7 +517,7 @@
       document.getElementById('npArtist').innerText = STREAMER_MAP[streamerKey].name;
 
       if (allSongs.length > 0) {
-        applyStreamerData(); // DB를 다시 받을 필요 없이 필터링만 새로 적용
+        applyStreamerData(); 
       } else {
         loadAllData();
       }
@@ -530,7 +533,6 @@
       if (tabId === 'stats') renderStatistics();
     }
 
-    // 시간 초 변환 함수 (0:12:34 -> 754)
     function timeToSeconds(timeStr) {
       if (timeStr === undefined || timeStr === null || timeStr === '') return null;
       if (typeof timeStr === 'number') return Number.isFinite(timeStr) && timeStr >= 0 ? timeStr : null;
@@ -547,12 +549,10 @@
       return null;
     }
 
-    // YYYY-MM-DD 포맷 -> YYYY.MM.DD
     function formatDate(dateStr) {
       return (dateStr || '').trim().replace(/-/g, '.');
     }
 
-    // YYYY.MM.DD 포맷 -> YY.MM.DD
     function formatShortDate(fullDate) {
       if (!fullDate) return '';
       const parts = fullDate.split('.');
@@ -585,7 +585,6 @@
       container.replaceChildren(status);
     }
 
-    // 유튜브 플레이어 로딩
     function loadYouTubeAPI() {
       if (window.YT && window.YT.Player) {
         initPlayer();
@@ -817,13 +816,12 @@
       const songMap = new Map();
 
       songList.forEach(song => {
+        // 병기된 텍스트 자체를 기준으로 그룹화 (같은 곡이면 텍스트도 완전히 일치함)
         const key = `${normalizeStatKey(song.title)}___${normalizeStatKey(song.artist)}`;
         if (!songMap.has(key)) {
           songMap.set(key, {
             title: song.title,
             artist: song.artist,
-            titleOrig: song.titleOrig,
-            artistOrig: song.artistOrig,
             lang: song.lang,
             sourceType: song.sourceType,
             playEvents: [], 
@@ -840,13 +838,11 @@
 
       return Array.from(songMap.values()).map(item => {
         const sortedEvents = item.playEvents.sort((a, b) => a.id.localeCompare(b.id, undefined, {numeric: true}));
-        const titleDisplay = (item.lang === 'JA' || item.lang === 'EN') && item.title && item.title !== item.titleOrig
-          ? `${item.titleOrig} (${item.title})`
-          : item.titleOrig;
-
+        
         return {
           ...item,
-          titleDisplay,
+          titleDisplay: item.title,   // "Lemon (레몬)" 포맷 그대로 사용
+          artistDisplay: item.artist, // "米津玄師 (요네즈 켄시)" 포맷 그대로 사용
           firstId: sortedEvents.length > 0 ? sortedEvents[0].id : '',
           lastId: sortedEvents.length > 0 ? sortedEvents[sortedEvents.length - 1].id : '',
           sortedEvents: sortedEvents
@@ -869,7 +865,7 @@
       }
       return [...items].sort((a, b) => {
         if (sortType === 'COUNT_DESC') return b.playCount - a.playCount || a.firstId.localeCompare(b.firstId, undefined, {numeric: true});
-        if (sortType === 'TITLE_LANG') return getTitleLangCategory(a.titleOrig) - getTitleLangCategory(b.titleOrig) || a.titleOrig.localeCompare(b.titleOrig, 'ko');
+        if (sortType === 'TITLE_LANG') return getTitleLangCategory(a.titleDisplay) - getTitleLangCategory(b.titleDisplay) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
         if (sortType === 'RECENT_DESC') return b.lastId.localeCompare(a.lastId, undefined, {numeric: true});
         if (sortType === 'OLD_ASC') return a.lastId.localeCompare(b.lastId, undefined, {numeric: true});
         return a.firstId.localeCompare(b.firstId, undefined, {numeric: true});
@@ -901,7 +897,9 @@
         addText('index-text', `${idx + 1}.`);
         addText('title-text', item.titleDisplay);
         div.append(' / ');
-        addText('artist-text', item.artistOrig);
+        
+        // [수정된 부분] 통계 탭에서도 병기된 가수 이름이 나오도록 변경
+        addText('artist-text', item.artistDisplay); 
         div.append(' / ');
 
         const datesSpan = document.createElement('span');
@@ -943,7 +941,9 @@
       if (queries.length > 0) {
         aggregated = aggregated.filter(item => {
           const datesText = item.sortedEvents.map(ev => `${ev.date} ${formatShortDate(ev.date)}`).join(' ');
-          const searchableText = [item.title, item.titleOrig, item.artist, item.artistOrig, datesText].filter(Boolean).join(' ').toLowerCase();
+          
+          // [수정된 부분] 병기된 텍스트 전체를 대상으로 검색
+          const searchableText = [item.titleDisplay, item.artistDisplay, datesText].filter(Boolean).join(' ').toLowerCase();
           return queries.every(q => searchableText.includes(q));
         });
       }
