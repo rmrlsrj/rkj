@@ -30,6 +30,12 @@
       --tenten-hover: #d24a4a;
       --tenten-light: #fdf2f2;   
 
+      /* 라떼 팔레트 */
+      --latte-primary: #C9A87C;   
+      --latte-secondary: #8B6F47; 
+      --latte-hover: #B8956A;
+      --latte-light: #F5EDE3;   
+
       /* 현재 적용될 액센트 변수 (초기값: 키라) */
       --accent-primary: var(--kira-primary);
       --accent-secondary: var(--kira-secondary);
@@ -249,6 +255,7 @@
       <div class="streamer-nav">
         <button class="streamer-btn active" onclick="switchStreamer('kira', this)">세이로쿠 키라</button>
         <button class="streamer-btn" onclick="switchStreamer('tenten', this)">텐플라스텐 텐텐</button>
+        <button class="streamer-btn" onclick="switchStreamer('latte', this)">아오토 라떼</button>
       </div>
       <div class="tab-nav">
         <button class="tab-btn active" onclick="switchMainTab('player', this)">재생</button>
@@ -338,7 +345,8 @@
 
     const STREAMER_MAP = {
       kira: { name: '세이로쿠 키라', dbId: '키라' },
-      tenten: { name: '텐플라스텐 텐텐', dbId: '텐텐' }
+      tenten: { name: '텐플라스텐 텐텐', dbId: '텐텐' },
+      latte: { name: '아오토 라떼', dbId: '라떼' }
     };
 
     let currentStreamerKey = 'kira';
@@ -523,6 +531,11 @@
         document.documentElement.style.setProperty('--accent-secondary', 'var(--tenten-secondary)');
         document.documentElement.style.setProperty('--accent-hover', 'var(--tenten-hover)');
         document.documentElement.style.setProperty('--accent-light', 'var(--tenten-light)');
+      } else if (streamerKey === 'latte') {
+        document.documentElement.style.setProperty('--accent-primary', 'var(--latte-primary)');
+        document.documentElement.style.setProperty('--accent-secondary', 'var(--latte-secondary)');
+        document.documentElement.style.setProperty('--accent-hover', 'var(--latte-hover)');
+        document.documentElement.style.setProperty('--accent-light', 'var(--latte-light)');
       }
 
       clearPlaybackMonitor();
