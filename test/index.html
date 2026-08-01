@@ -30,11 +30,11 @@
       --tenten-hover: #d24a4a;
       --tenten-light: #fdf2f2;   
 
-      /* 라떼 팔레트 */
-      --latte-primary: #C9A87C;   
-      --latte-secondary: #8B6F47; 
-      --latte-hover: #B8956A;
-      --latte-light: #F5EDE3;   
+      /* 라떼 팔레트 (아오토 라떼 시그니처: 회청색 & 레몬색) */
+      --latte-primary: #667B8B;   /* 메인 회청색 */
+      --latte-secondary: #D4C02C; /* 포인트 레몬색 (흰 배경 가독성을 위해 살짝 톤다운) */
+      --latte-hover: #526370;     /* 회청색 호버 (조금 더 짙은 색) */
+      --latte-light: #F0F4F7;     /* 연한 회청색 (선택된 항목 배경) */
 
       /* 현재 적용될 액센트 변수 (초기값: 키라) */
       --accent-primary: var(--kira-primary);
@@ -771,11 +771,10 @@
       container.replaceChildren(fragment);
     }
 
-    // ★ 하이브리드 방식 적용: 안전한 시간 변환 기능 통합 
     function playSong(index, cueOnly = false) {
       if (index < 0 || index >= displayedSongs.length) return;
       
-      isSeekingForced = false; // ★ 강제 이동 플래그 초기화
+      isSeekingForced = false; 
       
       currentDisplayIndex = index;
       const song = displayedSongs[index];
@@ -785,7 +784,6 @@
       renderPlaylist(); 
       updateNowPlaying(song);
 
-      // ★ 안전장치 로직 흡수: DB 값이 잘못되었거나 NaN일 때 안전하게 0초로 설정
       const targetStart = Math.max(0, song.start || 0); 
 
       if (isPlayerReady && player) {
@@ -828,7 +826,6 @@
       }
     }
 
-    // 재생 중 카드 정보 업데이트
     function updateNowPlaying(song) {
       if (!song) return;
       document.getElementById('npDate').innerText = song.date;
@@ -850,9 +847,6 @@
       searchDebounceTimer = setTimeout(renderPlaylist, 180);
     }
 
-    // ==========================================
-    // 4. 통계 파트 처리 로직
-    // ==========================================
     function filterStats() {
       clearTimeout(statsSearchDebounceTimer);
       statsSearchDebounceTimer = setTimeout(renderStatistics, 180);
