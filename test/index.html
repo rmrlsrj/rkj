@@ -7,7 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <!-- PapaParse CDN for robust CSV/TSV parsing -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
     :root {
@@ -268,7 +267,6 @@
           <div class="now-playing-date" id="npDate">데이터 로딩 중...</div>
           <div class="now-playing-title" id="npTitle">노래목록 불러오는 중...</div>
           <div class="now-playing-artist" id="npArtist">노래 아카이브 플레이어</div>
-          <!-- 가창 DB 수정용 식별 정보 영역 -->
           <div class="now-playing-meta" id="npMeta"></div>
         </div>
       </div>
@@ -352,6 +350,7 @@
     let isPlayerReady = false;
     let currentDisplayIndex = -1; 
     let currentPlayingSongId = null; 
+    let isSeekingForced = false; // ★ 추가: 타임스탬프 강제 이동 중복 실행 방지용 플래그
     
     let currentLang = 'ALL';
     let currentPlayerSort = 'DATE_ASC';
@@ -643,9 +642,26 @@
     }
 
     function onPlayerStateChange(event) {
+      // 1. 영상 종료 시 다음 곡 재생
       if (event.data === YT.PlayerState.ENDED) {
         clearPlaybackMonitor();
         playNextSong();
+      }
+
+      // ★ 2. 하이브리드 강제 이동 방어 로직: 새 영상이 PLAYING으로 바뀌었을 때 검사
+      if (event.data === YT.PlayerState.PLAYING) {
+        const song = displayedSongs[currentDisplayIndex];
+        
+        // 타임스탬프가 0초가 아닌 곡인데, 강제 이동 로직이 아직 돌지 않았다면
+        if (song && song.start > 0 && !isSeekingForced) {
+          const currentTime = player.getCurrentTime();
+          
+          // 의도한 시작 시간보다 3초 이상 못 미쳐서 (주로 0초로 리셋되어) 재생 중이라면
+          if (currentTime < song.start - 3) {
+            player.seekTo(song.start, true); // 목표 타임스탬프로 강제 멱살 이동
+            isSeekingForced = true; // 플래그를 전환하여 무한 루프 방지
+          }
+        }
       }
     }
 
@@ -742,8 +758,11 @@
       container.replaceChildren(fragment);
     }
 
+    // ★ 하이브리드 방식 적용: 안전한 시간 변환 기능 통합 
     function playSong(index, cueOnly = false) {
       if (index < 0 || index >= displayedSongs.length) return;
+      
+      isSeekingForced = false; // ★ 강제 이동 플래그 초기화
       
       currentDisplayIndex = index;
       const song = displayedSongs[index];
@@ -753,14 +772,20 @@
       renderPlaylist(); 
       updateNowPlaying(song);
 
+      // ★ 안전장치 로직 흡수: DB 값이 잘못되었거나 NaN일 때 안전하게 0초로 설정
+      const targetStart = Math.max(0, song.start || 0); 
+
       if (isPlayerReady && player) {
         if (currentVideoId === song.videoId && typeof player.seekTo === 'function') {
-          player.seekTo(song.start, true);
+          player.seekTo(targetStart, true);
           if (!cueOnly) player.playVideo();
         } else if (typeof player.loadVideoById === 'function') {
           currentVideoId = song.videoId;
-          if (cueOnly) player.cueVideoById({ videoId: song.videoId, startSeconds: song.start });
-          else player.loadVideoById({ videoId: song.videoId, startSeconds: song.start });
+          if (cueOnly) {
+            player.cueVideoById({ videoId: song.videoId, startSeconds: targetStart });
+          } else {
+            player.loadVideoById({ videoId: song.videoId, startSeconds: targetStart });
+          }
         }
       } else {
         const songId = song.id;
@@ -790,7 +815,7 @@
       }
     }
 
-    // 재생 중 카드 정보 업데이트 (가창 기록 DB 식별 정보 표기 추가)
+    // 재생 중 카드 정보 업데이트
     function updateNowPlaying(song) {
       if (!song) return;
       document.getElementById('npDate').innerText = song.date;
@@ -813,7 +838,7 @@
     }
 
     // ==========================================
-    // 4. 통계 파트 처리 로직 (song_id 기준 그룹화로 수정됨)
+    // 4. 통계 파트 처리 로직
     // ==========================================
     function filterStats() {
       clearTimeout(statsSearchDebounceTimer);
@@ -847,12 +872,10 @@
       return String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('ko');
     }
 
-    // ✅ 수정된 함수: 통계 그룹화를 song_id 기준으로 수행
     function aggregateSongStatistics(songList) {
       const songMap = new Map();
 
       songList.forEach(song => {
-        // ✅ 고유한 songId를 Key로 사용합니다.
         const key = song.songId;
 
         if (!songMap.has(key)) {
