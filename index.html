@@ -118,6 +118,18 @@
     .now-playing-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
     .now-playing-artist { font-size: 0.9rem; color: var(--text-muted); }
 
+    /* DB 식별용 메타 태그 스타일 */
+    .now-playing-meta {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px;
+      border-top: 1px dashed var(--border); font-size: 0.78rem; color: var(--text-muted);
+    }
+    .db-badge {
+      background-color: var(--card-bg); padding: 2px 6px; border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    .db-badge strong { color: var(--accent-secondary); }
+    .log-id-tag { font-size: 0.75rem; color: var(--text-muted); margin-left: 6px; font-weight: 500; }
+
     /* Playlist Section */
     .playlist-section {
       background-color: var(--panel-bg); border: 1px solid var(--border);
@@ -256,6 +268,8 @@
           <div class="now-playing-date" id="npDate">데이터 로딩 중...</div>
           <div class="now-playing-title" id="npTitle">노래목록 불러오는 중...</div>
           <div class="now-playing-artist" id="npArtist">노래 아카이브 플레이어</div>
+          <!-- 가창 DB 수정용 식별 정보 영역 -->
+          <div class="now-playing-meta" id="npMeta"></div>
         </div>
       </div>
 
@@ -383,11 +397,9 @@
 
           const lang = (song.lang || 'JA').toUpperCase();
 
-          // 1. 기본 표기: primary 값을 우선으로 가져옵니다.
           let title = song.title_primary || song.title_original || '';
           let artist = song.artist_primary || song.artist_original || '';
 
-          // 2. [추가된 로직] 일본어(JA)인 경우 한글 표기 병기 (예: "Lemon (레몬)")
           if (lang === 'JA') {
             if (song.title_ko_reading && song.title_ko_reading !== title) {
               title = `${title} (${song.title_ko_reading})`;
@@ -400,23 +412,30 @@
           const titleOrig = song.title_original || song.title_primary || '';
           const artistOrig = song.artist_original || song.artist_primary || '';
           
-          const start = timeToSeconds(log.start_time) || 0;
-          const end = timeToSeconds(log.end_time) || 0;
+          const startTimeRaw = log.start_time || '0:00';
+          const endTimeRaw = log.end_time || '0:00';
+          const start = timeToSeconds(startTimeRaw) || 0;
+          const end = timeToSeconds(endTimeRaw) || 0;
           const date = formatDate(video.stream_date);
+          const logId = log.log_id || `L-temp-${idx}`;
+          const songId = log.song_id || '';
           
-          // 검색어에도 새로 추가된 한글 독음들이 포함되도록 셋업
           const searchText = [
             title, titleOrig, song.title_ko_reading,
             artist, artistOrig, song.artist_ko,
-            song.search_keywords, song.source_work, date, log.perf_note
+            song.search_keywords, song.source_work, date, log.perf_note,
+            logId, songId
           ].filter(Boolean).join(' ').toLowerCase();
 
           return {
-            id: log.log_id || `L-temp-${idx}`,
+            id: logId,
+            logId, songId,
             title, titleOrig, artist, artistOrig,
             work: song.source_work || '',
             sourceType: song.source_type || '',
-            lang, date, start, end, duration: Math.max(0, end - start),
+            lang, date, start, end,
+            startTimeRaw, endTimeRaw,
+            duration: Math.max(0, end - start),
             videoId: video.youtube_video_id,
             note: log.perf_note || '',
             streamer: video.streamer_id,
@@ -467,6 +486,7 @@
         document.getElementById('npTitle').innerText = '검색 결과 없음';
         document.getElementById('npDate').innerText = '';
         document.getElementById('npArtist').innerText = '-';
+        document.getElementById('npMeta').innerHTML = '';
       }
 
       if (!player) {
@@ -515,6 +535,7 @@
       document.getElementById('npTitle').innerText = '노래목록 불러오는 중...';
       document.getElementById('npDate').innerText = '';
       document.getElementById('npArtist').innerText = STREAMER_MAP[streamerKey].name;
+      document.getElementById('npMeta').innerHTML = '';
 
       if (allSongs.length > 0) {
         applyStreamerData(); 
@@ -574,6 +595,7 @@
       renderStatus('statsList', msg, true);
       document.getElementById('npTitle').innerText = '데이터 입력 대기 중';
       document.getElementById('npDate').innerText = '';
+      document.getElementById('npMeta').innerHTML = '';
     }
 
     function renderStatus(containerId, message, isError = false) {
@@ -698,7 +720,10 @@
         const playIcon = isActive ? `<span class="playing-icon">▶️</span>` : '';
         card.innerHTML = `
           <div>
-            <div class="song-info-date">${escapeHtml(song.date)}</div>
+            <div class="song-info-date">
+              ${escapeHtml(song.date)}
+              <span class="log-id-tag">[${escapeHtml(song.logId)} | ${escapeHtml(song.startTimeRaw)} ~ ${escapeHtml(song.endTimeRaw)}]</span>
+            </div>
             <div class="song-info-main">${playIcon}${escapeHtml(song.title)}</div>
             <div class="song-info-sub">${escapeHtml(song.artist)}${song.work ? ' • ' + escapeHtml(song.work) : ''}</div>
           </div>
@@ -765,11 +790,21 @@
       }
     }
 
+    // 재생 중 카드 정보 업데이트 (가창 기록 DB 식별 정보 표기 추가)
     function updateNowPlaying(song) {
       if (!song) return;
       document.getElementById('npDate').innerText = song.date;
       document.getElementById('npTitle').innerText = song.title;
       document.getElementById('npArtist').innerText = `${song.artist}${song.work ? ' • ' + song.work : ''}`;
+
+      const metaEl = document.getElementById('npMeta');
+      if (metaEl) {
+        metaEl.innerHTML = `
+          <span class="db-badge">가창 ID: <strong>${escapeHtml(song.logId)}</strong></span>
+          <span class="db-badge">구간: <strong>${escapeHtml(song.startTimeRaw)} ~ ${escapeHtml(song.endTimeRaw)}</strong></span>
+          <span class="db-badge">곡 ID: <strong>${escapeHtml(song.songId)}</strong></span>
+        `;
+      }
     }
 
     function filterSongs() {
@@ -816,7 +851,6 @@
       const songMap = new Map();
 
       songList.forEach(song => {
-        // 병기된 텍스트 자체를 기준으로 그룹화 (같은 곡이면 텍스트도 완전히 일치함)
         const key = `${normalizeStatKey(song.title)}___${normalizeStatKey(song.artist)}`;
         if (!songMap.has(key)) {
           songMap.set(key, {
@@ -832,7 +866,14 @@
         entry.playCount += 1;
         
         if (song.date) {
-          entry.playEvents.push({ date: song.date, videoId: song.videoId, start: song.start, id: song.id });
+          entry.playEvents.push({ 
+            date: song.date, 
+            videoId: song.videoId, 
+            start: song.start, 
+            id: song.id,
+            startRaw: song.startTimeRaw,
+            endRaw: song.endTimeRaw
+          });
         }
       });
 
@@ -841,8 +882,8 @@
         
         return {
           ...item,
-          titleDisplay: item.title,   // "Lemon (레몬)" 포맷 그대로 사용
-          artistDisplay: item.artist, // "米津玄師 (요네즈 켄시)" 포맷 그대로 사용
+          titleDisplay: item.title,
+          artistDisplay: item.artist,
           firstId: sortedEvents.length > 0 ? sortedEvents[0].id : '',
           lastId: sortedEvents.length > 0 ? sortedEvents[sortedEvents.length - 1].id : '',
           sortedEvents: sortedEvents
@@ -897,8 +938,6 @@
         addText('index-text', `${idx + 1}.`);
         addText('title-text', item.titleDisplay);
         div.append(' / ');
-        
-        // [수정된 부분] 통계 탭에서도 병기된 가수 이름이 나오도록 변경
         addText('artist-text', item.artistDisplay); 
         div.append(' / ');
 
@@ -912,7 +951,7 @@
           a.href = `https://www.youtube.com/watch?v=${ev.videoId}&t=${ev.start}s`;
           a.target = '_blank';
           a.rel = 'noopener noreferrer';
-          a.title = '새 창에서 유튜브 영상 보기';
+          a.title = `가창 ID: ${ev.id} (${ev.startRaw || ''} ~ ${ev.endRaw || ''})`;
           
           datesSpan.appendChild(a);
           if (evIdx < item.sortedEvents.length - 1) datesSpan.append(' / ');
@@ -941,8 +980,6 @@
       if (queries.length > 0) {
         aggregated = aggregated.filter(item => {
           const datesText = item.sortedEvents.map(ev => `${ev.date} ${formatShortDate(ev.date)}`).join(' ');
-          
-          // [수정된 부분] 병기된 텍스트 전체를 대상으로 검색
           const searchableText = [item.titleDisplay, item.artistDisplay, datesText].filter(Boolean).join(' ').toLowerCase();
           return queries.every(q => searchableText.includes(q));
         });
