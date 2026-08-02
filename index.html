@@ -443,16 +443,18 @@
             logId, songId
           ].filter(Boolean).join(' ').toLowerCase();
 
-          // ★ [핵심 수정] 영상 주인(Host)과 부른 사람(Singer)을 덮어쓰지 않고 모두 포함시킴!
           const hostIdStr = video.streamer_id || '';
           const singerIdStr = log.singer_id || '';
           
-          // Set을 이용해 중복 없는 배열로 만듦 (예: 호스트 키라, 가창자 텐텐 -> 둘 다 등록됨)
-          const ownerSet = new Set();
-          if (hostIdStr.trim()) hostIdStr.split(',').forEach(id => ownerSet.add(id.trim()));
-          if (singerIdStr.trim()) singerIdStr.split(',').forEach(id => ownerSet.add(id.trim()));
-          
-          const actualStreamers = Array.from(ownerSet);
+          // ★ 질문자님의 test_index.html 로직 100% 반영!
+          // 가창자(singer_id)가 명시되어 있으면 호스트(영상 주인)는 무시하고 가창자 우선 적용.
+          // 가창자 정보가 비어있을 때만 호스트(영상 주인) 적용.
+          let actualStreamers = [];
+          if (singerIdStr.trim() !== '') {
+            actualStreamers = singerIdStr.split(',').map(s => s.trim());
+          } else if (hostIdStr.trim() !== '') {
+            actualStreamers = hostIdStr.split(',').map(s => s.trim());
+          }
 
           return {
             id: logId,
@@ -465,12 +467,12 @@
             duration: Math.max(0, end - start),
             videoId: video.youtube_video_id,
             note: log.perf_note || '',
-            streamers: actualStreamers, // 수정: 배열 형태로 저장
+            streamers: actualStreamers, // 계산된 가창자(스트리머) 배열 저장
             searchText
           };
         }).filter(Boolean);
 
-        // 정렬 역전 현상 수정: ID 대신 실제 날짜와 시작 시간을 기준으로 오름차순 정렬
+        // 실제 날짜와 시작 시간을 기준으로 오름차순 정렬 (정렬 역전 방지)
         allSongs.sort((a, b) => {
           const dateCmp = a.date.localeCompare(b.date);
           return dateCmp !== 0 ? dateCmp : a.start - b.start;
@@ -500,7 +502,7 @@
     function applyStreamerData() {
       const targetStreamerDbId = STREAMER_MAP[currentStreamerKey].dbId;
       
-      // ★ 배열에 내가 클릭한 스트리머(키라, 텐텐 등)가 포함되어 있으면 목록에 보여줌!
+      // ★ 완벽히 분리된 streamers 배열에 현재 선택된 스트리머 탭 이름이 포함되어 있는지 확인
       songs = allSongs.filter(s => s.streamers.includes(targetStreamerDbId));
 
       if (songs.length === 0) {
