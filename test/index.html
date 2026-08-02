@@ -30,12 +30,6 @@
       --tenten-hover: #d24a4a;
       --tenten-light: #fdf2f2;   
 
-      /* 라떼 팔레트 (아오토 라떼 시그니처: 회청색 & 레몬색) */
-      --latte-primary: #667B8B;   /* 메인 회청색 */
-      --latte-secondary: #D4C02C; /* 포인트 레몬색 (흰 배경 가독성을 위해 살짝 톤다운) */
-      --latte-hover: #526370;     /* 회청색 호버 (조금 더 짙은 색) */
-      --latte-light: #F0F4F7;     /* 연한 회청색 (선택된 항목 배경) */
-
       /* 현재 적용될 액센트 변수 (초기값: 키라) */
       --accent-primary: var(--kira-primary);
       --accent-secondary: var(--kira-secondary);
@@ -255,7 +249,6 @@
       <div class="streamer-nav">
         <button class="streamer-btn active" onclick="switchStreamer('kira', this)">세이로쿠 키라</button>
         <button class="streamer-btn" onclick="switchStreamer('tenten', this)">텐플라스텐 텐텐</button>
-        <button class="streamer-btn" onclick="switchStreamer('latte', this)">아오토 라떼</button>
       </div>
       <div class="tab-nav">
         <button class="tab-btn active" onclick="switchMainTab('player', this)">재생</button>
@@ -345,8 +338,7 @@
 
     const STREAMER_MAP = {
       kira: { name: '세이로쿠 키라', dbId: '키라' },
-      tenten: { name: '텐플라스텐 텐텐', dbId: '텐텐' },
-      latte: { name: '아오토 라떼', dbId: '라떼' }
+      tenten: { name: '텐플라스텐 텐텐', dbId: '텐텐' }
     };
 
     let currentStreamerKey = 'kira';
@@ -358,7 +350,7 @@
     let isPlayerReady = false;
     let currentDisplayIndex = -1; 
     let currentPlayingSongId = null; 
-    let isSeekingForced = false; // ★ 추가: 타임스탬프 강제 이동 중복 실행 방지용 플래그
+    let isSeekingForced = false; // 타임스탬프 강제 이동 중복 실행 방지용 플래그
     
     let currentLang = 'ALL';
     let currentPlayerSort = 'DATE_ASC';
@@ -445,6 +437,7 @@
             duration: Math.max(0, end - start),
             videoId: video.youtube_video_id,
             note: log.perf_note || '',
+            singerId: log.singer_id || '', // ★ [변경 1] singer_id 필드 추가
             streamer: video.streamer_id,
             searchText
           };
@@ -472,9 +465,22 @@
       });
     }
 
+    // ★ [변경 2] singer_id 우선 판단, 없으면 streamer_id로 폴백
     function applyStreamerData() {
       const targetStreamerDbId = STREAMER_MAP[currentStreamerKey].dbId;
-      songs = allSongs.filter(s => s.streamer === targetStreamerDbId);
+      
+      songs = allSongs.filter(s => {
+        // 1. singer_id가 있으면 그것을 최우선으로 판단
+        if (s.singerId && s.singerId.trim() !== '') {
+          const singerList = s.singerId.split(',').map(id => id.trim());
+          return singerList.includes(targetStreamerDbId);
+        }
+        
+        // 2. singer_id가 없으면 기존처럼 영상의 streamer_id로 판단 (Fallback)
+        if (!s.streamer) return false;
+        const streamerList = s.streamer.split(',').map(id => id.trim());
+        return streamerList.includes(targetStreamerDbId);
+      });
 
       if (songs.length === 0) {
         showError(`${STREAMER_MAP[currentStreamerKey].name} 님의 가창 기록이 아직 없습니다.`);
@@ -531,11 +537,6 @@
         document.documentElement.style.setProperty('--accent-secondary', 'var(--tenten-secondary)');
         document.documentElement.style.setProperty('--accent-hover', 'var(--tenten-hover)');
         document.documentElement.style.setProperty('--accent-light', 'var(--tenten-light)');
-      } else if (streamerKey === 'latte') {
-        document.documentElement.style.setProperty('--accent-primary', 'var(--latte-primary)');
-        document.documentElement.style.setProperty('--accent-secondary', 'var(--latte-secondary)');
-        document.documentElement.style.setProperty('--accent-hover', 'var(--latte-hover)');
-        document.documentElement.style.setProperty('--accent-light', 'var(--latte-light)');
       }
 
       clearPlaybackMonitor();
@@ -655,24 +656,20 @@
     }
 
     function onPlayerStateChange(event) {
-      // 1. 영상 종료 시 다음 곡 재생
       if (event.data === YT.PlayerState.ENDED) {
         clearPlaybackMonitor();
         playNextSong();
       }
 
-      // ★ 2. 하이브리드 강제 이동 방어 로직: 새 영상이 PLAYING으로 바뀌었을 때 검사
       if (event.data === YT.PlayerState.PLAYING) {
         const song = displayedSongs[currentDisplayIndex];
         
-        // 타임스탬프가 0초가 아닌 곡인데, 강제 이동 로직이 아직 돌지 않았다면
         if (song && song.start > 0 && !isSeekingForced) {
           const currentTime = player.getCurrentTime();
           
-          // 의도한 시작 시간보다 3초 이상 못 미쳐서 (주로 0초로 리셋되어) 재생 중이라면
           if (currentTime < song.start - 3) {
-            player.seekTo(song.start, true); // 목표 타임스탬프로 강제 멱살 이동
-            isSeekingForced = true; // 플래그를 전환하여 무한 루프 방지
+            player.seekTo(song.start, true);
+            isSeekingForced = true;
           }
         }
       }
@@ -774,7 +771,7 @@
     function playSong(index, cueOnly = false) {
       if (index < 0 || index >= displayedSongs.length) return;
       
-      isSeekingForced = false; 
+      isSeekingForced = false;
       
       currentDisplayIndex = index;
       const song = displayedSongs[index];
@@ -847,6 +844,9 @@
       searchDebounceTimer = setTimeout(renderPlaylist, 180);
     }
 
+    // ==========================================
+    // 4. 통계 파트 처리 로직
+    // ==========================================
     function filterStats() {
       clearTimeout(statsSearchDebounceTimer);
       statsSearchDebounceTimer = setTimeout(renderStatistics, 180);
