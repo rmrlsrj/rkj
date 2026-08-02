@@ -346,7 +346,7 @@
     const STREAMER_MAP = {
       kira: { name: '세이로쿠 키라', dbId: '키라' },
       tenten: { name: '텐플라스텐 텐텐', dbId: '텐텐' },
-      latte: { name: '아오토 라떼', dbId: '라떼' } // 아오토 라떼 복구 완료
+      latte: { name: '아오토 라떼', dbId: '라떼' } 
     };
 
     let currentStreamerKey = 'kira';
@@ -424,7 +424,7 @@
           const start = timeToSeconds(startTimeRaw) || 0;
           let end = timeToSeconds(endTimeRaw) || 0;
 
-          // ★ 복구: 곡 길이(duration) 기반 종료 시간 자동 계산 로직
+          // 곡 길이(duration) 기반 종료 시간 자동 계산 로직
           if (end === 0 && song.duration) {
             const durationSeconds = timeToSeconds(song.duration) || 0;
             if (durationSeconds > 0) {
@@ -443,6 +443,17 @@
             logId, songId
           ].filter(Boolean).join(' ').toLowerCase();
 
+          // ★ [핵심 수정] 영상 주인(Host)과 부른 사람(Singer)을 덮어쓰지 않고 모두 포함시킴!
+          const hostIdStr = video.streamer_id || '';
+          const singerIdStr = log.singer_id || '';
+          
+          // Set을 이용해 중복 없는 배열로 만듦 (예: 호스트 키라, 가창자 텐텐 -> 둘 다 등록됨)
+          const ownerSet = new Set();
+          if (hostIdStr.trim()) hostIdStr.split(',').forEach(id => ownerSet.add(id.trim()));
+          if (singerIdStr.trim()) singerIdStr.split(',').forEach(id => ownerSet.add(id.trim()));
+          
+          const actualStreamers = Array.from(ownerSet);
+
           return {
             id: logId,
             logId, songId,
@@ -454,7 +465,7 @@
             duration: Math.max(0, end - start),
             videoId: video.youtube_video_id,
             note: log.perf_note || '',
-            streamer: video.streamer_id,
+            streamers: actualStreamers, // 수정: 배열 형태로 저장
             searchText
           };
         }).filter(Boolean);
@@ -488,7 +499,9 @@
 
     function applyStreamerData() {
       const targetStreamerDbId = STREAMER_MAP[currentStreamerKey].dbId;
-      songs = allSongs.filter(s => s.streamer === targetStreamerDbId);
+      
+      // ★ 배열에 내가 클릭한 스트리머(키라, 텐텐 등)가 포함되어 있으면 목록에 보여줌!
+      songs = allSongs.filter(s => s.streamers.includes(targetStreamerDbId));
 
       if (songs.length === 0) {
         showError(`${STREAMER_MAP[currentStreamerKey].name} 님의 가창 기록이 아직 없습니다.`);
@@ -546,7 +559,6 @@
         document.documentElement.style.setProperty('--accent-hover', 'var(--tenten-hover)');
         document.documentElement.style.setProperty('--accent-light', 'var(--tenten-light)');
       } else if (streamerKey === 'latte') {
-        // ★ 복구: 라떼 테마 색상 적용 로직
         document.documentElement.style.setProperty('--accent-primary', 'var(--latte-primary)');
         document.documentElement.style.setProperty('--accent-secondary', 'var(--latte-secondary)');
         document.documentElement.style.setProperty('--accent-hover', 'var(--latte-hover)');
@@ -676,18 +688,16 @@
         playNextSong();
       }
 
-      // 2. 하이브리드 강제 이동 방어 로직: 새 영상이 PLAYING으로 바뀌었을 때 검사
+      // 2. 하이브리드 강제 이동 방어 로직
       if (event.data === YT.PlayerState.PLAYING) {
         const song = displayedSongs[currentDisplayIndex];
         
-        // 타임스탬프가 0초가 아닌 곡인데, 강제 이동 로직이 아직 돌지 않았다면
         if (song && song.start > 0 && !isSeekingForced) {
           const currentTime = player.getCurrentTime();
           
-          // 의도한 시작 시간보다 3초 이상 못 미쳐서 (주로 0초로 리셋되어) 재생 중이라면
           if (currentTime < song.start - 3) {
-            player.seekTo(song.start, true); // 목표 타임스탬프로 강제 멱살 이동
-            isSeekingForced = true; // 플래그를 전환하여 무한 루프 방지
+            player.seekTo(song.start, true);
+            isSeekingForced = true; 
           }
         }
       }
@@ -950,7 +960,6 @@
           ...item,
           titleDisplay: item.title,
           artistDisplay: item.artist,
-          // ID 대신 실제 날짜(date) 값을 저장
           firstDate: sortedEvents.length > 0 ? sortedEvents[0].date : '',
           lastDate: sortedEvents.length > 0 ? sortedEvents[sortedEvents.length - 1].date : '',
           firstId: sortedEvents.length > 0 ? sortedEvents[0].id : '',
@@ -974,17 +983,10 @@
         return shuffled;
       }
       return [...items].sort((a, b) => {
-        // 많이 부른 순: 카운트 내림차순 -> 같으면 첫 가창일 오름차순
         if (sortType === 'COUNT_DESC') return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate);
         if (sortType === 'TITLE_LANG') return getTitleLangCategory(a.titleDisplay) - getTitleLangCategory(b.titleDisplay) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
-        
-        // 최근에 부른 날짜순: 마지막 가창일이 가장 큰(최신) 값이 먼저 와야 함 (내림차순)
         if (sortType === 'RECENT_DESC') return b.lastDate.localeCompare(a.lastDate);
-        
-        // 오래 묵은 곡 순: 마지막 가창일이 가장 작은(과거) 값이 먼저 와야 함 (오름차순)
         if (sortType === 'OLD_ASC') return a.lastDate.localeCompare(b.lastDate);
-        
-        // 처음 부른 날짜순 (기본값): 첫 가창일이 가장 작은(과거) 값이 먼저 와야 함 (오름차순)
         return a.firstDate.localeCompare(b.firstDate);
       });
     }
