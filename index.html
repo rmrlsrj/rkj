@@ -350,7 +350,7 @@
     let isPlayerReady = false;
     let currentDisplayIndex = -1; 
     let currentPlayingSongId = null; 
-    let isSeekingForced = false; // ★ 추가: 타임스탬프 강제 이동 중복 실행 방지용 플래그
+    let isSeekingForced = false; 
     
     let currentLang = 'ALL';
     let currentPlayerSort = 'DATE_ASC';
@@ -442,7 +442,12 @@
           };
         }).filter(Boolean);
 
-        allSongs.sort((a, b) => a.id.localeCompare(b.id, undefined, {numeric: true}));
+        // 수정: ID 대신 실제 날짜와 시작 시간을 기준으로 오름차순 정렬
+        allSongs.sort((a, b) => {
+          const dateCmp = a.date.localeCompare(b.date);
+          return dateCmp !== 0 ? dateCmp : a.start - b.start;
+        });
+        
         applyStreamerData();
       } catch (err) {
         console.error(err);
@@ -648,7 +653,7 @@
         playNextSong();
       }
 
-      // ★ 2. 하이브리드 강제 이동 방어 로직: 새 영상이 PLAYING으로 바뀌었을 때 검사
+      // 2. 하이브리드 강제 이동 방어 로직: 새 영상이 PLAYING으로 바뀌었을 때 검사
       if (event.data === YT.PlayerState.PLAYING) {
         const song = displayedSongs[currentDisplayIndex];
         
@@ -686,15 +691,25 @@
       renderPlaylist();
     }
 
+    // 수정: 플레이어 탭의 날짜순/최신순 정렬을 실제 날짜 기준으로 교체
     function setPlayerSort(sortType, btn) {
       currentPlayerSort = sortType;
       btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
-      if (sortType === 'DATE_DESC') songs.sort((a, b) => b.id.localeCompare(a.id, undefined, {numeric: true}));
-      else if (sortType === 'DATE_ASC') songs.sort((a, b) => a.id.localeCompare(b.id, undefined, {numeric: true}));
-      else if (sortType === 'TITLE_ASC') songs.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
-      else if (sortType === 'SHUFFLE') {
+      if (sortType === 'DATE_DESC') {
+        songs.sort((a, b) => {
+          const dateCmp = b.date.localeCompare(a.date);
+          return dateCmp !== 0 ? dateCmp : b.start - a.start;
+        });
+      } else if (sortType === 'DATE_ASC') {
+        songs.sort((a, b) => {
+          const dateCmp = a.date.localeCompare(b.date);
+          return dateCmp !== 0 ? dateCmp : a.start - b.start;
+        });
+      } else if (sortType === 'TITLE_ASC') {
+        songs.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
+      } else if (sortType === 'SHUFFLE') {
         for (let i = songs.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [songs[i], songs[j]] = [songs[j], songs[i]];
@@ -758,11 +773,10 @@
       container.replaceChildren(fragment);
     }
 
-    // ★ 하이브리드 방식 적용: 안전한 시간 변환 기능 통합 
     function playSong(index, cueOnly = false) {
       if (index < 0 || index >= displayedSongs.length) return;
       
-      isSeekingForced = false; // ★ 강제 이동 플래그 초기화
+      isSeekingForced = false; 
       
       currentDisplayIndex = index;
       const song = displayedSongs[index];
@@ -772,7 +786,6 @@
       renderPlaylist(); 
       updateNowPlaying(song);
 
-      // ★ 안전장치 로직 흡수: DB 값이 잘못되었거나 NaN일 때 안전하게 0초로 설정
       const targetStart = Math.max(0, song.start || 0); 
 
       if (isPlayerReady && player) {
@@ -815,7 +828,6 @@
       }
     }
 
-    // 재생 중 카드 정보 업데이트
     function updateNowPlaying(song) {
       if (!song) return;
       document.getElementById('npDate').innerText = song.date;
@@ -872,6 +884,7 @@
       return String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('ko');
     }
 
+    // 수정: 통계 데이터 생성 시 '실제 날짜' 값으로 이벤트 정렬 및 저장
     function aggregateSongStatistics(songList) {
       const songMap = new Map();
 
@@ -906,11 +919,19 @@
       });
 
       return Array.from(songMap.values()).map(item => {
-        const sortedEvents = item.playEvents.sort((a, b) => a.id.localeCompare(b.id, undefined, {numeric: true}));
+        // 날짜순, 그리고 시작 시간순으로 정확히 오름차순 정렬
+        const sortedEvents = item.playEvents.sort((a, b) => {
+          const dateCmp = a.date.localeCompare(b.date);
+          return dateCmp !== 0 ? dateCmp : a.start - b.start;
+        });
+        
         return {
           ...item,
           titleDisplay: item.title,
           artistDisplay: item.artist,
+          // ID 대신 실제 날짜(date) 값을 저장
+          firstDate: sortedEvents.length > 0 ? sortedEvents[0].date : '',
+          lastDate: sortedEvents.length > 0 ? sortedEvents[sortedEvents.length - 1].date : '',
           firstId: sortedEvents.length > 0 ? sortedEvents[0].id : '',
           lastId: sortedEvents.length > 0 ? sortedEvents[sortedEvents.length - 1].id : '',
           sortedEvents: sortedEvents
@@ -922,6 +943,7 @@
       return category === 'ALL' ? items : items.filter(item => matchCategoryFilter(item, category));
     }
 
+    // 수정: 통계 탭 정렬을 '실제 날짜(firstDate/lastDate)' 기반으로 교체
     function sortStatistics(items, sortType) {
       if (sortType === 'SHUFFLE') {
         const shuffled = [...items];
@@ -932,11 +954,18 @@
         return shuffled;
       }
       return [...items].sort((a, b) => {
-        if (sortType === 'COUNT_DESC') return b.playCount - a.playCount || a.firstId.localeCompare(b.firstId, undefined, {numeric: true});
+        // 많이 부른 순: 카운트 내림차순 -> 같으면 첫 가창일 오름차순
+        if (sortType === 'COUNT_DESC') return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate);
         if (sortType === 'TITLE_LANG') return getTitleLangCategory(a.titleDisplay) - getTitleLangCategory(b.titleDisplay) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
-        if (sortType === 'RECENT_DESC') return b.lastId.localeCompare(a.lastId, undefined, {numeric: true});
-        if (sortType === 'OLD_ASC') return a.lastId.localeCompare(b.lastId, undefined, {numeric: true});
-        return a.firstId.localeCompare(b.firstId, undefined, {numeric: true});
+        
+        // 최근에 부른 날짜순: 마지막 가창일이 가장 큰(최신) 값이 먼저 와야 함 (내림차순)
+        if (sortType === 'RECENT_DESC') return b.lastDate.localeCompare(a.lastDate);
+        
+        // 오래 묵은 곡 순: 마지막 가창일이 가장 작은(과거) 값이 먼저 와야 함 (오름차순)
+        if (sortType === 'OLD_ASC') return a.lastDate.localeCompare(b.lastDate);
+        
+        // 처음 부른 날짜순 (기본값): 첫 가창일이 가장 작은(과거) 값이 먼저 와야 함 (오름차순)
+        return a.firstDate.localeCompare(b.firstDate);
       });
     }
 
