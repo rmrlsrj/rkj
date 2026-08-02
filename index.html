@@ -30,6 +30,12 @@
       --tenten-hover: #d24a4a;
       --tenten-light: #fdf2f2;   
 
+      /* 라떼 팔레트 (회청색 & 레몬색 포인트) */
+      --latte-primary: #667B8B;
+      --latte-secondary: #4a5a66; 
+      --latte-hover: #506270;
+      --latte-light: #fbfbf6;
+
       /* 현재 적용될 액센트 변수 (초기값: 키라) */
       --accent-primary: var(--kira-primary);
       --accent-secondary: var(--kira-secondary);
@@ -249,6 +255,7 @@
       <div class="streamer-nav">
         <button class="streamer-btn active" onclick="switchStreamer('kira', this)">세이로쿠 키라</button>
         <button class="streamer-btn" onclick="switchStreamer('tenten', this)">텐플라스텐 텐텐</button>
+        <button class="streamer-btn" onclick="switchStreamer('latte', this)">아오토 라떼</button>
       </div>
       <div class="tab-nav">
         <button class="tab-btn active" onclick="switchMainTab('player', this)">재생</button>
@@ -338,7 +345,8 @@
 
     const STREAMER_MAP = {
       kira: { name: '세이로쿠 키라', dbId: '키라' },
-      tenten: { name: '텐플라스텐 텐텐', dbId: '텐텐' }
+      tenten: { name: '텐플라스텐 텐텐', dbId: '텐텐' },
+      latte: { name: '아오토 라떼', dbId: '라떼' } // 아오토 라떼 복구 완료
     };
 
     let currentStreamerKey = 'kira';
@@ -414,7 +422,16 @@
           const startTimeRaw = log.start_time || '0:00';
           const endTimeRaw = log.end_time || '0:00';
           const start = timeToSeconds(startTimeRaw) || 0;
-          const end = timeToSeconds(endTimeRaw) || 0;
+          let end = timeToSeconds(endTimeRaw) || 0;
+
+          // ★ 복구: 곡 길이(duration) 기반 종료 시간 자동 계산 로직
+          if (end === 0 && song.duration) {
+            const durationSeconds = timeToSeconds(song.duration) || 0;
+            if (durationSeconds > 0) {
+              end = start + durationSeconds + 5;
+            }
+          }
+
           const date = formatDate(video.stream_date);
           const logId = log.log_id || `L-temp-${idx}`;
           const songId = log.song_id || '';
@@ -442,7 +459,7 @@
           };
         }).filter(Boolean);
 
-        // 수정: ID 대신 실제 날짜와 시작 시간을 기준으로 오름차순 정렬
+        // 정렬 역전 현상 수정: ID 대신 실제 날짜와 시작 시간을 기준으로 오름차순 정렬
         allSongs.sort((a, b) => {
           const dateCmp = a.date.localeCompare(b.date);
           return dateCmp !== 0 ? dateCmp : a.start - b.start;
@@ -528,6 +545,12 @@
         document.documentElement.style.setProperty('--accent-secondary', 'var(--tenten-secondary)');
         document.documentElement.style.setProperty('--accent-hover', 'var(--tenten-hover)');
         document.documentElement.style.setProperty('--accent-light', 'var(--tenten-light)');
+      } else if (streamerKey === 'latte') {
+        // ★ 복구: 라떼 테마 색상 적용 로직
+        document.documentElement.style.setProperty('--accent-primary', 'var(--latte-primary)');
+        document.documentElement.style.setProperty('--accent-secondary', 'var(--latte-secondary)');
+        document.documentElement.style.setProperty('--accent-hover', 'var(--latte-hover)');
+        document.documentElement.style.setProperty('--accent-light', 'var(--latte-light)');
       }
 
       clearPlaybackMonitor();
@@ -691,7 +714,6 @@
       renderPlaylist();
     }
 
-    // 수정: 플레이어 탭의 날짜순/최신순 정렬을 실제 날짜 기준으로 교체
     function setPlayerSort(sortType, btn) {
       currentPlayerSort = sortType;
       btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -884,7 +906,6 @@
       return String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('ko');
     }
 
-    // 수정: 통계 데이터 생성 시 '실제 날짜' 값으로 이벤트 정렬 및 저장
     function aggregateSongStatistics(songList) {
       const songMap = new Map();
 
@@ -943,7 +964,6 @@
       return category === 'ALL' ? items : items.filter(item => matchCategoryFilter(item, category));
     }
 
-    // 수정: 통계 탭 정렬을 '실제 날짜(firstDate/lastDate)' 기반으로 교체
     function sortStatistics(items, sortType) {
       if (sortType === 'SHUFFLE') {
         const shuffled = [...items];
