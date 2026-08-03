@@ -417,10 +417,14 @@
           let title = song.title_primary || song.title_original || '';
           let artist = song.artist_primary || song.artist_original || '';
 
+          // ⭐ 변경된 제목 표시 로직: 번역 -> 독음 -> 원제 순으로 병기
+          if (song.title_ko_translation && song.title_ko_translation.trim() !== '') {
+            title = `${title} (${song.title_ko_translation})`;
+          } else if (song.title_ko_reading && song.title_ko_reading.trim() !== '') {
+            title = `${title} (${song.title_ko_reading})`;
+          }
+
           if (lang === 'JA') {
-            if (song.title_ko_reading && song.title_ko_reading !== title) {
-              title = `${title} (${song.title_ko_reading})`;
-            }
             if (song.artist_ko && song.artist_ko !== artist) {
               artist = `${artist} (${song.artist_ko})`;
             }
@@ -430,7 +434,7 @@
           const artistOrig = song.artist_original || song.artist_primary || '';
           
           const startTimeRaw = log.start_time || '0:00';
-          let endTimeRaw = log.end_time || ''; // 수정 가능하도록 let으로 변경
+          let endTimeRaw = log.end_time || ''; 
           const start = timeToSeconds(startTimeRaw) || 0;
           let end = timeToSeconds(endTimeRaw) || 0;
 
@@ -438,7 +442,6 @@
             const durationSeconds = timeToSeconds(song.duration) || 0;
             if (durationSeconds > 0) {
               end = start + durationSeconds + 5;
-              // 내부에서 계산된 시간을 화면에도 "04:35 (자동)" 형식으로 표시!
               endTimeRaw = secondsToTimeStr(end) + ' (자동)';
             }
           }
@@ -449,8 +452,9 @@
           const logId = log.log_id || `L-temp-${idx}`;
           const songId = log.song_id || '';
           
+          // ⭐ 검색 배열(searchText)에 song.title_ko_translation 추가 완료
           const searchText = [
-            title, titleOrig, song.title_ko_reading,
+            title, titleOrig, song.title_ko_reading, song.title_ko_translation,
             artist, artistOrig, song.artist_ko,
             song.search_keywords, song.source_work, date, log.perf_note,
             logId, songId
