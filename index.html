@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>비공식 통계</title>
 
-  <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q4LJ89VORW"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -431,7 +430,7 @@
           const artistOrig = song.artist_original || song.artist_primary || '';
           
           const startTimeRaw = log.start_time || '0:00';
-          const endTimeRaw = log.end_time || '0:00';
+          let endTimeRaw = log.end_time || ''; // 수정 가능하도록 let으로 변경
           const start = timeToSeconds(startTimeRaw) || 0;
           let end = timeToSeconds(endTimeRaw) || 0;
 
@@ -439,8 +438,12 @@
             const durationSeconds = timeToSeconds(song.duration) || 0;
             if (durationSeconds > 0) {
               end = start + durationSeconds + 5;
+              // 내부에서 계산된 시간을 화면에도 "04:35 (자동)" 형식으로 표시!
+              endTimeRaw = secondsToTimeStr(end) + ' (자동)';
             }
           }
+          
+          if (!endTimeRaw || endTimeRaw === '0:00') endTimeRaw = '0:00 (정보 없음)';
 
           const date = formatDate(video.stream_date);
           const logId = log.log_id || `L-temp-${idx}`;
@@ -623,6 +626,15 @@
       if (parts.length === 2) return parts[0] * 60 + parts[1];
       if (parts.length === 1) return parts[0];
       return null;
+    }
+
+    function secondsToTimeStr(totalSeconds) {
+      if (!totalSeconds) return '0:00';
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = Math.floor(totalSeconds % 60);
+      if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      return `${m}:${s.toString().padStart(2, '0')}`;
     }
 
     function formatDate(dateStr) {
