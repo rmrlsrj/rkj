@@ -228,6 +228,8 @@
       background-color: var(--panel-bg); border: 1px solid var(--border);
       border-radius: 8px; padding: 12px 16px; font-size: 0.9rem;
       line-height: 1.5; color: var(--text); word-break: break-all;
+      /* ⭐ 브라우저 상단 여유 공간 확보 (천장에 답답하게 붙는 것 방지) */
+      scroll-margin-top: 24px; 
     }
     .stats-item .index-text { font-weight: 700; color: var(--text-muted); margin-right: 6px; }
     .stats-item .title-text { font-weight: 700; color: var(--accent-secondary); }
@@ -1140,11 +1142,10 @@
 
       itemDiv.appendChild(playerBox);
 
-      // ⭐ [개선된 핵심 기능] 통계 상자가 아닌, '플레이어'가 화면 중앙에 오도록 스크롤
-      // 애니메이션(0.25초)이 완전히 끝나고 레이아웃이 고정된 후(0.3초 뒤) 부드럽게 이동합니다.
+      // ⭐ [개선] 플레이어가 아닌 '해당 곡 정보 상자 전체'가 화면 맨 위로 오도록 부드럽게 스크롤
       setTimeout(() => {
-        if (playerBox) {
-          playerBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (itemDiv) {
+          itemDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       }, 300);
 
