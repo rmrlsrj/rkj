@@ -114,21 +114,14 @@
 
     .main-container {
       display: grid; grid-template-columns: 1fr; gap: 20px; padding: 20px;
-      max-width: 1200px; margin: 0 auto; width: 100%; align-items: start; /* Sticky 적용을 위한 필수 속성 */
+      max-width: 1200px; margin: 0 auto; width: 100%;
     }
 
     @media (min-width: 900px) {
       .main-container { grid-template-columns: 1.2fr 0.8fr; }
-      
-      /* ⭐ 스크롤 시 플레이어 영역 고정 (Sticky Player) */
-      .player-section {
-        position: sticky;
-        top: 20px; 
-        z-index: 10;
-      }
     }
 
-    /* Player Box */
+    /* Player Box (고정 안 함 - 우측 스크롤이 독립적이기 때문) */
     .player-section { display: flex; flex-direction: column; gap: 16px; }
 
     .player-container {
@@ -162,7 +155,7 @@
     .db-badge strong { color: var(--accent-secondary); }
     .log-id-tag { font-size: 0.75rem; color: var(--text-muted); margin-left: 6px; font-weight: 500; }
 
-    /* Playlist Section */
+    /* Playlist Section (기존의 독립 스크롤 유지) */
     .playlist-section {
       background-color: var(--panel-bg); border: 1px solid var(--border);
       border-radius: 12px; padding: 16px; display: flex; flex-direction: column;
@@ -172,7 +165,7 @@
 
     .search-filter-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
 
-    /* ⭐ 검색창 Clear 버튼을 위한 Wrapper */
+    /* 🔍 검색창 Clear 버튼 Wrapper */
     .search-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
     
     .search-input {
@@ -200,6 +193,7 @@
       background-color: var(--accent-primary); color: #fff; border-color: var(--accent-primary);
     }
 
+    /* 독립 스크롤 적용 부분 */
     .playlist-scroll {
       flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;
     }
@@ -247,7 +241,7 @@
       border-radius: 8px; border: 1px dashed var(--border); margin-top: 10px;
     }
 
-    /* ⭐ 스켈레톤 UI (로딩 애니메이션) */
+    /* 🚀 스켈레톤 UI (로딩 애니메이션) */
     .skeleton-box {
       background: linear-gradient(90deg, var(--card-bg) 25%, var(--border) 50%, var(--card-bg) 75%);
       background-size: 200% 100%;
@@ -326,7 +320,7 @@
       transition: background-color 0.3s, border-color 0.3s;
     }
 
-    /* ⭐ 맨 위로 가기 버튼 */
+    /* ⭐ 스마트 맨 위로 가기 버튼 */
     .back-to-top {
       position: fixed; bottom: 30px; right: 30px;
       background-color: var(--accent-primary); color: #fff;
@@ -433,11 +427,11 @@
 
   <footer> Unofficial </footer>
 
-  <button id="backToTop" class="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="맨 위로 가기">↑</button>
+  <button id="backToTop" class="back-to-top" onclick="scrollToTop()" title="맨 위로 가기">↑</button>
 
   <script>
     // ==========================================
-    // UI 부가 기능 (다크모드, 검색 클리어, 스크롤탑, 스켈레톤)
+    // UI 부가 기능 (다크모드, 검색 클리어, 스켈레톤, 스마트 스크롤탑)
     // ==========================================
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('themeToggleBtn').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
@@ -465,11 +459,31 @@
       input.focus();
     }
 
+    // ⭐ 5번 기능: 통계 탭(전체창)과 재생 탭(목록창) 모두 완벽 지원하는 스마트 스크롤 감지
+    const playlistBox = document.getElementById('playlist');
+    const backToTopBtn = document.getElementById('backToTop');
+
     window.addEventListener('scroll', () => {
-      const btn = document.getElementById('backToTop');
-      if (window.scrollY > 300) btn.classList.add('show');
-      else btn.classList.remove('show');
+      if (document.getElementById('tab-stats').classList.contains('active')) {
+        if (window.scrollY > 300) backToTopBtn.classList.add('show');
+        else backToTopBtn.classList.remove('show');
+      }
     });
+
+    playlistBox.addEventListener('scroll', () => {
+      if (document.getElementById('tab-player').classList.contains('active')) {
+        if (playlistBox.scrollTop > 300) backToTopBtn.classList.add('show');
+        else backToTopBtn.classList.remove('show');
+      }
+    });
+
+    function scrollToTop() {
+      if (document.getElementById('tab-stats').classList.contains('active')) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        playlistBox.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
 
     function renderSkeleton(containerId, count = 8, isStats = false) {
       const container = document.getElementById(containerId);
@@ -559,15 +573,14 @@
     // 2. 통합 DB Fetching 및 JOIN 로직
     // ==========================================
     async function loadAllData() {
-      // 로딩 중일 때 텍스트 대신 스켈레톤 UI 표출
       renderSkeleton('playlist', 8, false);
       renderSkeleton('statsList', 6, true);
 
       try {
         const [logRes, videoRes, songRes] = await Promise.all([
-          fetchTSV(DB_URLS.log),
-          fetchTSV(DB_URLS.video),
-          fetchTSV(DB_URLS.song)
+          fetchTSV(DB_URLS.log, ['log_id', 'video_id', 'song_id']),
+          fetchTSV(DB_URLS.video, ['video_id', 'youtube_video_id', 'streamer_id', 'stream_date']),
+          fetchTSV(DB_URLS.song, ['song_id', 'lang', 'title_primary'])
         ]);
 
         const videoMap = {};
@@ -576,11 +589,21 @@
         const songMap = {};
         songRes.forEach(s => songMap[s.song_id] = s);
 
+        const skippedLogs = [];
+
         allSongs = logRes.map((log, idx) => {
           const video = videoMap[log.video_id];
           const song = songMap[log.song_id];
 
-          if (!video || !song) return null;
+          if (!video || !song) {
+            skippedLogs.push({
+              log_id: log.log_id || `row-${idx + 2}`,
+              video_id: log.video_id || '',
+              song_id: log.song_id || '',
+              missing: !video && !song ? 'video and song' : (!video ? 'video' : 'song')
+            });
+            return null;
+          }
 
           const lang = (song.lang || 'JA').toUpperCase();
 
@@ -621,12 +644,12 @@
           const logId = log.log_id || `L-temp-${idx}`;
           const songId = log.song_id || '';
           
-          const searchText = [
+          const searchText = createSearchText([
             title, titleOrig, song.title_ko_reading, song.title_ko_translation,
             artist, artistOrig, song.artist_ko,
             song.search_keywords, song.source_work, date, log.perf_note,
             logId, songId
-          ].filter(Boolean).join(' ').toLowerCase();
+          ]);
 
           const hostIdStr = video.streamer_id || '';
           const singerIdStr = log.singer_id || '';
@@ -654,6 +677,10 @@
           };
         }).filter(Boolean);
 
+        if (skippedLogs.length > 0) {
+          console.warn(`[DB JOIN] ${skippedLogs.length}개의 가창 기록을 표시하지 못했습니다. 참조 ID를 확인하세요.`, skippedLogs);
+        }
+
         allSongs.sort((a, b) => {
           const dateCmp = a.date.localeCompare(b.date);
           if (dateCmp !== 0) return dateCmp;
@@ -669,7 +696,7 @@
       }
     }
 
-    function fetchTSV(url) {
+    function fetchTSV(url, requiredHeaders = []) {
       return new Promise((resolve, reject) => {
         Papa.parse(url, {
           download: true,
@@ -677,7 +704,28 @@
           skipEmptyLines: 'greedy',
           delimiter: '\t',
           transformHeader: h => h.replace(/^\ufeff/, '').trim().split(' ')[0], 
-          complete: res => resolve(res.data),
+          complete: res => {
+            if (res.errors && res.errors.length > 0) {
+              const messages = res.errors.slice(0, 3).map(err => err.message).join(' / ');
+              reject(new Error(`TSV 파싱 오류: ${messages}`));
+              return;
+            }
+
+            const rows = (res.data || []).filter(row =>
+              Object.values(row).some(value => String(value ?? '').trim() !== '')
+            );
+            const firstRow = rows[0] || {};
+            const missingHeaders = requiredHeaders.filter(header =>
+              !Object.prototype.hasOwnProperty.call(firstRow, header)
+            );
+
+            if (missingHeaders.length > 0) {
+              reject(new Error(`TSV 헤더를 찾을 수 없습니다: ${missingHeaders.join(', ')}`));
+              return;
+            }
+
+            resolve(rows);
+          },
           error: err => reject(err)
         });
       });
@@ -687,6 +735,7 @@
       const targetStreamerDbId = STREAMER_MAP[currentStreamerKey].dbId;
       
       songs = allSongs.filter(s => s.streamers.includes(targetStreamerDbId));
+      sortSongList(songs, currentPlayerSort);
 
       if (songs.length === 0) {
         showError(`${STREAMER_MAP[currentStreamerKey].name} 님의 가창 기록이 아직 없습니다.`);
@@ -823,6 +872,25 @@
       })[char]);
     }
 
+    // 재생/통계 탭이 같은 TSV 검색 필드와 비교하도록 공통화합니다.
+    function normalizeSearchText(value) {
+      return String(value ?? '').normalize('NFC').toLowerCase();
+    }
+
+    function createSearchText(values) {
+      return normalizeSearchText(values.filter(Boolean).join(' '));
+    }
+
+    function getSearchQueries(value) {
+      const normalized = normalizeSearchText(value).trim();
+      return normalized ? normalized.split(/\s+/) : [];
+    }
+
+    function matchesSearch(searchText, queries) {
+      const normalizedSearchText = normalizeSearchText(searchText);
+      return queries.every(query => normalizedSearchText.includes(query));
+    }
+
     function loadYouTubeAPI() {
       if (window.YT && window.YT.Player) {
         initPlayer();
@@ -904,8 +972,14 @@
       btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
+      sortSongList(songs, currentPlayerSort);
+      renderPlaylist();
+    }
+
+    // 스트리머 변경 시에도 현재 선택된 정렬 방식을 유지합니다.
+    function sortSongList(list, sortType) {
       if (sortType === 'DATE_DESC') {
-        songs.sort((a, b) => {
+        list.sort((a, b) => {
           const dateCmp = b.date.localeCompare(a.date);
           if (dateCmp !== 0) return dateCmp;
           const idCmp = b.logId.localeCompare(a.logId, undefined, {numeric: true});
@@ -913,7 +987,7 @@
           return b.start - a.start;
         });
       } else if (sortType === 'DATE_ASC') {
-        songs.sort((a, b) => {
+        list.sort((a, b) => {
           const dateCmp = a.date.localeCompare(b.date);
           if (dateCmp !== 0) return dateCmp;
           const idCmp = a.logId.localeCompare(b.logId, undefined, {numeric: true});
@@ -921,24 +995,22 @@
           return a.start - b.start;
         });
       } else if (sortType === 'TITLE_ASC') {
-        songs.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
+        list.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
       } else if (sortType === 'SHUFFLE') {
-        for (let i = songs.length - 1; i > 0; i--) {
+        for (let i = list.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
-          [songs[i], songs[j]] = [songs[j], songs[i]];
+          [list[i], list[j]] = [list[j], list[i]];
         }
       }
-      renderPlaylist();
     }
 
     function renderPlaylist() {
       const container = document.getElementById('playlist');
-      const searchInput = document.getElementById('searchInput').value.trim().toLowerCase();
-      const queries = searchInput ? searchInput.split(/\s+/) : [];
+      const queries = getSearchQueries(document.getElementById('searchInput').value);
 
       displayedSongs = songs.filter(song => {
         let matchSearch = true;
-        if (queries.length > 0) matchSearch = queries.every(q => song.searchText.includes(q));
+        if (queries.length > 0) matchSearch = matchesSearch(song.searchText, queries);
         const matchCategory = matchCategoryFilter(song, currentLang);
         return matchSearch && matchCategory;
       });
@@ -1105,6 +1177,7 @@
             songId: song.songId,
             title: song.title,
             artist: song.artist,
+            searchText: song.searchText,
             lang: song.lang,
             sourceType: song.sourceType,
             playEvents: [],
@@ -1346,14 +1419,13 @@
       let aggregated = aggregateSongStatistics(songs);
       aggregated = filterStatistics(aggregated, currentStatsLang);
 
-      const searchInput = document.getElementById('statsSearchInput').value.trim().toLowerCase();
-      const queries = searchInput ? searchInput.split(/\s+/) : [];
+      const queries = getSearchQueries(document.getElementById('statsSearchInput').value);
 
       if (queries.length > 0) {
         aggregated = aggregated.filter(item => {
           const datesText = item.sortedEvents.map(ev => `${ev.date} ${formatShortDate(ev.date)}`).join(' ');
-          const searchableText = [item.titleDisplay, item.artistDisplay, datesText].filter(Boolean).join(' ').toLowerCase();
-          return queries.every(q => searchableText.includes(q));
+          const searchableText = createSearchText([item.searchText, datesText]);
+          return matchesSearch(searchableText, queries);
         });
       }
 
