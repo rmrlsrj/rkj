@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +9,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  
+  <script>
+    // 페이지 로딩 시 번쩍거림 방지를 위한 다크모드 초기화 스크립트
+    const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  </script>
+
   <style>
     :root {
       /* 공통 라이트 테마 배경/텍스트 */
@@ -38,6 +45,18 @@
       --accent-light: var(--kira-light);
     }
 
+    /* 🌙 다크 모드 테마 변수 */
+    [data-theme="dark"] {
+      --bg-color: #0f172a;
+      --panel-bg: #1e293b;
+      --card-bg: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --kira-light: #2c2541;
+      --tenten-light: #3f2020;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -47,6 +66,7 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     header {
@@ -59,11 +79,18 @@
       flex-wrap: wrap;
       gap: 12px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
     }
 
     header h1 { font-size: 1.2rem; font-weight: 700; color: var(--text); }
 
     .header-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+    .theme-toggle-btn {
+      background: none; border: none; font-size: 1.2rem; cursor: pointer;
+      padding: 4px; border-radius: 50%; transition: transform 0.2s;
+    }
+    .theme-toggle-btn:hover { transform: scale(1.1); }
 
     .streamer-nav, .tab-nav {
       display: flex; gap: 4px; background-color: var(--bg-color);
@@ -74,14 +101,12 @@
       padding: 6px 14px; border-radius: 6px; border: none; background-color: transparent;
       color: var(--text-muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
     }
-
     .streamer-btn.active { background-color: var(--accent-primary); color: #fff; }
 
     .tab-btn {
       padding: 6px 16px; border-radius: 6px; border: none; background-color: transparent;
       color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
     }
-
     .tab-btn.active { background-color: var(--accent-secondary); color: #fff; }
 
     .tab-content { display: none; width: 100%; flex: 1; }
@@ -89,11 +114,18 @@
 
     .main-container {
       display: grid; grid-template-columns: 1fr; gap: 20px; padding: 20px;
-      max-width: 1200px; margin: 0 auto; width: 100%;
+      max-width: 1200px; margin: 0 auto; width: 100%; align-items: start; /* Sticky 적용을 위한 필수 속성 */
     }
 
     @media (min-width: 900px) {
       .main-container { grid-template-columns: 1.2fr 0.8fr; }
+      
+      /* ⭐ 스크롤 시 플레이어 영역 고정 (Sticky Player) */
+      .player-section {
+        position: sticky;
+        top: 20px; 
+        z-index: 10;
+      }
     }
 
     /* Player Box */
@@ -112,13 +144,13 @@
       background-color: var(--panel-bg); border: 1px solid var(--border);
       border-left: 4px solid var(--accent-primary); border-radius: 12px;
       padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
     }
 
     .now-playing-date { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2px; }
     .now-playing-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
     .now-playing-artist { font-size: 0.9rem; color: var(--text-muted); }
 
-    /* DB 식별용 메타 태그 스타일 */
     .now-playing-meta {
       display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px;
       border-top: 1px dashed var(--border); font-size: 0.78rem; color: var(--text-muted);
@@ -135,17 +167,27 @@
       background-color: var(--panel-bg); border: 1px solid var(--border);
       border-radius: 12px; padding: 16px; display: flex; flex-direction: column;
       height: 600px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
     }
 
     .search-filter-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
 
+    /* ⭐ 검색창 Clear 버튼을 위한 Wrapper */
+    .search-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
+    
     .search-input {
-      width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border);
+      width: 100%; padding: 10px 36px 10px 14px; border-radius: 8px; border: 1px solid var(--border);
       background-color: var(--panel-bg); color: var(--text); font-size: 0.9rem;
-      outline: none; transition: border-color 0.2s;
+      outline: none; transition: border-color 0.2s, background-color 0.3s, color 0.3s;
     }
-
     .search-input:focus { border-color: var(--accent-primary); }
+
+    .search-clear-btn {
+      position: absolute; right: 10px; background: transparent; border: none;
+      color: var(--text-muted); font-size: 1rem; cursor: pointer; padding: 4px;
+      display: none; transition: color 0.2s;
+    }
+    .search-clear-btn:hover { color: var(--accent-primary); }
 
     .filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
 
@@ -154,7 +196,6 @@
       background-color: var(--panel-bg); color: var(--text-muted); font-size: 0.8rem;
       cursor: pointer; transition: all 0.2s;
     }
-
     .filter-btn.active, .filter-btn:hover {
       background-color: var(--accent-primary); color: #fff; border-color: var(--accent-primary);
     }
@@ -163,7 +204,7 @@
       flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;
     }
     .playlist-scroll::-webkit-scrollbar { width: 6px; }
-    .playlist-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
+    .playlist-scroll::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 3px; }
 
     .song-card {
       padding: 12px 14px; border-radius: 8px; background-color: var(--panel-bg);
@@ -172,7 +213,6 @@
     }
     .song-card.active { border-left: 4px solid var(--accent-primary); background-color: var(--accent-light); }
 
-    /* PC 환경(마우스)에서만 Hover 효과 적용 (모바일 터치 잔상 방지) */
     @media (hover: hover) {
       .song-card:hover { border-color: var(--accent-primary); transform: translateY(-1px); }
       .stats-item .date-link:hover {
@@ -185,8 +225,7 @@
     .song-info-main { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 3px; display: flex; align-items: center; }
     
     .playing-icon {
-      display: inline-block; margin-right: 6px; font-size: 0.85rem;
-      animation: pulse 1.5s infinite;
+      display: inline-block; margin-right: 6px; font-size: 0.85rem; animation: pulse 1.5s infinite;
     }
 
     @keyframes pulse {
@@ -202,10 +241,22 @@
       border: 1px solid rgba(0,0,0,0.05); white-space: nowrap;
     }
 
-    .empty-state, .loading-state {
+    .empty-state {
       text-align: center; padding: 40px 20px; color: var(--text-muted);
       font-size: 0.95rem; background-color: var(--panel-bg);
       border-radius: 8px; border: 1px dashed var(--border); margin-top: 10px;
+    }
+
+    /* ⭐ 스켈레톤 UI (로딩 애니메이션) */
+    .skeleton-box {
+      background: linear-gradient(90deg, var(--card-bg) 25%, var(--border) 50%, var(--card-bg) 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite linear;
+      border-radius: 4px;
+    }
+    @keyframes skeleton-loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
 
     /* Statistics Section */
@@ -214,22 +265,21 @@
     .stats-header-box {
       background-color: var(--panel-bg); border: 1px solid var(--border);
       border-radius: 12px; padding: 16px; display: flex; flex-direction: column; 
-      gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s, border-color 0.3s;
     }
     .stats-header-controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%; }
 
     .stats-list {
       background-color: var(--panel-bg); border: 1px solid var(--border);
       border-radius: 12px; padding: 16px; display: flex; flex-direction: column;
-      gap: 10px; min-height: 500px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      gap: 10px; min-height: 500px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s, border-color 0.3s;
     }
 
     .stats-item {
       background-color: var(--panel-bg); border: 1px solid var(--border);
       border-radius: 8px; padding: 12px 16px; font-size: 0.9rem;
       line-height: 1.5; color: var(--text); word-break: break-all;
-      /* ⭐ 브라우저 상단 여유 공간 확보 (천장에 답답하게 붙는 것 방지) */
-      scroll-margin-top: 24px; 
+      scroll-margin-top: 24px; transition: background-color 0.3s, border-color 0.3s;
     }
     .stats-item .index-text { font-weight: 700; color: var(--text-muted); margin-right: 6px; }
     .stats-item .title-text { font-weight: 700; color: var(--accent-secondary); }
@@ -245,15 +295,9 @@
     }
     .stats-item .count-text { font-weight: 700; color: var(--accent-primary); margin-left: 4px; }
 
-    /* 통계 인라인 플레이어 스타일 */
     .stats-player-box {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px dashed var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      animation: fadeIn 0.25s ease-in-out;
+      margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border);
+      display: flex; flex-direction: column; gap: 8px; animation: fadeIn 0.25s ease-in-out;
     }
 
     @keyframes fadeIn {
@@ -261,53 +305,40 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .stats-player-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
+    .stats-player-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); }
     .stats-player-header strong { color: var(--accent-secondary); }
 
     .stats-player-close-btn {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 0.78rem;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 4px;
-      transition: all 0.2s;
+      background-color: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted);
+      cursor: pointer; font-size: 0.78rem; font-weight: 600; padding: 3px 8px; border-radius: 4px; transition: all 0.2s;
     }
-    .stats-player-close-btn:hover {
-      background-color: var(--accent-primary);
-      color: #fff;
-      border-color: var(--accent-primary);
-    }
+    .stats-player-close-btn:hover { background-color: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
 
     .stats-player-wrapper {
-      position: relative;
-      padding-bottom: 56.25%;
-      height: 0;
-      background-color: #000;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: relative; padding-bottom: 56.25%; height: 0; background-color: #000;
+      border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-
-    .stats-player-wrapper iframe, .stats-player-wrapper div#statsPlayerTarget {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      border: 0;
-    }
+    .stats-player-wrapper iframe, .stats-player-wrapper div#statsPlayerTarget { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
 
     footer {
       text-align: center; padding: 16px; color: var(--text-muted);
       font-size: 0.8rem; border-top: 1px solid var(--border); background-color: var(--panel-bg);
+      transition: background-color 0.3s, border-color 0.3s;
     }
+
+    /* ⭐ 맨 위로 가기 버튼 */
+    .back-to-top {
+      position: fixed; bottom: 30px; right: 30px;
+      background-color: var(--accent-primary); color: #fff;
+      border: none; border-radius: 50%; width: 50px; height: 50px;
+      font-size: 1.5rem; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.2s, background-color 0.3s;
+      z-index: 1000;
+    }
+    .back-to-top.show { opacity: 1; pointer-events: auto; }
+    .back-to-top:hover { transform: translateY(-3px); background-color: var(--accent-hover); }
+
   </style>
 </head>
 <body>
@@ -315,6 +346,8 @@
   <header>
     <h1> Unofficial </h1>
     <div class="header-controls">
+      <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" title="다크 모드 변경"></button>
+      
       <div class="streamer-nav">
         <button class="streamer-btn active" onclick="switchStreamer('kira', this)">세이로쿠 키라</button>
         <button class="streamer-btn" onclick="switchStreamer('tenten', this)">텐플라스텐 텐텐</button>
@@ -342,7 +375,11 @@
 
       <div class="playlist-section">
         <div class="search-filter-box">
-          <input type="text" id="searchInput" class="search-input" placeholder="곡명, 가수, 날짜 등 (띄어쓰기로 단어별 정확히 검색)..." oninput="filterSongs()">
+          <div class="search-wrapper">
+            <input type="text" id="searchInput" class="search-input" placeholder="곡명, 가수, 날짜 등 (띄어쓰기로 정확히 검색)..." oninput="toggleClearBtn('searchInput', 'searchClearBtn'); filterSongs()">
+            <button id="searchClearBtn" class="search-clear-btn" onclick="clearInput('searchInput', 'searchClearBtn'); filterSongs()">✕</button>
+          </div>
+          
           <div class="filter-group">
             <button class="filter-btn active" onclick="setLangFilter('ALL', this)">전체</button>
             <button class="filter-btn" onclick="setLangFilter('KO', this)">한식</button>
@@ -358,8 +395,7 @@
           </div>
         </div>
         <div class="playlist-scroll" id="playlist">
-          <div class="loading-state">구글 시트에서 노래 데이터를 불러오는 중입니다... 🎵</div>
-        </div>
+          </div>
       </div>
     </div>
   </div>
@@ -367,7 +403,10 @@
   <div id="tab-stats" class="tab-content">
     <div class="stats-container">
       <div class="stats-header-box">
-        <input type="text" id="statsSearchInput" class="search-input" placeholder="통계 내 곡명, 가수, 날짜 등 검색 (띄어쓰기로 단어별 정확히 검색)..." oninput="filterStats()">
+        <div class="search-wrapper">
+          <input type="text" id="statsSearchInput" class="search-input" placeholder="통계 내 곡명, 가수, 날짜 등 검색 (띄어쓰기로 정확히 검색)..." oninput="toggleClearBtn('statsSearchInput', 'statsClearBtn'); filterStats()">
+          <button id="statsClearBtn" class="search-clear-btn" onclick="clearInput('statsSearchInput', 'statsClearBtn'); filterStats()">✕</button>
+        </div>
         
         <div class="stats-header-controls">
           <div class="filter-group">
@@ -388,14 +427,88 @@
         </div>
       </div>
       <div class="stats-list" id="statsList">
-        <div class="loading-state">통계 데이터를 계산 중입니다... 📊</div>
-      </div>
+        </div>
     </div>
   </div>
 
   <footer> Unofficial </footer>
 
+  <button id="backToTop" class="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="맨 위로 가기">↑</button>
+
   <script>
+    // ==========================================
+    // UI 부가 기능 (다크모드, 검색 클리어, 스크롤탑, 스켈레톤)
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('themeToggleBtn').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
+    });
+
+    function toggleTheme() {
+      const body = document.documentElement;
+      const currentTheme = body.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      body.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      document.getElementById('themeToggleBtn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
+    }
+
+    function toggleClearBtn(inputId, btnId) {
+      const input = document.getElementById(inputId);
+      const btn = document.getElementById(btnId);
+      btn.style.display = input.value.trim().length > 0 ? 'block' : 'none';
+    }
+
+    function clearInput(inputId, btnId) {
+      const input = document.getElementById(inputId);
+      input.value = '';
+      toggleClearBtn(inputId, btnId);
+      input.focus();
+    }
+
+    window.addEventListener('scroll', () => {
+      const btn = document.getElementById('backToTop');
+      if (window.scrollY > 300) btn.classList.add('show');
+      else btn.classList.remove('show');
+    });
+
+    function renderSkeleton(containerId, count = 8, isStats = false) {
+      const container = document.getElementById(containerId);
+      const fragment = document.createDocumentFragment();
+      for(let i=0; i<count; i++) {
+        const div = document.createElement('div');
+        div.className = isStats ? 'stats-item' : 'song-card';
+        div.style.pointerEvents = 'none'; // 클릭 방지
+        
+        if (isStats) {
+          div.innerHTML = `
+            <div class="skeleton-box" style="width: 60%; height: 16px; margin-bottom: 8px;"></div>
+            <div class="skeleton-box" style="width: 40%; height: 12px; margin-bottom: 8px;"></div>
+            <div class="skeleton-box" style="width: 80%; height: 14px;"></div>
+          `;
+        } else {
+          div.innerHTML = `
+            <div style="flex: 1;">
+              <div class="skeleton-box" style="width: 30%; height: 12px; margin-bottom: 8px;"></div>
+              <div class="skeleton-box" style="width: 70%; height: 16px; margin-bottom: 8px;"></div>
+              <div class="skeleton-box" style="width: 50%; height: 12px;"></div>
+            </div>
+            <div class="skeleton-box" style="width: 40px; height: 20px; border-radius: 6px;"></div>
+          `;
+        }
+        fragment.appendChild(div);
+      }
+      container.replaceChildren(fragment);
+    }
+
+    function showError(msg) {
+      const emptyState = `<div class="empty-state" style="color: #e65c5c;">${escapeHtml(msg)}</div>`;
+      document.getElementById('playlist').innerHTML = emptyState;
+      document.getElementById('statsList').innerHTML = emptyState;
+      document.getElementById('npTitle').innerText = '데이터 입력 대기 중';
+      document.getElementById('npDate').innerText = '';
+      document.getElementById('npMeta').innerHTML = '';
+    }
+
     // ==========================================
     // 1. 3계층 정규화 DB URL 설정
     // ==========================================
@@ -433,7 +546,6 @@
     let currentStatsSort = 'DATE_ASC';
     let statsSearchDebounceTimer = null;
 
-    // 통계 전용 인라인 플레이어 제어 변수
     let statsPlayer = null;
     let activeStatsEventId = null;
     let statsTimerCheck = null;
@@ -447,8 +559,9 @@
     // 2. 통합 DB Fetching 및 JOIN 로직
     // ==========================================
     async function loadAllData() {
-      renderStatus('playlist', '통합 데이터베이스를 불러오고 있습니다... 🎵');
-      renderStatus('statsList', '통계 데이터를 분석 중입니다... 📊');
+      // 로딩 중일 때 텍스트 대신 스켈레톤 UI 표출
+      renderSkeleton('playlist', 8, false);
+      renderSkeleton('statsList', 6, true);
 
       try {
         const [logRes, videoRes, songRes] = await Promise.all([
@@ -626,20 +739,19 @@
         document.documentElement.style.setProperty('--accent-primary', 'var(--kira-primary)');
         document.documentElement.style.setProperty('--accent-secondary', 'var(--kira-secondary)');
         document.documentElement.style.setProperty('--accent-hover', 'var(--kira-hover)');
-        document.documentElement.style.setProperty('--accent-light', 'var(--kira-light)');
       } else if (streamerKey === 'tenten') {
         document.documentElement.style.setProperty('--accent-primary', 'var(--tenten-primary)');
         document.documentElement.style.setProperty('--accent-secondary', 'var(--tenten-secondary)');
         document.documentElement.style.setProperty('--accent-hover', 'var(--tenten-hover)');
-        document.documentElement.style.setProperty('--accent-light', 'var(--tenten-light)');
       }
 
       clearPlaybackMonitor();
       clearTimeout(playerRetryTimeout);
       if (player && typeof player.stopVideo === 'function') player.stopVideo();
 
-      renderStatus('playlist', `${STREAMER_MAP[streamerKey].name} 님의 데이터를 불러오는 중입니다... 🎵`);
-      renderStatus('statsList', '통계 데이터를 계산 중입니다... 📊');
+      renderSkeleton('playlist', 8, false);
+      renderSkeleton('statsList', 6, true);
+      
       document.getElementById('npTitle').innerText = '노래목록 불러오는 중...';
       document.getElementById('npDate').innerText = '';
       document.getElementById('npArtist').innerText = STREAMER_MAP[streamerKey].name;
@@ -709,23 +821,6 @@
       return String(value ?? '').replace(/[&<>'"]/g, char => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
       })[char]);
-    }
-
-    function showError(msg) {
-      renderStatus('playlist', msg, true);
-      renderStatus('statsList', msg, true);
-      document.getElementById('npTitle').innerText = '데이터 입력 대기 중';
-      document.getElementById('npDate').innerText = '';
-      document.getElementById('npMeta').innerHTML = '';
-    }
-
-    function renderStatus(containerId, message, isError = false) {
-      const container = document.getElementById(containerId);
-      const status = document.createElement('div');
-      status.className = 'loading-state';
-      status.textContent = message;
-      if (isError) status.style.color = '#e65c5c';
-      container.replaceChildren(status);
     }
 
     function loadYouTubeAPI() {
@@ -1079,20 +1174,15 @@
       });
     }
 
-    // ⭐ 통계 전용 인라인 플레이어 제어 함수들 ⭐
+    // ⭐ 통계 전용 인라인 플레이어 제어
     function closeStatsPlayer() {
       if (statsTimerCheck) {
         clearInterval(statsTimerCheck);
         statsTimerCheck = null;
       }
       if (statsPlayer) {
-        try {
-          if (typeof statsPlayer.destroy === 'function') {
-            statsPlayer.destroy();
-          }
-        } catch (e) {
-          console.error(e);
-        }
+        try { if (typeof statsPlayer.destroy === 'function') statsPlayer.destroy(); } 
+        catch (e) { console.error(e); }
         statsPlayer = null;
       }
       activeStatsEventId = null;
@@ -1142,7 +1232,6 @@
 
       itemDiv.appendChild(playerBox);
 
-      // ⭐ [개선] 플레이어가 아닌 '해당 곡 정보 상자 전체'가 화면 맨 위로 오도록 부드럽게 스크롤
       setTimeout(() => {
         if (itemDiv) {
           itemDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1154,16 +1243,9 @@
           height: '100%',
           width: '100%',
           videoId: ev.videoId,
-          playerVars: {
-            'autoplay': 1,
-            'controls': 1,
-            'start': ev.start,
-            'rel': 0
-          },
+          playerVars: { 'autoplay': 1, 'controls': 1, 'start': ev.start, 'rel': 0 },
           events: {
-            'onReady': (e) => {
-              e.target.playVideo();
-            },
+            'onReady': (e) => { e.target.playVideo(); },
             'onStateChange': (e) => onStatsPlayerStateChange(e, ev)
           }
         });
@@ -1257,7 +1339,7 @@
 
     function renderStatistics() {
       if (songs.length === 0) {
-        renderStatus('statsList', '집계할 데이터가 없습니다.');
+        showError('집계할 데이터가 없습니다.');
         return;
       }
 
