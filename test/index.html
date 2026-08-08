@@ -611,7 +611,7 @@
     function switchStreamer(streamerKey, btn) {
       if (currentStreamerKey === streamerKey && songs.length > 0) return;
 
-      closeStatsPlayer(); // 스트리머 전환 시 통계 플레이어 정리
+      closeStatsPlayer(); 
 
       currentStreamerKey = streamerKey;
       document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
@@ -657,7 +657,7 @@
       if (tabId === 'stats') {
         renderStatistics();
       } else {
-        closeStatsPlayer(); // 재생 탭으로 이동 시 통계 플레이어 정리
+        closeStatsPlayer(); 
       }
     }
 
@@ -889,7 +889,7 @@
     function playSong(index, cueOnly = false) {
       if (index < 0 || index >= displayedSongs.length) return;
       
-      closeStatsPlayer(); // 메인 재생 탭 플레이 시작 시 통계 인라인 플레이어 닫기
+      closeStatsPlayer(); 
       isSeekingForced = false; 
       
       currentDisplayIndex = index;
@@ -1099,27 +1099,22 @@
     function toggleStatsPlayer(ev, event, itemDiv, dateAnchor) {
       if (event) event.preventDefault();
 
-      // 메인 재생 탭 플레이어가 켜져 있다면 정지
       if (player && typeof player.pauseVideo === 'function') {
         player.pauseVideo();
       }
 
-      // 이미 열려 있는 동일한 날짜를 클릭한 경우 토글 닫기
       if (activeStatsEventId === ev.id) {
         closeStatsPlayer();
         return;
       }
 
-      // 기존 통계 플레이어가 있다면 먼저 깔끔히 제거
       closeStatsPlayer();
 
       activeStatsEventId = ev.id;
       statsSeekingForced = false;
 
-      // 클릭된 날짜 스타일 강조
       if (dateAnchor) dateAnchor.classList.add('active-date');
 
-      // .stats-item 상자 내부 하단에 들어갈 플레이어 컨테이너 생성
       const playerBox = document.createElement('div');
       playerBox.className = 'stats-player-box';
 
@@ -1142,7 +1137,11 @@
 
       itemDiv.appendChild(playerBox);
 
-      // 유튜브 iFrame API로 인라인 플레이어 생성 (정확한 시간 보정 및 끝 구간 자동 정지 포함)
+      // ⭐ [추가된 핵심 기능] 플레이어가 화면에 렌더링된 직후 부드럽게 화면 위로 자동 스크롤
+      setTimeout(() => {
+        itemDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+
       if (window.YT && window.YT.Player) {
         statsPlayer = new YT.Player('statsPlayerTarget', {
           height: '100%',
@@ -1166,7 +1165,6 @@
 
     function onStatsPlayerStateChange(event, ev) {
       if (event.data === YT.PlayerState.PLAYING) {
-        // 정확한 시작 시간으로 강제 이동 (키프레임 오차 방지)
         if (statsPlayer && ev.start > 0 && !statsSeekingForced) {
           const currentTime = statsPlayer.getCurrentTime();
           if (currentTime < ev.start - 3) {
@@ -1175,7 +1173,6 @@
           }
         }
 
-        // 끝 구간 자동 정지 타이머
         if (!statsTimerCheck) {
           statsTimerCheck = setInterval(() => {
             if (statsPlayer && typeof statsPlayer.getCurrentTime === 'function') {
@@ -1200,7 +1197,7 @@
 
     function renderStatisticsList(items) {
       const container = document.getElementById('statsList');
-      closeStatsPlayer(); // 목록 갱신 시 플레이어 닫기
+      closeStatsPlayer(); 
 
       if (items.length === 0) {
         const emptyState = document.createElement('div');
@@ -1237,7 +1234,7 @@
           a.textContent = formatShortDate(ev.date);
           a.href = `https://www.youtube.com/watch?v=${ev.videoId}&t=${ev.start}s`;
           a.title = `가창 ID: ${ev.id} (${ev.startRaw || ''} ~ ${ev.endRaw || ''})`;
-          a.onclick = (e) => toggleStatsPlayer(ev, e, div, a); // 인라인 플레이어 토글 연동
+          a.onclick = (e) => toggleStatsPlayer(ev, e, div, a); 
           
           datesSpan.appendChild(a);
           if (evIdx < item.sortedEvents.length - 1) datesSpan.append(' / ');
