@@ -170,9 +170,16 @@
       border: 1px solid var(--border); cursor: pointer; display: flex;
       justify-content: space-between; align-items: center; transition: all 0.2s;
     }
-
-    .song-card:hover { border-color: var(--accent-primary); transform: translateY(-1px); }
     .song-card.active { border-left: 4px solid var(--accent-primary); background-color: var(--accent-light); }
+
+    /* PC 환경(마우스)에서만 Hover 효과 적용 (모바일 터치 잔상 방지) */
+    @media (hover: hover) {
+      .song-card:hover { border-color: var(--accent-primary); transform: translateY(-1px); }
+      .stats-item .date-link:hover {
+        color: #fff; background-color: var(--accent-secondary); 
+        border-radius: 4px; text-decoration: none;
+      }
+    }
 
     .song-info-date { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px; }
     .song-info-main { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 3px; display: flex; align-items: center; }
@@ -230,11 +237,70 @@
       color: var(--accent-primary); text-decoration: underline; text-underline-offset: 2px;
       cursor: pointer; transition: all 0.2s; padding: 2px 4px;
     }
-    .stats-item .date-link:hover {
-      color: #fff; background-color: var(--accent-secondary); 
-      border-radius: 4px; text-decoration: none;
+    .stats-item .date-link.active-date {
+      color: #fff !important; background-color: var(--accent-secondary);
+      border-radius: 4px; text-decoration: none; font-weight: bold;
     }
     .stats-item .count-text { font-weight: 700; color: var(--accent-primary); margin-left: 4px; }
+
+    /* 통계 인라인 플레이어 스타일 */
+    .stats-player-box {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stats-player-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .stats-player-header strong { color: var(--accent-secondary); }
+
+    .stats-player-close-btn {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .stats-player-close-btn:hover {
+      background-color: var(--accent-primary);
+      color: #fff;
+      border-color: var(--accent-primary);
+    }
+
+    .stats-player-wrapper {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      background-color: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .stats-player-wrapper iframe, .stats-player-wrapper div#statsPlayerTarget {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: 0;
+    }
 
     footer {
       text-align: center; padding: 16px; color: var(--text-muted);
@@ -365,6 +431,12 @@
     let currentStatsSort = 'DATE_ASC';
     let statsSearchDebounceTimer = null;
 
+    // 통계 전용 인라인 플레이어 제어 변수
+    let statsPlayer = null;
+    let activeStatsEventId = null;
+    let statsTimerCheck = null;
+    let statsSeekingForced = false;
+
     window.addEventListener('DOMContentLoaded', () => {
       loadAllData();
     });
@@ -400,7 +472,6 @@
           let title = song.title_primary || song.title_original || '';
           let artist = song.artist_primary || song.artist_original || '';
 
-          // ⭐ 변경된 제목 표시 로직: 번역 -> 독음 -> 원제 순으로 병기
           if (song.title_ko_translation && song.title_ko_translation.trim() !== '') {
             title = `${title} (${song.title_ko_translation})`;
           } else if (song.title_ko_reading && song.title_ko_reading.trim() !== '') {
@@ -435,7 +506,6 @@
           const logId = log.log_id || `L-temp-${idx}`;
           const songId = log.song_id || '';
           
-          // ⭐ 검색 배열(searchText)에 song.title_ko_translation 추가 완료
           const searchText = [
             title, titleOrig, song.title_ko_reading, song.title_ko_translation,
             artist, artistOrig, song.artist_ko,
@@ -469,17 +539,11 @@
           };
         }).filter(Boolean);
 
-        // ★ 투뱅(같은 날짜 복수 방송) 곡 섞임 현상 해결 로직!
         allSongs.sort((a, b) => {
-          // 1순위: 날짜를 기준으로 정렬
           const dateCmp = a.date.localeCompare(b.date);
           if (dateCmp !== 0) return dateCmp;
-          
-          // 2순위: 날짜가 같으면 log_id 순서대로 정렬 (예: 01번, 02번, 03번...)
           const idCmp = a.logId.localeCompare(b.logId, undefined, {numeric: true});
           if (idCmp !== 0) return idCmp;
-
-          // 3순위: 그래도 같으면 최후의 보루로 시작 시간 정렬
           return a.start - b.start;
         });
         
@@ -550,6 +614,8 @@
     function switchStreamer(streamerKey, btn) {
       if (currentStreamerKey === streamerKey && songs.length > 0) return;
 
+      closeStatsPlayer(); 
+
       currentStreamerKey = streamerKey;
       document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -591,7 +657,11 @@
       btn.classList.add('active');
       document.getElementById(`tab-${tabId}`).classList.add('active');
 
-      if (tabId === 'stats') renderStatistics();
+      if (tabId === 'stats') {
+        renderStatistics();
+      } else {
+        closeStatsPlayer(); 
+      }
     }
 
     function timeToSeconds(timeStr) {
@@ -739,20 +809,16 @@
 
       if (sortType === 'DATE_DESC') {
         songs.sort((a, b) => {
-          // 최신 날짜 우선
           const dateCmp = b.date.localeCompare(a.date);
           if (dateCmp !== 0) return dateCmp;
-          // 같은 날짜면 역순 번호 우선 (최신 방송의 마지막 곡이 위로)
           const idCmp = b.logId.localeCompare(a.logId, undefined, {numeric: true});
           if (idCmp !== 0) return idCmp;
           return b.start - a.start;
         });
       } else if (sortType === 'DATE_ASC') {
         songs.sort((a, b) => {
-          // 옛날 날짜 우선
           const dateCmp = a.date.localeCompare(b.date);
           if (dateCmp !== 0) return dateCmp;
-          // 같은 날짜면 순서 번호 우선 (01번, 02번 순)
           const idCmp = a.logId.localeCompare(b.logId, undefined, {numeric: true});
           if (idCmp !== 0) return idCmp;
           return a.start - b.start;
@@ -826,6 +892,7 @@
     function playSong(index, cueOnly = false) {
       if (index < 0 || index >= displayedSongs.length) return;
       
+      closeStatsPlayer(); 
       isSeekingForced = false; 
       
       currentDisplayIndex = index;
@@ -896,15 +963,15 @@
 
     function filterSongs() {
       clearTimeout(searchDebounceTimer);
-      searchDebounceTimer = setTimeout(renderPlaylist, 180);
+      searchDebounceTimer = setTimeout(renderPlaylist, 250);
     }
 
     // ==========================================
-    // 4. 통계 파트 처리 로직
+    // 4. 통계 파트 처리 로직 및 인라인 플레이어
     // ==========================================
     function filterStats() {
       clearTimeout(statsSearchDebounceTimer);
-      statsSearchDebounceTimer = setTimeout(renderStatistics, 180);
+      statsSearchDebounceTimer = setTimeout(renderStatistics, 250);
     }
 
     function setStatsLangFilter(lang, btn) {
@@ -928,10 +995,6 @@
       if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(firstChar)) return 2;
       if (/[A-Za-z]/.test(firstChar)) return 3;
       return 4;
-    }
-
-    function normalizeStatKey(value) {
-      return String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('ko');
     }
 
     function aggregateSongStatistics(songList) {
@@ -960,7 +1023,8 @@
             date: song.date, 
             videoId: song.videoId, 
             start: song.start, 
-            id: song.id, // 여기서 song.id는 logId('K-20250919_01' 형식)를 가리킴
+            end: song.end,
+            id: song.id,
             startRaw: song.startTimeRaw,
             endRaw: song.endTimeRaw
           });
@@ -968,7 +1032,6 @@
       });
 
       return Array.from(songMap.values()).map(item => {
-        // ★ 통계 내부의 개별 곡 날짜 정렬 시에도 log_id 적용
         const sortedEvents = item.playEvents.sort((a, b) => {
           const dateCmp = a.date.localeCompare(b.date);
           if (dateCmp !== 0) return dateCmp;
@@ -1006,16 +1069,142 @@
         return shuffled;
       }
       return [...items].sort((a, b) => {
-        if (sortType === 'COUNT_DESC') return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate);
+        if (sortType === 'COUNT_DESC') return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
         if (sortType === 'TITLE_LANG') return getTitleLangCategory(a.titleDisplay) - getTitleLangCategory(b.titleDisplay) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
-        if (sortType === 'RECENT_DESC') return b.lastDate.localeCompare(a.lastDate);
-        if (sortType === 'OLD_ASC') return a.lastDate.localeCompare(b.lastDate);
-        return a.firstDate.localeCompare(b.firstDate);
+        if (sortType === 'RECENT_DESC') return b.lastDate.localeCompare(a.lastDate) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
+        if (sortType === 'OLD_ASC') return a.lastDate.localeCompare(b.lastDate) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
+        return a.firstDate.localeCompare(b.firstDate) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
       });
+    }
+
+    // ⭐ 통계 전용 인라인 플레이어 제어 함수들 ⭐
+    function closeStatsPlayer() {
+      if (statsTimerCheck) {
+        clearInterval(statsTimerCheck);
+        statsTimerCheck = null;
+      }
+      if (statsPlayer) {
+        try {
+          if (typeof statsPlayer.destroy === 'function') {
+            statsPlayer.destroy();
+          }
+        } catch (e) {
+          console.error(e);
+        }
+        statsPlayer = null;
+      }
+      activeStatsEventId = null;
+
+      document.querySelectorAll('.stats-player-box').forEach(el => el.remove());
+      document.querySelectorAll('.date-link.active-date').forEach(el => el.classList.remove('active-date'));
+    }
+
+    function toggleStatsPlayer(ev, event, itemDiv, dateAnchor) {
+      if (event) event.preventDefault();
+
+      if (player && typeof player.pauseVideo === 'function') {
+        player.pauseVideo();
+      }
+
+      if (activeStatsEventId === ev.id) {
+        closeStatsPlayer();
+        return;
+      }
+
+      closeStatsPlayer();
+
+      activeStatsEventId = ev.id;
+      statsSeekingForced = false;
+
+      if (dateAnchor) dateAnchor.classList.add('active-date');
+
+      const playerBox = document.createElement('div');
+      playerBox.className = 'stats-player-box';
+
+      const header = document.createElement('div');
+      header.className = 'stats-player-header';
+      header.innerHTML = `
+        <span>🎬 <strong>${escapeHtml(ev.date)}</strong> 가창 영상 (${escapeHtml(ev.startRaw || '')} ~ ${escapeHtml(ev.endRaw || '')})</span>
+        <button class="stats-player-close-btn" onclick="closeStatsPlayer()">✕ 닫기</button>
+      `;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'stats-player-wrapper';
+      
+      const playerTarget = document.createElement('div');
+      playerTarget.id = 'statsPlayerTarget';
+      wrapper.appendChild(playerTarget);
+
+      playerBox.appendChild(header);
+      playerBox.appendChild(wrapper);
+
+      itemDiv.appendChild(playerBox);
+
+      // ⭐ [개선된 핵심 기능] 통계 상자가 아닌, '플레이어'가 화면 중앙에 오도록 스크롤
+      // 애니메이션(0.25초)이 완전히 끝나고 레이아웃이 고정된 후(0.3초 뒤) 부드럽게 이동합니다.
+      setTimeout(() => {
+        if (playerBox) {
+          playerBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300);
+
+      if (window.YT && window.YT.Player) {
+        statsPlayer = new YT.Player('statsPlayerTarget', {
+          height: '100%',
+          width: '100%',
+          videoId: ev.videoId,
+          playerVars: {
+            'autoplay': 1,
+            'controls': 1,
+            'start': ev.start,
+            'rel': 0
+          },
+          events: {
+            'onReady': (e) => {
+              e.target.playVideo();
+            },
+            'onStateChange': (e) => onStatsPlayerStateChange(e, ev)
+          }
+        });
+      }
+    }
+
+    function onStatsPlayerStateChange(event, ev) {
+      if (event.data === YT.PlayerState.PLAYING) {
+        if (statsPlayer && ev.start > 0 && !statsSeekingForced) {
+          const currentTime = statsPlayer.getCurrentTime();
+          if (currentTime < ev.start - 3) {
+            statsPlayer.seekTo(ev.start, true);
+            statsSeekingForced = true;
+          }
+        }
+
+        if (!statsTimerCheck) {
+          statsTimerCheck = setInterval(() => {
+            if (statsPlayer && typeof statsPlayer.getCurrentTime === 'function') {
+              const currentTime = statsPlayer.getCurrentTime();
+              if (ev.end > 0 && currentTime >= ev.end) {
+                clearInterval(statsTimerCheck);
+                statsTimerCheck = null;
+                if (typeof statsPlayer.pauseVideo === 'function') {
+                  statsPlayer.pauseVideo();
+                }
+              }
+            }
+          }, 250);
+        }
+      } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
+        if (statsTimerCheck) {
+          clearInterval(statsTimerCheck);
+          statsTimerCheck = null;
+        }
+      }
     }
 
     function renderStatisticsList(items) {
       const container = document.getElementById('statsList');
+      closeStatsPlayer(); 
+
       if (items.length === 0) {
         const emptyState = document.createElement('div');
         emptyState.className = 'empty-state';
@@ -1050,9 +1239,8 @@
           a.className = 'date-link';
           a.textContent = formatShortDate(ev.date);
           a.href = `https://www.youtube.com/watch?v=${ev.videoId}&t=${ev.start}s`;
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
           a.title = `가창 ID: ${ev.id} (${ev.startRaw || ''} ~ ${ev.endRaw || ''})`;
+          a.onclick = (e) => toggleStatsPlayer(ev, e, div, a); 
           
           datesSpan.appendChild(a);
           if (evIdx < item.sortedEvents.length - 1) datesSpan.append(' / ');
