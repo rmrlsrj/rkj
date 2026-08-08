@@ -12,6 +12,7 @@
   
   <script>
     // 페이지 로딩 시 번쩍거림 방지를 위한 다크모드 초기화 스크립트
+    
     const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', savedTheme);
   </script>
@@ -370,7 +371,7 @@
       <div class="playlist-section">
         <div class="search-filter-box">
           <div class="search-wrapper">
-            <input type="text" id="searchInput" class="search-input" placeholder="곡명, 가수, 날짜 등 (띄어쓰기로 정확히 검색)..." oninput="toggleClearBtn('searchInput', 'searchClearBtn'); filterSongs()">
+            <input type="text" id="searchInput" class="search-input" placeholder="곡명 · 가수 · 별칭 · 년월일 검색" oninput="toggleClearBtn('searchInput', 'searchClearBtn'); filterSongs()">
             <button id="searchClearBtn" class="search-clear-btn" onclick="clearInput('searchInput', 'searchClearBtn'); filterSongs()">✕</button>
           </div>
           
@@ -398,7 +399,7 @@
     <div class="stats-container">
       <div class="stats-header-box">
         <div class="search-wrapper">
-          <input type="text" id="statsSearchInput" class="search-input" placeholder="통계 내 곡명, 가수, 날짜 등 검색 (띄어쓰기로 정확히 검색)..." oninput="toggleClearBtn('statsSearchInput', 'statsClearBtn'); filterStats()">
+          <input type="text" id="statsSearchInput" class="search-input" placeholder="곡명 · 가수 · 별칭 · 년월일 검색" oninput="toggleClearBtn('statsSearchInput', 'statsClearBtn'); filterStats()">
           <button id="statsClearBtn" class="search-clear-btn" onclick="clearInput('statsSearchInput', 'statsClearBtn'); filterStats()">✕</button>
         </div>
         
