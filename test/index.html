@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>비공식 통계 (통합 DB 버전)</title>
+  <title> Unofficial </title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
     :root {
-      /* 공통 라이트 테마 배경/텍스트 */
       --bg-color: #f8fafc;
       --panel-bg: #ffffff;
       --card-bg: #f1f5f9;
@@ -18,19 +18,16 @@
       --text-muted: #64748b;
       --border: #e2e8f0;
 
-      /* 키라 팔레트 */
-      --kira-primary: #9b95c9;   
-      --kira-secondary: #654374; 
+      --kira-primary: #9b95c9;
+      --kira-secondary: #654374;
       --kira-hover: #867eb6;
-      --kira-light: #f4f2f9;     
+      --kira-light: #f4f2f9;
 
-      /* 텐텐 팔레트 */
-      --tenten-primary: #e65c5c; 
-      --tenten-secondary: #2b2b2b; 
+      --tenten-primary: #e65c5c;
+      --tenten-secondary: #2b2b2b;
       --tenten-hover: #d24a4a;
-      --tenten-light: #fdf2f2;   
+      --tenten-light: #fdf2f2;
 
-      /* 현재 적용될 액센트 변수 (초기값: 키라) */
       --accent-primary: var(--kira-primary);
       --accent-secondary: var(--kira-secondary);
       --accent-hover: var(--kira-hover);
@@ -95,7 +92,6 @@
       .main-container { grid-template-columns: 1.2fr 0.8fr; }
     }
 
-    /* Player Box */
     .player-section { display: flex; flex-direction: column; gap: 16px; }
 
     .player-container {
@@ -117,7 +113,6 @@
     .now-playing-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
     .now-playing-artist { font-size: 0.9rem; color: var(--text-muted); }
 
-    /* DB 식별용 메타 태그 스타일 */
     .now-playing-meta {
       display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px;
       border-top: 1px dashed var(--border); font-size: 0.78rem; color: var(--text-muted);
@@ -129,7 +124,6 @@
     .db-badge strong { color: var(--accent-secondary); }
     .log-id-tag { font-size: 0.75rem; color: var(--text-muted); margin-left: 6px; font-weight: 500; }
 
-    /* Playlist Section */
     .playlist-section {
       background-color: var(--panel-bg); border: 1px solid var(--border);
       border-radius: 12px; padding: 16px; display: flex; flex-direction: column;
@@ -200,7 +194,6 @@
       border-radius: 8px; border: 1px dashed var(--border); margin-top: 10px;
     }
 
-    /* Statistics Section */
     .stats-container { max-width: 1200px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
 
     .stats-header-box {
@@ -235,6 +228,25 @@
     }
     .stats-item .count-text { font-weight: 700; color: var(--accent-primary); margin-left: 4px; }
 
+    #stats-player-container {
+      margin-top: 16px;
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      background-color: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    #stats-player-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
     footer {
       text-align: center; padding: 16px; color: var(--text-muted);
       font-size: 0.8rem; border-top: 1px solid var(--border); background-color: var(--panel-bg);
@@ -244,7 +256,7 @@
 <body>
 
   <header>
-    <h1>비공식 통계</h1>
+    <h1> Unofficial </h1>
     <div class="header-controls">
       <div class="streamer-nav">
         <button class="streamer-btn active" onclick="switchStreamer('kira', this)">세이로쿠 키라</button>
@@ -321,10 +333,12 @@
       <div class="stats-list" id="statsList">
         <div class="loading-state">통계 데이터를 계산 중입니다... 📊</div>
       </div>
+      <!-- 통계 내 플레이어가 표시될 컨테이너 -->
+      <div id="stats-player-container"></div>
     </div>
   </div>
 
-  <footer>비공식 통계 (통합 DB 버전)</footer>
+  <footer> Unofficial </footer>
 
   <script>
     // ==========================================
@@ -342,15 +356,15 @@
     };
 
     let currentStreamerKey = 'kira';
-    let allSongs = []; 
-    let songs = []; 
-    let displayedSongs = []; 
+    let allSongs = [];
+    let songs = [];
+    let displayedSongs = [];
     
     let player = null;
     let isPlayerReady = false;
-    let currentDisplayIndex = -1; 
-    let currentPlayingSongId = null; 
-    let isSeekingForced = false; // 타임스탬프 강제 이동 중복 실행 방지용 플래그
+    let currentDisplayIndex = -1;
+    let currentPlayingSongId = null;
+    let isSeekingForced = false;
     
     let currentLang = 'ALL';
     let currentPlayerSort = 'DATE_ASC';
@@ -399,10 +413,13 @@
           let title = song.title_primary || song.title_original || '';
           let artist = song.artist_primary || song.artist_original || '';
 
+          if (song.title_ko_translation && song.title_ko_translation.trim() !== '') {
+            title = `${title} (${song.title_ko_translation})`;
+          } else if (song.title_ko_reading && song.title_ko_reading.trim() !== '') {
+            title = `${title} (${song.title_ko_reading})`;
+          }
+
           if (lang === 'JA') {
-            if (song.title_ko_reading && song.title_ko_reading !== title) {
-              title = `${title} (${song.title_ko_reading})`;
-            }
             if (song.artist_ko && song.artist_ko !== artist) {
               artist = `${artist} (${song.artist_ko})`;
             }
@@ -412,19 +429,40 @@
           const artistOrig = song.artist_original || song.artist_primary || '';
           
           const startTimeRaw = log.start_time || '0:00';
-          const endTimeRaw = log.end_time || '0:00';
+          let endTimeRaw = log.end_time || ''; 
           const start = timeToSeconds(startTimeRaw) || 0;
-          const end = timeToSeconds(endTimeRaw) || 0;
+          let end = timeToSeconds(endTimeRaw) || 0;
+
+          if (end === 0 && song.duration) {
+            const durationSeconds = timeToSeconds(song.duration) || 0;
+            if (durationSeconds > 0) {
+              end = start + durationSeconds + 5;
+              endTimeRaw = secondsToTimeStr(end) + ' (자동)';
+            }
+          }
+          
+          if (!endTimeRaw || endTimeRaw === '0:00') endTimeRaw = '0:00 (정보 없음)';
+
           const date = formatDate(video.stream_date);
           const logId = log.log_id || `L-temp-${idx}`;
           const songId = log.song_id || '';
           
           const searchText = [
-            title, titleOrig, song.title_ko_reading,
+            title, titleOrig, song.title_ko_reading, song.title_ko_translation,
             artist, artistOrig, song.artist_ko,
             song.search_keywords, song.source_work, date, log.perf_note,
             logId, songId
           ].filter(Boolean).join(' ').toLowerCase();
+
+          const hostIdStr = video.streamer_id || '';
+          const singerIdStr = log.singer_id || '';
+          
+          let actualStreamers = [];
+          if (singerIdStr.trim() !== '') {
+            actualStreamers = singerIdStr.split(',').map(s => s.trim());
+          } else if (hostIdStr.trim() !== '') {
+            actualStreamers = hostIdStr.split(',').map(s => s.trim());
+          }
 
           return {
             id: logId,
@@ -437,13 +475,19 @@
             duration: Math.max(0, end - start),
             videoId: video.youtube_video_id,
             note: log.perf_note || '',
-            singerId: log.singer_id || '', // ★ [변경 1] singer_id 필드 추가
-            streamer: video.streamer_id,
+            streamers: actualStreamers,
             searchText
           };
         }).filter(Boolean);
 
-        allSongs.sort((a, b) => a.id.localeCompare(b.id, undefined, {numeric: true}));
+        allSongs.sort((a, b) => {
+          const dateCmp = a.date.localeCompare(b.date);
+          if (dateCmp !== 0) return dateCmp;
+          const idCmp = a.logId.localeCompare(b.logId, undefined, {numeric: true});
+          if (idCmp !== 0) return idCmp;
+          return a.start - b.start;
+        });
+        
         applyStreamerData();
       } catch (err) {
         console.error(err);
@@ -458,29 +502,17 @@
           header: true,
           skipEmptyLines: 'greedy',
           delimiter: '\t',
-          transformHeader: h => h.replace(/^\ufeff/, '').trim().split(' ')[0], 
+          transformHeader: h => h.replace(/^\ufeff/, '').trim().split(' ')[0],
           complete: res => resolve(res.data),
           error: err => reject(err)
         });
       });
     }
 
-    // ★ [변경 2] singer_id 우선 판단, 없으면 streamer_id로 폴백
     function applyStreamerData() {
       const targetStreamerDbId = STREAMER_MAP[currentStreamerKey].dbId;
       
-      songs = allSongs.filter(s => {
-        // 1. singer_id가 있으면 그것을 최우선으로 판단
-        if (s.singerId && s.singerId.trim() !== '') {
-          const singerList = s.singerId.split(',').map(id => id.trim());
-          return singerList.includes(targetStreamerDbId);
-        }
-        
-        // 2. singer_id가 없으면 기존처럼 영상의 streamer_id로 판단 (Fallback)
-        if (!s.streamer) return false;
-        const streamerList = s.streamer.split(',').map(id => id.trim());
-        return streamerList.includes(targetStreamerDbId);
-      });
+      songs = allSongs.filter(s => s.streamers.includes(targetStreamerDbId));
 
       if (songs.length === 0) {
         showError(`${STREAMER_MAP[currentStreamerKey].name} 님의 가창 기록이 아직 없습니다.`);
@@ -551,7 +583,7 @@
       document.getElementById('npMeta').innerHTML = '';
 
       if (allSongs.length > 0) {
-        applyStreamerData(); 
+        applyStreamerData();
       } else {
         loadAllData();
       }
@@ -581,6 +613,15 @@
       if (parts.length === 2) return parts[0] * 60 + parts[1];
       if (parts.length === 1) return parts[0];
       return null;
+    }
+
+    function secondsToTimeStr(totalSeconds) {
+      if (!totalSeconds) return '0:00';
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = Math.floor(totalSeconds % 60);
+      if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      return `${m}:${s.toString().padStart(2, '0')}`;
     }
 
     function formatDate(dateStr) {
@@ -701,10 +742,25 @@
       btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
-      if (sortType === 'DATE_DESC') songs.sort((a, b) => b.id.localeCompare(a.id, undefined, {numeric: true}));
-      else if (sortType === 'DATE_ASC') songs.sort((a, b) => a.id.localeCompare(b.id, undefined, {numeric: true}));
-      else if (sortType === 'TITLE_ASC') songs.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
-      else if (sortType === 'SHUFFLE') {
+      if (sortType === 'DATE_DESC') {
+        songs.sort((a, b) => {
+          const dateCmp = b.date.localeCompare(a.date);
+          if (dateCmp !== 0) return dateCmp;
+          const idCmp = b.logId.localeCompare(a.logId, undefined, {numeric: true});
+          if (idCmp !== 0) return idCmp;
+          return b.start - a.start;
+        });
+      } else if (sortType === 'DATE_ASC') {
+        songs.sort((a, b) => {
+          const dateCmp = a.date.localeCompare(b.date);
+          if (dateCmp !== 0) return dateCmp;
+          const idCmp = a.logId.localeCompare(b.logId, undefined, {numeric: true});
+          if (idCmp !== 0) return idCmp;
+          return a.start - b.start;
+        });
+      } else if (sortType === 'TITLE_ASC') {
+        songs.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
+      } else if (sortType === 'SHUFFLE') {
         for (let i = songs.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [songs[i], songs[j]] = [songs[j], songs[i]];
@@ -778,10 +834,10 @@
       currentPlayingSongId = song.id;
       
       clearTimeout(playerRetryTimeout);
-      renderPlaylist(); 
+      renderPlaylist();
       updateNowPlaying(song);
 
-      const targetStart = Math.max(0, song.start || 0); 
+      const targetStart = Math.max(0, song.start || 0);
 
       if (isPlayerReady && player) {
         if (currentVideoId === song.videoId && typeof player.seekTo === 'function') {
@@ -901,10 +957,11 @@
         entry.playCount += 1;
         
         if (song.date) {
-          entry.playEvents.push({ 
-            date: song.date, 
-            videoId: song.videoId, 
-            start: song.start, 
+          entry.playEvents.push({
+            date: song.date,
+            videoId: song.videoId,
+            start: song.start,
+            end: song.end,
             id: song.id,
             startRaw: song.startTimeRaw,
             endRaw: song.endTimeRaw
@@ -913,11 +970,20 @@
       });
 
       return Array.from(songMap.values()).map(item => {
-        const sortedEvents = item.playEvents.sort((a, b) => a.id.localeCompare(b.id, undefined, {numeric: true}));
+        const sortedEvents = item.playEvents.sort((a, b) => {
+          const dateCmp = a.date.localeCompare(b.date);
+          if (dateCmp !== 0) return dateCmp;
+          const idCmp = a.id.localeCompare(b.id, undefined, {numeric: true});
+          if (idCmp !== 0) return idCmp;
+          return a.start - b.start;
+        });
+        
         return {
           ...item,
           titleDisplay: item.title,
           artistDisplay: item.artist,
+          firstDate: sortedEvents.length > 0 ? sortedEvents[0].date : '',
+          lastDate: sortedEvents.length > 0 ? sortedEvents[sortedEvents.length - 1].date : '',
           firstId: sortedEvents.length > 0 ? sortedEvents[0].id : '',
           lastId: sortedEvents.length > 0 ? sortedEvents[sortedEvents.length - 1].id : '',
           sortedEvents: sortedEvents
@@ -939,12 +1005,42 @@
         return shuffled;
       }
       return [...items].sort((a, b) => {
-        if (sortType === 'COUNT_DESC') return b.playCount - a.playCount || a.firstId.localeCompare(b.firstId, undefined, {numeric: true});
+        if (sortType === 'COUNT_DESC') return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate);
         if (sortType === 'TITLE_LANG') return getTitleLangCategory(a.titleDisplay) - getTitleLangCategory(b.titleDisplay) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
-        if (sortType === 'RECENT_DESC') return b.lastId.localeCompare(a.lastId, undefined, {numeric: true});
-        if (sortType === 'OLD_ASC') return a.lastId.localeCompare(b.lastId, undefined, {numeric: true});
-        return a.firstId.localeCompare(b.firstId, undefined, {numeric: true});
+        if (sortType === 'RECENT_DESC') return b.lastDate.localeCompare(a.lastDate);
+        if (sortType === 'OLD_ASC') return a.lastDate.localeCompare(b.lastDate);
+        return a.firstDate.localeCompare(b.firstDate);
       });
+    }
+
+    // ==========================================
+    // ★ 통계 내 플레이어 재생 함수 (자동 재생 없음)
+    // ==========================================
+    function playSongInStats(logId) {
+      const song = songs.find(s => s.id === logId);
+      if (!song) {
+        alert('해당 곡을 찾을 수 없습니다.');
+        return;
+      }
+
+      const container = document.getElementById('stats-player-container');
+      container.innerHTML = '';
+
+      // end 파라미터 (있을 경우)
+      let endParam = '';
+      if (song.end > 0) {
+        endParam = `&end=${Math.floor(song.end)}`;
+      }
+
+      // autoplay=0 (기본값), mute 제거 -> 사용자가 직접 재생 버튼을 누름
+      const embedUrl = `https://www.youtube.com/embed/${song.videoId}?start=${Math.floor(song.start)}${endParam}&autoplay=0&rel=0`;
+
+      const iframe = document.createElement('iframe');
+      iframe.src = embedUrl;
+      iframe.allow = 'encrypted-media'; // autoplay 권한 불필요
+      iframe.allowFullscreen = true;
+      iframe.title = `Unofficial - ${song.title}`;
+      container.appendChild(iframe);
     }
 
     function renderStatisticsList(items) {
@@ -972,22 +1068,23 @@
         addText('index-text', `${idx + 1}.`);
         addText('title-text', item.titleDisplay);
         div.append(' / ');
-        addText('artist-text', item.artistDisplay); 
+        addText('artist-text', item.artistDisplay);
         div.append(' / ');
 
         const datesSpan = document.createElement('span');
         datesSpan.className = 'dates-text';
         
         item.sortedEvents.forEach((ev, evIdx) => {
-          const a = document.createElement('a');
-          a.className = 'date-link';
-          a.textContent = formatShortDate(ev.date);
-          a.href = `https://www.youtube.com/watch?v=${ev.videoId}&t=${ev.start}s`;
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
-          a.title = `가창 ID: ${ev.id} (${ev.startRaw || ''} ~ ${ev.endRaw || ''})`;
+          const link = document.createElement('span');
+          link.className = 'date-link';
+          link.textContent = formatShortDate(ev.date);
+          link.title = `가창 ID: ${ev.id} (${ev.startRaw || ''} ~ ${ev.endRaw || ''})`;
+          link.addEventListener('click', (e) => {
+            e.stopPropagation();
+            playSongInStats(ev.id);
+          });
           
-          datesSpan.appendChild(a);
+          datesSpan.appendChild(link);
           if (evIdx < item.sortedEvents.length - 1) datesSpan.append(' / ');
         });
         
