@@ -170,9 +170,16 @@
       border: 1px solid var(--border); cursor: pointer; display: flex;
       justify-content: space-between; align-items: center; transition: all 0.2s;
     }
-
-    .song-card:hover { border-color: var(--accent-primary); transform: translateY(-1px); }
     .song-card.active { border-left: 4px solid var(--accent-primary); background-color: var(--accent-light); }
+
+    /* PC 환경(마우스)에서만 Hover 효과 적용 (모바일 터치 잔상 방지) */
+    @media (hover: hover) {
+      .song-card:hover { border-color: var(--accent-primary); transform: translateY(-1px); }
+      .stats-item .date-link:hover {
+        color: #fff; background-color: var(--accent-secondary); 
+        border-radius: 4px; text-decoration: none;
+      }
+    }
 
     .song-info-date { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px; }
     .song-info-main { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 3px; display: flex; align-items: center; }
@@ -229,10 +236,6 @@
     .stats-item .date-link {
       color: var(--accent-primary); text-decoration: underline; text-underline-offset: 2px;
       cursor: pointer; transition: all 0.2s; padding: 2px 4px;
-    }
-    .stats-item .date-link:hover {
-      color: #fff; background-color: var(--accent-secondary); 
-      border-radius: 4px; text-decoration: none;
     }
     .stats-item .date-link.active-date {
       color: #fff !important; background-color: var(--accent-secondary);
@@ -960,7 +963,7 @@
 
     function filterSongs() {
       clearTimeout(searchDebounceTimer);
-      searchDebounceTimer = setTimeout(renderPlaylist, 180);
+      searchDebounceTimer = setTimeout(renderPlaylist, 250);
     }
 
     // ==========================================
@@ -968,7 +971,7 @@
     // ==========================================
     function filterStats() {
       clearTimeout(statsSearchDebounceTimer);
-      statsSearchDebounceTimer = setTimeout(renderStatistics, 180);
+      statsSearchDebounceTimer = setTimeout(renderStatistics, 250);
     }
 
     function setStatsLangFilter(lang, btn) {
@@ -1066,11 +1069,11 @@
         return shuffled;
       }
       return [...items].sort((a, b) => {
-        if (sortType === 'COUNT_DESC') return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate);
+        if (sortType === 'COUNT_DESC') return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
         if (sortType === 'TITLE_LANG') return getTitleLangCategory(a.titleDisplay) - getTitleLangCategory(b.titleDisplay) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
-        if (sortType === 'RECENT_DESC') return b.lastDate.localeCompare(a.lastDate);
-        if (sortType === 'OLD_ASC') return a.lastDate.localeCompare(b.lastDate);
-        return a.firstDate.localeCompare(b.firstDate);
+        if (sortType === 'RECENT_DESC') return b.lastDate.localeCompare(a.lastDate) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
+        if (sortType === 'OLD_ASC') return a.lastDate.localeCompare(b.lastDate) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
+        return a.firstDate.localeCompare(b.firstDate) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
       });
     }
 
@@ -1137,10 +1140,13 @@
 
       itemDiv.appendChild(playerBox);
 
-      // ⭐ [추가된 핵심 기능] 플레이어가 화면에 렌더링된 직후 부드럽게 화면 위로 자동 스크롤
+      // ⭐ [개선된 핵심 기능] 통계 상자가 아닌, '플레이어'가 화면 중앙에 오도록 스크롤
+      // 애니메이션(0.25초)이 완전히 끝나고 레이아웃이 고정된 후(0.3초 뒤) 부드럽게 이동합니다.
       setTimeout(() => {
-        itemDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
+        if (playerBox) {
+          playerBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300);
 
       if (window.YT && window.YT.Player) {
         statsPlayer = new YT.Player('statsPlayerTarget', {
