@@ -17,7 +17,6 @@
   </script>
 
   <style>
-    /* CSS는 기존과 100% 동일하게 유지합니다 */
     :root {
       --bg-color: #f8fafc; --panel-bg: #ffffff; --card-bg: #f1f5f9;
       --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0;
@@ -105,9 +104,6 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
     .stats-player-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); }
     .stats-player-header strong { color: var(--accent-secondary); }
-    .stats-player-notice { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background-color: var(--card-bg); color: var(--text); font-size: 0.82rem; }
-    .stats-player-notice[hidden] { display: none; }
-    .stats-player-retry-btn { flex: 0 0 auto; background-color: var(--accent-hover); border: 1px solid var(--accent-hover); color: #fff; cursor: pointer; font-size: 0.78rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; }
     .stats-player-close-btn { background-color: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; font-size: 0.78rem; font-weight: 600; padding: 3px 8px; border-radius: 4px; transition: all 0.2s; }
     .stats-player-close-btn:hover { background-color: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
     .stats-player-wrapper { position: relative; padding-bottom: 56.25%; height: 0; background-color: #000; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
@@ -123,15 +119,17 @@
   <header>
     <h1> Unofficial </h1>
     <div class="header-controls">
-      <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" title="다크 모드 변경"></button>
+      <!-- 🧹 인라인 이벤트 모두 제거 -->
+      <button id="themeToggleBtn" class="theme-toggle-btn" title="다크 모드 변경"></button>
       
       <div class="streamer-nav">
-        <button class="streamer-btn active" onclick="switchStreamer('kira', this)">세이로쿠 키라</button>
-        <button class="streamer-btn" onclick="switchStreamer('tenten', this)">텐플라스텐 텐텐</button>
+        <!-- 식별용 data-* 속성만 남김 -->
+        <button class="streamer-btn active" data-streamer-target="kira">세이로쿠 키라</button>
+        <button class="streamer-btn" data-streamer-target="tenten">텐플라스텐 텐텐</button>
       </div>
       <div class="tab-nav">
-        <button class="tab-btn active" onclick="switchMainTab('player', this)">재생</button>
-        <button class="tab-btn" onclick="switchMainTab('stats', this)">통계</button>
+        <button class="tab-btn active" data-tab-target="player">재생</button>
+        <button class="tab-btn" data-tab-target="stats">통계</button>
       </div>
     </div>
   </header>
@@ -153,26 +151,26 @@
       <div class="playlist-section">
         <div class="search-filter-box">
           <div class="search-wrapper">
-            <input type="text" id="searchInput" class="search-input" placeholder="곡명 · 가수 · 별칭 · 년월일 검색" oninput="toggleClearBtn('searchInput', 'searchClearBtn'); filterSongs()">
-            <button id="searchClearBtn" class="search-clear-btn" onclick="clearInput('searchInput', 'searchClearBtn'); filterSongs()">✕</button>
+            <input type="text" id="searchInput" class="search-input" placeholder="곡명 · 가수 · 별칭 · 년월일 검색">
+            <button id="searchClearBtn" class="search-clear-btn">✕</button>
           </div>
 
-          <select id="videoSelect" class="video-select" onchange="onVideoSelectChange(this.value)">
+          <select id="videoSelect" class="video-select">
             <option value="ALL">📺 전체 방송 보기</option>
           </select>
           
           <div class="filter-group">
-            <button class="filter-btn active" onclick="setLangFilter('ALL', this)">전체</button>
-            <button class="filter-btn" onclick="setLangFilter('KO', this)">한식</button>
-            <button class="filter-btn" onclick="setLangFilter('JA', this)">일식</button>
-            <button class="filter-btn" onclick="setLangFilter('EN', this)">양식</button>
-            <button class="filter-btn" onclick="setLangFilter('BUNSIK', this)">분식</button>
+            <button class="filter-btn main-lang-btn active" data-lang="ALL">전체</button>
+            <button class="filter-btn main-lang-btn" data-lang="KO">한식</button>
+            <button class="filter-btn main-lang-btn" data-lang="JA">일식</button>
+            <button class="filter-btn main-lang-btn" data-lang="EN">양식</button>
+            <button class="filter-btn main-lang-btn" data-lang="BUNSIK">분식</button>
           </div>
           <div class="filter-group">
-            <button class="filter-btn" onclick="setPlayerSort('DATE_DESC', this)">최신순</button>
-            <button class="filter-btn active" onclick="setPlayerSort('DATE_ASC', this)">날짜순</button>
-            <button class="filter-btn" onclick="setPlayerSort('TITLE_ASC', this)">가나다순</button>
-            <button class="filter-btn" onclick="setPlayerSort('SHUFFLE', this)">🎲 랜덤</button>
+            <button class="filter-btn main-sort-btn" data-sort="DATE_DESC">최신순</button>
+            <button class="filter-btn main-sort-btn active" data-sort="DATE_ASC">날짜순</button>
+            <button class="filter-btn main-sort-btn" data-sort="TITLE_ASC">가나다순</button>
+            <button class="filter-btn main-sort-btn" data-sort="SHUFFLE">🎲 랜덤</button>
           </div>
         </div>
         <div class="playlist-scroll" id="playlist"></div>
@@ -184,29 +182,29 @@
     <div class="stats-container">
       <div class="stats-header-box">
         <div class="search-wrapper">
-          <input type="text" id="statsSearchInput" class="search-input" placeholder="곡명 · 가수 · 별칭 · 년월일 검색" oninput="toggleClearBtn('statsSearchInput', 'statsClearBtn'); filterStats()">
-          <button id="statsClearBtn" class="search-clear-btn" onclick="clearInput('statsSearchInput', 'statsClearBtn'); filterStats()">✕</button>
+          <input type="text" id="statsSearchInput" class="search-input" placeholder="곡명 · 가수 · 별칭 · 년월일 검색">
+          <button id="statsClearBtn" class="search-clear-btn">✕</button>
         </div>
 
-        <select id="statsVideoSelect" class="video-select" onchange="onStatsVideoSelectChange(this.value)">
+        <select id="statsVideoSelect" class="video-select">
           <option value="ALL">📺 전체 방송 보기</option>
         </select>
         
         <div class="stats-header-controls">
           <div class="filter-group">
-            <button class="filter-btn active" onclick="setStatsLangFilter('ALL', this)">전체</button>
-            <button class="filter-btn" onclick="setStatsLangFilter('KO', this)">한식</button>
-            <button class="filter-btn" onclick="setStatsLangFilter('JA', this)">일식</button>
-            <button class="filter-btn" onclick="setStatsLangFilter('EN', this)">양식</button>
-            <button class="filter-btn" onclick="setStatsLangFilter('BUNSIK', this)">분식</button>
+            <button class="filter-btn stats-lang-btn active" data-lang="ALL">전체</button>
+            <button class="filter-btn stats-lang-btn" data-lang="KO">한식</button>
+            <button class="filter-btn stats-lang-btn" data-lang="JA">일식</button>
+            <button class="filter-btn stats-lang-btn" data-lang="EN">양식</button>
+            <button class="filter-btn stats-lang-btn" data-lang="BUNSIK">분식</button>
           </div>
           <div class="filter-group">
-            <button class="filter-btn active" onclick="setStatsSort('DATE_ASC', this)">처음 부른 날짜순</button>
-            <button class="filter-btn" onclick="setStatsSort('RECENT_DESC', this)">최근에 부른 날짜순</button>
-            <button class="filter-btn" onclick="setStatsSort('COUNT_DESC', this)">많이 부른 순</button>
-            <button class="filter-btn" onclick="setStatsSort('TITLE_LANG', this)">원제목순 (한/일/영)</button>
-            <button class="filter-btn" onclick="setStatsSort('OLD_ASC', this)">오래 묵은 곡 순</button>
-            <button class="filter-btn" onclick="setStatsSort('SHUFFLE', this)">🎲 랜덤</button>
+            <button class="filter-btn stats-sort-btn active" data-sort="DATE_ASC">처음 부른 날짜순</button>
+            <button class="filter-btn stats-sort-btn" data-sort="RECENT_DESC">최근에 부른 날짜순</button>
+            <button class="filter-btn stats-sort-btn" data-sort="COUNT_DESC">많이 부른 순</button>
+            <button class="filter-btn stats-sort-btn" data-sort="TITLE_LANG">원제목순 (한/일/영)</button>
+            <button class="filter-btn stats-sort-btn" data-sort="OLD_ASC">오래 묵은 곡 순</button>
+            <button class="filter-btn stats-sort-btn" data-sort="SHUFFLE">🎲 랜덤</button>
           </div>
         </div>
       </div>
@@ -215,9 +213,22 @@
   </div>
 
   <footer> Unofficial </footer>
-  <button id="backToTop" class="back-to-top" onclick="scrollToTop()" title="맨 위로 가기">↑</button>
+  <button id="backToTop" class="back-to-top" title="맨 위로 가기">↑</button>
 
   <script>
+    // =========================================================================
+    // ⚙️ 0. 전역 설정 (매직 넘버 관리)
+    // =========================================================================
+    const CONFIG = {
+      TIMER_INTERVAL: 250,      // 타이머 감시 주기 (ms)
+      DEBOUNCE_DELAY: 250,      // 검색어 입력 지연 시간 (ms)
+      RETRY_DELAY: 300,         // 플레이어 로드 실패 시 재시도 간격 (ms)
+      SCROLL_SHOW_POS: 300,     // Top 버튼이 나타나는 스크롤 위치 (px)
+      SCROLL_DELAY: 300,        // 스크롤 이동 애니메이션 대기 시간 (ms)
+      SKELETON_COUNT_MAIN: 8,   // 재생 탭 로딩 스켈레톤 개수
+      SKELETON_COUNT_STATS: 6   // 통계 탭 로딩 스켈레톤 개수
+    };
+
     // =========================================================================
     // 🛠️ 1. 유틸리티 (순수 함수들 - 부작용 없음)
     // =========================================================================
@@ -288,7 +299,6 @@
     class DataManager {
       #allSongs = [];
       
-      // 상태 (State) 캡슐화
       streamerKey = 'kira';
       mainFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
       statsFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
@@ -377,7 +387,6 @@
           return mSearch && mLang && mVideo;
         });
 
-        // 정렬
         const { sort } = this.mainFilters;
         if (sort === 'DATE_DESC') list.sort((a, b) => b.date.localeCompare(a.date) || b.logId.localeCompare(a.logId, undefined, {numeric:true}) || b.start - a.start);
         else if (sort === 'TITLE_ASC') list.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
@@ -401,7 +410,6 @@
           return { ...item, firstDate: item.playEvents[0]?.date||'', lastDate: item.playEvents[item.playEvents.length-1]?.date||'', firstId: item.playEvents[0]?.id||'', lastId: item.playEvents[item.playEvents.length-1]?.id||'' };
         });
 
-        // 통계 필터 적용
         if (this.statsFilters.videoId !== 'ALL') {
           aggregated = aggregated.map(item => {
             const evts = item.playEvents.filter(ev => ev.rawVideoId === this.statsFilters.videoId);
@@ -420,7 +428,6 @@
           });
         }
 
-        // 통계 정렬
         const st = this.statsFilters.sort;
         if (st === 'SHUFFLE') return [...aggregated].sort(() => Math.random() - 0.5);
         return aggregated.sort((a, b) => {
@@ -434,7 +441,7 @@
     }
 
     // =========================================================================
-    // 📺 3. 메인 플레이어 매니저 (타이머와 인덱스를 안전하게 보호)
+    // 📺 3. 메인 플레이어 매니저 
     // =========================================================================
     class MainPlayerManager {
       #player = null;
@@ -457,7 +464,6 @@
       get currentSongId() { return this.#currentSongId; }
       get currentIndex() { return this.#currentIndex; }
 
-      // 데이터가 바뀌어도 ID를 기준으로 현재 위치를 정확히 추적합니다. (인덱스 버그 해결)
       updatePlaylist(newSongs) {
         this.#playlist = newSongs;
         if (this.#currentSongId) {
@@ -525,9 +531,8 @@
             else this.#player.loadVideoById({ videoId: song.videoId, startSeconds: targetStart });
           }
         } else {
-          // 플레이어가 준비 안됐을 때만 자신(Manager) 내부 타이머로 재시도
           const savedId = song.id;
-          this.#retryTimeout = setTimeout(() => { if (this.#currentSongId === savedId) this.play(index, cueOnly); }, 300);
+          this.#retryTimeout = setTimeout(() => { if (this.#currentSongId === savedId) this.play(index, cueOnly); }, CONFIG.RETRY_DELAY);
           return;
         }
         this.#startMonitor(song);
@@ -546,7 +551,7 @@
       }
 
       #startMonitor(song) {
-        this.#clearMonitor(); // 이전 타이머 확실히 제거 (타이머 꼬임 버그 해결)
+        this.#clearMonitor();
         this.#timerCheck = setInterval(() => {
           if (this.#player && typeof this.#player.getCurrentTime === 'function') {
             if (song.end > 0 && this.#player.getCurrentTime() >= song.end) {
@@ -554,7 +559,7 @@
               if (this.#onNextCallback) this.#onNextCallback();
             }
           }
-        }, 250);
+        }, CONFIG.TIMER_INTERVAL);
       }
 
       reset() {
@@ -565,7 +570,7 @@
     }
 
     // =========================================================================
-    // 📊 4. 통계 플레이어 매니저 (메인 플레이어와 상태/타이머 완전 분리)
+    // 📊 4. 통계 플레이어 매니저
     // =========================================================================
     class StatsPlayerManager {
       #player = null;
@@ -607,7 +612,7 @@
                   if (typeof this.#player.pauseVideo === 'function') this.#player.pauseVideo();
                 }
               }
-            }, 250);
+            }, CONFIG.TIMER_INTERVAL);
           }
         } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
           this.#clearMonitor();
@@ -672,7 +677,7 @@
         this.setEmptyNowPlaying();
       }
 
-      renderSkeleton(containerId, count = 8, isStats = false) {
+      renderSkeleton(containerId, count, isStats = false) {
         const frag = document.createDocumentFragment();
         for(let i=0; i<count; i++) {
           const div = document.createElement('div');
@@ -809,7 +814,7 @@
         box.appendChild(header); box.appendChild(wrapper);
         itemDiv.appendChild(box);
         
-        setTimeout(() => itemDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+        setTimeout(() => itemDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }), CONFIG.SCROLL_DELAY);
       }
 
       updateFilterBtns(btn) {
@@ -820,7 +825,7 @@
       initScrollObserver() {
         const playlistBox = document.getElementById('playlist');
         const backToTopBtn = document.getElementById('backToTop');
-        const toggleBtn = (scrollPos) => scrollPos > 300 ? backToTopBtn.classList.add('show') : backToTopBtn.classList.remove('show');
+        const toggleBtn = (scrollPos) => scrollPos > CONFIG.SCROLL_SHOW_POS ? backToTopBtn.classList.add('show') : backToTopBtn.classList.remove('show');
         
         window.addEventListener('scroll', () => { if (document.getElementById('tab-stats').classList.contains('active')) toggleBtn(window.scrollY); });
         playlistBox.addEventListener('scroll', () => { if (document.getElementById('tab-player').classList.contains('active')) toggleBtn(playlistBox.scrollTop); });
@@ -833,7 +838,7 @@
     }
 
     // =========================================================================
-    // 🚀 6. 앱 오케스트레이터 (Manager들을 연결하고 총괄)
+    // 🚀 6. 앱 오케스트레이터 및 이벤트 바인더
     // =========================================================================
     class KaraApp {
       constructor() {
@@ -849,8 +854,9 @@
       async init() {
         this.ui.initTheme();
         this.ui.initScrollObserver();
-        this.ui.renderSkeleton('playlist', 8, false);
-        this.ui.renderSkeleton('statsList', 6, true);
+        this.bindEvents(); // DOM 이벤트 리스너 일괄 연결
+        this.ui.renderSkeleton('playlist', CONFIG.SKELETON_COUNT_MAIN, false);
+        this.ui.renderSkeleton('statsList', CONFIG.SKELETON_COUNT_STATS, true);
         
         try {
           await this.data.loadAllData();
@@ -859,6 +865,92 @@
           console.error(err);
           this.ui.showError('데이터베이스 연동 중 오류가 발생했습니다.');
         }
+      }
+
+      // --- HTML 이벤트 위임(Event Delegation) 설정 ---
+      bindEvents() {
+        document.getElementById('themeToggleBtn').addEventListener('click', () => this.ui.toggleTheme());
+        document.getElementById('backToTop').addEventListener('click', () => this.ui.scrollToTop());
+
+        // 스트리머 & 탭 전환
+        document.querySelectorAll('.streamer-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => this.switchStreamer(e.target.dataset.streamerTarget, e.target));
+        });
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => this.switchMainTab(e.target.dataset.tabTarget, e.target));
+        });
+
+        // 재생 탭 (메인) 필터 및 검색
+        const searchInput = document.getElementById('searchInput');
+        const searchClearBtn = document.getElementById('searchClearBtn');
+        searchInput.addEventListener('input', () => {
+          this.ui.toggleClearBtn('searchInput', 'searchClearBtn');
+          clearTimeout(this.searchDebounceTimer);
+          this.searchDebounceTimer = setTimeout(() => {
+            this.data.mainFilters.search = searchInput.value;
+            this.renderPlaylist();
+          }, CONFIG.DEBOUNCE_DELAY);
+        });
+        searchClearBtn.addEventListener('click', () => {
+          this.ui.clearInput('searchInput', 'searchClearBtn');
+          this.data.mainFilters.search = '';
+          this.renderPlaylist();
+        });
+
+        document.getElementById('videoSelect').addEventListener('change', (e) => {
+          this.data.mainFilters.videoId = e.target.value;
+          this.renderPlaylist();
+        });
+        document.querySelectorAll('.main-lang-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            this.data.mainFilters.lang = e.target.dataset.lang;
+            this.ui.updateFilterBtns(e.target);
+            this.renderPlaylist();
+          });
+        });
+        document.querySelectorAll('.main-sort-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            this.data.mainFilters.sort = e.target.dataset.sort;
+            this.ui.updateFilterBtns(e.target);
+            this.renderPlaylist();
+          });
+        });
+
+        // 통계 탭 필터 및 검색
+        const statsSearchInput = document.getElementById('statsSearchInput');
+        const statsClearBtn = document.getElementById('statsClearBtn');
+        statsSearchInput.addEventListener('input', () => {
+          this.ui.toggleClearBtn('statsSearchInput', 'statsClearBtn');
+          clearTimeout(this.statsSearchDebounceTimer);
+          this.statsSearchDebounceTimer = setTimeout(() => {
+            this.data.statsFilters.search = statsSearchInput.value;
+            this.renderStatistics();
+          }, CONFIG.DEBOUNCE_DELAY);
+        });
+        statsClearBtn.addEventListener('click', () => {
+          this.ui.clearInput('statsSearchInput', 'statsClearBtn');
+          this.data.statsFilters.search = '';
+          this.renderStatistics();
+        });
+
+        document.getElementById('statsVideoSelect').addEventListener('change', (e) => {
+          this.data.statsFilters.videoId = e.target.value;
+          this.renderStatistics();
+        });
+        document.querySelectorAll('.stats-lang-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            this.data.statsFilters.lang = e.target.dataset.lang;
+            this.ui.updateFilterBtns(e.target);
+            this.renderStatistics();
+          });
+        });
+        document.querySelectorAll('.stats-sort-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            this.data.statsFilters.sort = e.target.dataset.sort;
+            this.ui.updateFilterBtns(e.target);
+            this.renderStatistics();
+          });
+        });
       }
 
       applyStreamerData() {
@@ -870,7 +962,7 @@
         this.renderPlaylist();
         
         if (this.mainPlayer.playlist.length > 0) {
-          this.mainPlayer.cue(0); // 인덱스 0번 큐
+          this.mainPlayer.cue(0);
           this.ui.updateNowPlaying(this.mainPlayer.playlist[0]);
         } else {
           this.ui.setEmptyNowPlaying();
@@ -894,13 +986,13 @@
       }
 
       playSong(index, cueOnly = false) {
-        this.statsPlayer.close(); this.ui.removeStatsPlayerDOM(); // 통계 플레이어 닫기 (탭 간섭 방어)
+        this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
         
         const song = this.mainPlayer.playlist[index];
         if (!song) return;
         
         this.mainPlayer.play(index, cueOnly);
-        this.renderPlaylist(); // 재생 중인 곡 하이라이트 갱신
+        this.renderPlaylist(); 
         this.ui.updateNowPlaying(song);
       }
 
@@ -915,7 +1007,7 @@
       toggleStatsPlayer(ev, event, itemDiv, dateAnchor) {
         if (event) event.preventDefault();
         
-        this.mainPlayer.pause(); // 통계 재생 시 메인 플레이어 정지 (탭 간섭 방어)
+        this.mainPlayer.pause(); 
 
         if (this.statsPlayer.activeEventId === ev.id) {
           this.statsPlayer.close();
@@ -948,19 +1040,17 @@
         }
       }
 
-      // --- 화면 이벤트 연결부 ---
       switchStreamer(key, btn) {
         if (this.data.streamerKey === key && this.data.getStreamerSongs().length > 0) return;
         this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
         this.data.streamerKey = key;
         
-        // 상태 초기화
         this.data.mainFilters.videoId = 'ALL'; this.data.statsFilters.videoId = 'ALL';
         this.mainPlayer.reset();
         
         this.ui.updateStreamerNav(btn, key);
-        this.ui.renderSkeleton('playlist', 8, false);
-        this.ui.renderSkeleton('statsList', 6, true);
+        this.ui.renderSkeleton('playlist', CONFIG.SKELETON_COUNT_MAIN, false);
+        this.ui.renderSkeleton('statsList', CONFIG.SKELETON_COUNT_STATS, true);
         this.ui.setLoadingNowPlaying(STREAMER_MAP[key].name);
         
         this.applyStreamerData();
@@ -971,43 +1061,13 @@
         if (tabId === 'stats') this.renderStatistics();
         else { this.statsPlayer.close(); this.ui.removeStatsPlayerDOM(); }
       }
-
-      // 메인 필터
-      filterSongs(val) { this.data.mainFilters.search = val; clearTimeout(this.searchDebounceTimer); this.searchDebounceTimer = setTimeout(() => this.renderPlaylist(), 250); }
-      setVideoFilter(val) { this.data.mainFilters.videoId = val; this.renderPlaylist(); }
-      setLangFilter(val, btn) { this.data.mainFilters.lang = val; this.ui.updateFilterBtns(btn); this.renderPlaylist(); }
-      setPlayerSort(val, btn) { this.data.mainFilters.sort = val; this.ui.updateFilterBtns(btn); this.renderPlaylist(); }
-
-      // 통계 필터
-      filterStats(val) { this.data.statsFilters.search = val; clearTimeout(this.statsSearchDebounceTimer); this.statsSearchDebounceTimer = setTimeout(() => this.renderStatistics(), 250); }
-      setStatsVideoFilter(val) { this.data.statsFilters.videoId = val; this.renderStatistics(); }
-      setStatsLangFilter(val, btn) { this.data.statsFilters.lang = val; this.ui.updateFilterBtns(btn); this.renderStatistics(); }
-      setStatsSort(val, btn) { this.data.statsFilters.sort = val; this.ui.updateFilterBtns(btn); this.renderStatistics(); }
     }
 
     // =========================================================================
-    // 🌐 7. 앱 실행 및 전역 이벤트 바인딩 (HTML 인라인 핸들러 대응)
+    // 🌐 7. 앱 실행
     // =========================================================================
     const App = new KaraApp();
     window.addEventListener('DOMContentLoaded', () => App.init());
-
-    function toggleTheme() { App.ui.toggleTheme(); }
-    function toggleClearBtn(id1, id2) { App.ui.toggleClearBtn(id1, id2); }
-    function clearInput(id1, id2) { App.ui.clearInput(id1, id2); App.filterSongs(''); App.filterStats(''); }
-    function scrollToTop() { App.ui.scrollToTop(); }
-
-    function switchStreamer(k, b) { App.switchStreamer(k, b); }
-    function switchMainTab(t, b) { App.switchMainTab(t, b); }
-
-    function filterSongs() { App.filterSongs(document.getElementById('searchInput').value); }
-    function onVideoSelectChange(v) { App.setVideoFilter(v); }
-    function setLangFilter(l, b) { App.setLangFilter(l, b); }
-    function setPlayerSort(s, b) { App.setPlayerSort(s, b); }
-
-    function filterStats() { App.filterStats(document.getElementById('statsSearchInput').value); }
-    function onStatsVideoSelectChange(v) { App.setStatsVideoFilter(v); }
-    function setStatsLangFilter(l, b) { App.setStatsLangFilter(l, b); }
-    function setStatsSort(s, b) { App.setStatsSort(s, b); }
   </script>
 </body>
 </html>
