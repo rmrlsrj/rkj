@@ -66,9 +66,8 @@
       --panel-bg: #1e293b;
       --card-bg: #334155;
       --text: #f8fafc;
-      --text-muted: #cbd5e1; /* 다크모드 가독성을 위해 기존보다 한 톤 밝게 수정 */
+      --text-muted: #cbd5e1;
       --border: #334155;
-      /* 본문용 포인트 색은 밝게, 버튼 배경은 --accent-hover로 유지합니다. */
       --kira-primary: #c4b5fd;
       --kira-secondary: #e9d5ff;
       --kira-hover: #6d28d9;
@@ -163,7 +162,6 @@
     }
 
     .now-playing-date { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2px; }
-    /* 🔥 긴 제목 줄바꿈 방어 옵션 적용 */
     .now-playing-title { 
       font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; 
       word-break: keep-all; overflow-wrap: break-word; 
@@ -191,7 +189,6 @@
 
     .search-filter-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
 
-    /* 🔍 검색창 Clear 버튼 Wrapper */
     .search-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
     
     .search-input {
@@ -208,7 +205,6 @@
     }
     .search-clear-btn:hover { color: var(--accent-primary); }
 
-    /* 📺 방송 선택 드롭다운 스타일 */
     .video-select {
       width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
       background-color: var(--panel-bg); color: var(--text); font-size: 0.85rem; font-weight: 500;
@@ -227,7 +223,6 @@
       background-color: var(--accent-hover); color: #fff; border-color: var(--accent-hover);
     }
 
-    /* 독립 스크롤 적용 부분 */
     .playlist-scroll {
       flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;
     }
@@ -250,7 +245,6 @@
     }
 
     .song-info-date { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px; }
-    /* 🔥 긴 제목 줄바꿈 방어 옵션 적용 */
     .song-info-main { 
       font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 3px; 
       display: flex; align-items: center; word-break: keep-all; overflow-wrap: break-word; 
@@ -279,7 +273,6 @@
       border-radius: 8px; border: 1px dashed var(--border); margin-top: 10px;
     }
 
-    /* 🚀 스켈레톤 UI (로딩 애니메이션) */
     .skeleton-box {
       background: linear-gradient(90deg, var(--card-bg) 25%, var(--border) 50%, var(--card-bg) 75%);
       background-size: 200% 100%;
@@ -369,7 +362,6 @@
       transition: background-color 0.3s, border-color 0.3s;
     }
 
-    /* ⭐ 스마트 맨 위로 가기 버튼 */
     .back-to-top {
       position: fixed; bottom: 30px; right: 30px;
       background-color: var(--accent-primary); color: #fff;
@@ -516,7 +508,6 @@
       input.focus();
     }
 
-    // ⭐ 5번 기능: 통계 탭(전체창)과 재생 탭(목록창) 모두 완벽 지원하는 스마트 스크롤 감지
     const playlistBox = document.getElementById('playlist');
     const backToTopBtn = document.getElementById('backToTop');
 
@@ -548,7 +539,7 @@
       for(let i=0; i<count; i++) {
         const div = document.createElement('div');
         div.className = isStats ? 'stats-item' : 'song-card';
-        div.style.pointerEvents = 'none'; // 클릭 방지
+        div.style.pointerEvents = 'none';
         
         if (isStats) {
           div.innerHTML = `
@@ -607,7 +598,7 @@
     
     let currentLang = 'ALL';
     let currentPlayerSort = 'DATE_ASC';
-    let currentSelectedVideoId = 'ALL'; // 📺 선택된 방송 ID (재생 탭)
+    let currentSelectedVideoId = 'ALL';
     let timerCheck = null;
     let playerRetryTimeout = null;
     let currentVideoId = null;
@@ -616,7 +607,7 @@
     
     let currentStatsLang = 'ALL';
     let currentStatsSort = 'DATE_ASC';
-    let currentStatsSelectedVideoId = 'ALL'; // 📺 선택된 방송 ID (통계 탭)
+    let currentStatsSelectedVideoId = 'ALL';
     let statsSearchDebounceTimer = null;
 
     let statsPlayer = null;
@@ -638,7 +629,6 @@
       try {
         const [logRes, videoRes, songRes] = await Promise.all([
           fetchTSV(DB_URLS.log, ['log_id', 'video_id', 'song_id']),
-          // 🔥 video_title도 함께 추출합니다.
           fetchTSV(DB_URLS.video, ['video_id', 'youtube_video_id', 'streamer_id', 'stream_date']),
           fetchTSV(DB_URLS.song, ['song_id', 'lang', 'title_primary'])
         ]);
@@ -701,12 +691,11 @@
           if (!endTimeRaw || endTimeRaw === '0:00') endTimeRaw = '0:00 (정보 없음)';
 
           const date = formatDate(video.stream_date);
-          const videoTitle = video.video_title || ''; // 📺 방송 제목 추가
+          const videoTitle = video.video_title || '';
           const rawVideoId = log.video_id || '';
           const logId = log.log_id || `L-temp-${idx}`;
           const songId = log.song_id || '';
           
-          // 📺 검색어에 방송 제목(videoTitle)도 포함하여 방송명 검색도 허용
           const searchText = createSearchText([
             title, titleOrig, song.title_ko_reading, song.title_ko_translation,
             artist, artistOrig, song.artist_ko,
@@ -733,8 +722,8 @@
             lang, date, start, end,
             startTimeRaw, endTimeRaw,
             duration: Math.max(0, end - start),
-            rawVideoId, // 📺 영상 내부 구분 ID (V-00001 등)
-            videoTitle, // 📺 방송 제목
+            rawVideoId,
+            videoTitle,
             videoId: video.youtube_video_id,
             note: log.perf_note || '',
             streamers: actualStreamers, 
@@ -796,11 +785,9 @@
       });
     }
 
-    // 📺 방송 선택 드롭다운 옵션 목록 동적 생성
     function populateVideoDropdowns() {
       const videoMap = new Map();
 
-      // 현재 스트리머의 곡들에서 방송 목록 추출
       songs.forEach(song => {
         if (song.rawVideoId && !videoMap.has(song.rawVideoId)) {
           videoMap.set(song.rawVideoId, {
@@ -811,7 +798,6 @@
         }
       });
 
-      // 날짜 최신순 정렬
       const videoList = Array.from(videoMap.values()).sort((a, b) => b.date.localeCompare(a.date));
 
       const buildOptionsHtml = () => {
@@ -831,7 +817,6 @@
       if (playerSelect) {
         playerSelect.innerHTML = optionsHtml;
         playerSelect.value = currentSelectedVideoId;
-        // 선택했던 방송이 없는 경우 초기화
         if (playerSelect.selectedIndex === -1) {
           playerSelect.value = 'ALL';
           currentSelectedVideoId = 'ALL';
@@ -859,7 +844,7 @@
         return;
       }
 
-      populateVideoDropdowns(); // 📺 드롭다운 채우기
+      populateVideoDropdowns();
 
       currentPlayingSongId = null;
       renderPlaylist();
@@ -903,10 +888,8 @@
       document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
-      // 🔥 자바스크립트 인라인 스타일 지정 대신 속성값 하나로 CSS 연동 처리
       document.documentElement.setAttribute('data-streamer', streamerKey);
 
-      // 스트리머 변경 시 방송 선택 드롭다운 전체로 리셋
       currentSelectedVideoId = 'ALL';
       currentStatsSelectedVideoId = 'ALL';
 
@@ -1091,7 +1074,6 @@
       renderPlaylist();
     }
 
-    // 📺 재생 탭 방송 선택 변경 이벤트
     function onVideoSelectChange(val) {
       currentSelectedVideoId = val;
       renderPlaylist();
@@ -1110,7 +1092,7 @@
         list.sort((a, b) => {
           const dateCmp = a.date.localeCompare(b.date);
           if (dateCmp !== 0) return dateCmp;
-          const idCmp = a.logId.localeCompare(a.logId, undefined, {numeric: true});
+          const idCmp = a.logId.localeCompare(b.logId, undefined, {numeric: true}); // 버그 수정
           if (idCmp !== 0) return idCmp;
           return a.start - b.start;
         });
@@ -1132,8 +1114,6 @@
         let matchSearch = true;
         if (queries.length > 0) matchSearch = matchesSearch(song.searchText, queries);
         const matchCategory = matchCategoryFilter(song, currentLang);
-        
-        // 📺 방송 드롭다운 필터링 조건 추가
         const matchVideo = (currentSelectedVideoId === 'ALL' || song.rawVideoId === currentSelectedVideoId);
 
         return matchSearch && matchCategory && matchVideo;
@@ -1158,7 +1138,6 @@
         };
 
         const playIcon = isActive ? `<span class="playing-icon">▶️</span>` : '';
-        // 🔥 우측 재생 목록에서 방송 제목(videoTitle) 제거됨
         card.innerHTML = `
           <div>
             <div class="song-info-date">
@@ -1282,7 +1261,6 @@
       renderStatistics();
     }
 
-    // 📺 통계 탭 방송 선택 변경 이벤트
     function onStatsVideoSelectChange(val) {
       currentStatsSelectedVideoId = val;
       renderStatistics();
@@ -1328,8 +1306,8 @@
             id: song.id,
             startRaw: song.startTimeRaw,
             endRaw: song.endTimeRaw,
-            rawVideoId: song.rawVideoId, // 📺 영상 구분 ID
-            videoTitle: song.videoTitle  // 📺 방송 제목
+            rawVideoId: song.rawVideoId,
+            videoTitle: song.videoTitle
           });
         }
       });
@@ -1362,7 +1340,7 @@
       return category === 'ALL' ? items : items.filter(item => matchCategoryFilter(item, category));
     }
 
-    // 🔥 통계 탭 시간순 정렬 완벽 적용 (log_id fallback 추가)
+    // 🔥 통계 탭 정렬 (log_id fallback 강화)
     function sortStatistics(items, sortType) {
       if (sortType === 'SHUFFLE') {
         const shuffled = [...items];
@@ -1373,7 +1351,6 @@
         return shuffled;
       }
       return [...items].sort((a, b) => {
-        // 첫 번째 이벤트와 마지막 이벤트를 안전하게 추출
         const aFirstEvent = a.sortedEvents.length > 0 ? a.sortedEvents[0] : null;
         const bFirstEvent = b.sortedEvents.length > 0 ? b.sortedEvents[0] : null;
         const aLastEvent = a.sortedEvents.length > 0 ? a.sortedEvents[a.sortedEvents.length - 1] : null;
@@ -1383,10 +1360,12 @@
         const bFirstStart = bFirstEvent ? bFirstEvent.start : 0;
         const aLastStart = aLastEvent ? aLastEvent.start : 0;
         const bLastStart = bLastEvent ? bLastEvent.start : 0;
-        const aFirstLogId = aFirstEvent ? aFirstEvent.id : '';
-        const bFirstLogId = bFirstEvent ? bFirstEvent.id : '';
-        const aLastLogId = aLastEvent ? aLastEvent.id : '';
-        const bLastLogId = bLastEvent ? bLastEvent.id : '';
+        
+        // 💡 중요: a.firstId / a.lastId를 최종 fallback으로 사용
+        const aFirstLogId = aFirstEvent ? aFirstEvent.id : a.firstId;
+        const bFirstLogId = bFirstEvent ? bFirstEvent.id : b.firstId;
+        const aLastLogId = aLastEvent ? aLastEvent.id : a.lastId;
+        const bLastLogId = bLastEvent ? bLastEvent.id : b.lastId;
 
         if (sortType === 'COUNT_DESC') {
           return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate) || aFirstStart - bFirstStart || aFirstLogId.localeCompare(bFirstLogId, undefined, { numeric: true }) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
@@ -1402,7 +1381,6 @@
         }
         
         // 기본값: '처음 부른 날짜순 (DATE_ASC)'
-        // 🔥 날짜가 같다면 -> 처음 불렀던 시간(start) 순서 -> 그래도 같으면 log_id 순 -> 그래도 같으면 제목순
         return a.firstDate.localeCompare(b.firstDate) || aFirstStart - bFirstStart || aFirstLogId.localeCompare(bFirstLogId, undefined, { numeric: true }) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
       });
     }
@@ -1472,14 +1450,12 @@
       }, 300);
 
       if (window.YT && window.YT.Player) {
-        // 🔥 현재 접속한 기기가 모바일(스마트폰/태블릿)인지 확인
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
         statsPlayer = new YT.Player('statsPlayerTarget', {
           height: '100%',
           width: '100%',
           videoId: ev.videoId,
-          // 🔥 모바일이면 autoplay를 0(터치 대기), PC면 1(자동 재생)
           playerVars: { 'autoplay': isMobile ? 0 : 1, 'controls': 1, 'start': ev.start, 'rel': 0 },
           events: {
             'onReady': (e) => { if (!isMobile) e.target.playVideo(); },
@@ -1582,7 +1558,6 @@
 
       let aggregated = aggregateSongStatistics(songs);
 
-      // 📺 통계 탭 방송 드롭다운 필터링
       if (currentStatsSelectedVideoId !== 'ALL') {
         aggregated = aggregated.map(item => {
           const filteredEvents = item.sortedEvents.filter(ev => ev.rawVideoId === currentStatsSelectedVideoId);
