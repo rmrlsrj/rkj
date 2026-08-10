@@ -17,371 +17,105 @@
   </script>
 
   <style>
+    /* CSS는 기존과 100% 동일하게 유지합니다 */
     :root {
-      /* 공통 라이트 테마 배경/텍스트 */
-      --bg-color: #f8fafc;
-      --panel-bg: #ffffff;
-      --card-bg: #f1f5f9;
-      --text: #1e293b;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-
-      /* 키라 팔레트 */
-      --kira-primary: #9b95c9;   
-      --kira-secondary: #654374; 
-      --kira-hover: #867eb6;
-      --kira-light: #f4f2f9;     
-
-      /* 텐텐 팔레트 */
-      --tenten-primary: #e65c5c; 
-      --tenten-secondary: #2b2b2b; 
-      --tenten-hover: #d24a4a;
-      --tenten-light: #fdf2f2;   
-
-      /* 현재 적용될 액센트 변수 (초기값: 키라) */
-      --accent-primary: var(--kira-primary);
-      --accent-secondary: var(--kira-secondary);
-      --accent-hover: var(--kira-hover);
-      --accent-light: var(--kira-light);
+      --bg-color: #f8fafc; --panel-bg: #ffffff; --card-bg: #f1f5f9;
+      --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0;
+      --kira-primary: #9b95c9; --kira-secondary: #654374; --kira-hover: #867eb6; --kira-light: #f4f2f9;     
+      --tenten-primary: #e65c5c; --tenten-secondary: #2b2b2b; --tenten-hover: #d24a4a; --tenten-light: #fdf2f2;   
+      --accent-primary: var(--kira-primary); --accent-secondary: var(--kira-secondary);
+      --accent-hover: var(--kira-hover); --accent-light: var(--kira-light);
     }
-
-    /* 스트리머별 테마 변수 (자바스크립트 버그 방지) */
-    [data-streamer="kira"] {
-      --accent-primary: var(--kira-primary);
-      --accent-secondary: var(--kira-secondary);
-      --accent-hover: var(--kira-hover);
-      --accent-light: var(--kira-light);
-    }
-
-    [data-streamer="tenten"] {
-      --accent-primary: var(--tenten-primary);
-      --accent-secondary: var(--tenten-secondary);
-      --accent-hover: var(--tenten-hover);
-      --accent-light: var(--tenten-light);
-    }
-
-    /* 🌙 다크 모드 테마 변수 */
+    [data-streamer="kira"] { --accent-primary: var(--kira-primary); --accent-secondary: var(--kira-secondary); --accent-hover: var(--kira-hover); --accent-light: var(--kira-light); }
+    [data-streamer="tenten"] { --accent-primary: var(--tenten-primary); --accent-secondary: var(--tenten-secondary); --accent-hover: var(--tenten-hover); --accent-light: var(--tenten-light); }
     [data-theme="dark"] {
-      --bg-color: #0f172a;
-      --panel-bg: #1e293b;
-      --card-bg: #334155;
-      --text: #f8fafc;
-      --text-muted: #cbd5e1; /* 다크모드 가독성을 위해 기존보다 한 톤 밝게 수정 */
-      --border: #334155;
-      /* 본문용 포인트 색은 밝게, 버튼 배경은 --accent-hover로 유지합니다. */
-      --kira-primary: #c4b5fd;
-      --kira-secondary: #e9d5ff;
-      --kira-hover: #6d28d9;
-      --tenten-primary: #fca5a5;
-      --tenten-secondary: #fecaca;
-      --tenten-hover: #b91c1c;
-      --kira-light: #2c2541;
-      --tenten-light: #3f2020;
+      --bg-color: #0f172a; --panel-bg: #1e293b; --card-bg: #334155; --text: #f8fafc; --text-muted: #cbd5e1; --border: #334155;
+      --kira-primary: #c4b5fd; --kira-secondary: #e9d5ff; --kira-hover: #6d28d9; --tenten-primary: #fca5a5; --tenten-secondary: #fecaca; --tenten-hover: #b91c1c; --kira-light: #2c2541; --tenten-light: #3f2020;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-
-    header {
-      background-color: var(--panel-bg);
-      border-bottom: 1px solid var(--border);
-      padding: 12px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      transition: background-color 0.3s ease, border-color 0.3s ease;
-    }
-
+    body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; transition: background-color 0.3s ease, color 0.3s ease; }
+    header { background-color: var(--panel-bg); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: background-color 0.3s ease, border-color 0.3s ease; }
     header h1 { font-size: 1.2rem; font-weight: 700; color: var(--text); }
-
     .header-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-
-    .theme-toggle-btn {
-      background: none; border: none; font-size: 1.2rem; cursor: pointer;
-      padding: 4px; border-radius: 50%; transition: transform 0.2s;
-    }
+    .theme-toggle-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px; border-radius: 50%; transition: transform 0.2s; }
     .theme-toggle-btn:hover { transform: scale(1.1); }
-
-    .streamer-nav, .tab-nav {
-      display: flex; gap: 4px; background-color: var(--bg-color);
-      padding: 4px; border-radius: 8px; border: 1px solid var(--border);
-    }
-
-    .streamer-btn {
-      padding: 6px 14px; border-radius: 6px; border: none; background-color: transparent;
-      color: var(--text-muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
-    }
+    .streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
+    .streamer-btn { padding: 6px 14px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
     .streamer-btn.active { background-color: var(--accent-hover); color: #fff; }
-
-    .tab-btn {
-      padding: 6px 16px; border-radius: 6px; border: none; background-color: transparent;
-      color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
-    }
+    .tab-btn { padding: 6px 16px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .tab-btn.active { background-color: var(--accent-hover); color: #fff; }
-
     .tab-content { display: none; width: 100%; flex: 1; }
     .tab-content.active { display: block; }
-
-    .main-container {
-      display: grid; grid-template-columns: 1fr; gap: 20px; padding: 20px;
-      max-width: 1200px; margin: 0 auto; width: 100%;
-    }
-
-    @media (min-width: 900px) {
-      .main-container { grid-template-columns: 1.2fr 0.8fr; }
-    }
-
-    /* Player Box */
+    .main-container { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
+    @media (min-width: 900px) { .main-container { grid-template-columns: 1.2fr 0.8fr; } }
     .player-section { display: flex; flex-direction: column; gap: 16px; }
-
-    .player-container {
-      position: relative; padding-bottom: 56.25%; height: 0; background-color: #000;
-      border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    }
-
-    .player-container iframe, .player-container div#player {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;
-    }
-
-    .now-playing-card {
-      background-color: var(--panel-bg); border: 1px solid var(--border);
-      border-left: 4px solid var(--accent-primary); border-radius: 12px;
-      padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-      transition: background-color 0.3s ease, border-color 0.3s ease;
-    }
-
+    .player-container { position: relative; padding-bottom: 56.25%; height: 0; background-color: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
+    .player-container iframe, .player-container div#player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+    .now-playing-card { background-color: var(--panel-bg); border: 1px solid var(--border); border-left: 4px solid var(--accent-primary); border-radius: 12px; padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s ease, border-color 0.3s ease; }
     .now-playing-date { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2px; }
-    /* 🔥 긴 제목 줄바꿈 방어 옵션 적용 */
-    .now-playing-title { 
-      font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; 
-      word-break: keep-all; overflow-wrap: break-word; 
-    }
+    .now-playing-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; word-break: keep-all; overflow-wrap: break-word; }
     .now-playing-artist { font-size: 0.9rem; color: var(--text-muted); }
-
-    .now-playing-meta {
-      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px;
-      border-top: 1px dashed var(--border); font-size: 0.78rem; color: var(--text-muted);
-    }
-    .db-badge {
-      background-color: var(--card-bg); padding: 2px 6px; border-radius: 4px;
-      border: 1px solid var(--border);
-    }
+    .now-playing-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 0.78rem; color: var(--text-muted); }
+    .db-badge { background-color: var(--card-bg); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
     .db-badge strong { color: var(--accent-secondary); }
     .log-id-tag { font-size: 0.75rem; color: var(--text-muted); margin-left: 6px; font-weight: 500; }
-
-    /* Playlist Section */
-    .playlist-section {
-      background-color: var(--panel-bg); border: 1px solid var(--border);
-      border-radius: 12px; padding: 16px; display: flex; flex-direction: column;
-      height: 600px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-      transition: background-color 0.3s ease, border-color 0.3s ease;
-    }
-
+    .playlist-section { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; height: 600px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s ease, border-color 0.3s ease; }
     .search-filter-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
-
-    /* 🔍 검색창 Clear 버튼 Wrapper */
     .search-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
-    
-    .search-input {
-      width: 100%; padding: 10px 36px 10px 14px; border-radius: 8px; border: 1px solid var(--border);
-      background-color: var(--panel-bg); color: var(--text); font-size: 0.9rem;
-      outline: none; transition: border-color 0.2s, background-color 0.3s, color 0.3s;
-    }
+    .search-input { width: 100%; padding: 10px 36px 10px 14px; border-radius: 8px; border: 1px solid var(--border); background-color: var(--panel-bg); color: var(--text); font-size: 0.9rem; outline: none; transition: border-color 0.2s, background-color 0.3s, color 0.3s; }
     .search-input:focus { border-color: var(--accent-primary); }
-
-    .search-clear-btn {
-      position: absolute; right: 10px; background: transparent; border: none;
-      color: var(--text-muted); font-size: 1rem; cursor: pointer; padding: 4px;
-      display: none; transition: color 0.2s;
-    }
+    .search-clear-btn { position: absolute; right: 10px; background: transparent; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; padding: 4px; display: none; transition: color 0.2s; }
     .search-clear-btn:hover { color: var(--accent-primary); }
-
-    /* 📺 방송 선택 드롭다운 스타일 */
-    .video-select {
-      width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
-      background-color: var(--panel-bg); color: var(--text); font-size: 0.85rem; font-weight: 500;
-      outline: none; cursor: pointer; transition: border-color 0.2s, background-color 0.3s, color 0.3s;
-    }
+    .video-select { width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background-color: var(--panel-bg); color: var(--text); font-size: 0.85rem; font-weight: 500; outline: none; cursor: pointer; transition: border-color 0.2s, background-color 0.3s, color 0.3s; }
     .video-select:focus { border-color: var(--accent-primary); }
-
     .filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
-
-    .filter-btn {
-      padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border);
-      background-color: var(--panel-bg); color: var(--text-muted); font-size: 0.8rem;
-      cursor: pointer; transition: all 0.2s;
-    }
-    .filter-btn.active, .filter-btn:hover {
-      background-color: var(--accent-hover); color: #fff; border-color: var(--accent-hover);
-    }
-
-    /* 독립 스크롤 적용 부분 */
-    .playlist-scroll {
-      flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;
-    }
+    .filter-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background-color: var(--panel-bg); color: var(--text-muted); font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+    .filter-btn.active, .filter-btn:hover { background-color: var(--accent-hover); color: #fff; border-color: var(--accent-hover); }
+    .playlist-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; }
     .playlist-scroll::-webkit-scrollbar { width: 6px; }
     .playlist-scroll::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 3px; }
-
-    .song-card {
-      padding: 12px 14px; border-radius: 8px; background-color: var(--panel-bg);
-      border: 1px solid var(--border); cursor: pointer; display: flex;
-      justify-content: space-between; align-items: center; transition: all 0.2s;
-    }
+    .song-card { padding: 12px 14px; border-radius: 8px; background-color: var(--panel-bg); border: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
     .song-card.active { border-left: 4px solid var(--accent-primary); background-color: var(--accent-light); }
-
     @media (hover: hover) {
       .song-card:hover { border-color: var(--accent-primary); transform: translateY(-1px); }
-      .stats-item .date-link:hover {
-        color: #fff; background-color: var(--accent-hover); 
-        border-radius: 4px; text-decoration: none;
-      }
+      .stats-item .date-link:hover { color: #fff; background-color: var(--accent-hover); border-radius: 4px; text-decoration: none; }
     }
-
     .song-info-date { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px; }
-    /* 🔥 긴 제목 줄바꿈 방어 옵션 적용 */
-    .song-info-main { 
-      font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 3px; 
-      display: flex; align-items: center; word-break: keep-all; overflow-wrap: break-word; 
-    }
-    
-    .playing-icon {
-      display: inline-block; margin-right: 6px; font-size: 0.85rem; animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 0.5; transform: scale(0.9); }
-      50% { opacity: 1; transform: scale(1.1); }
-      100% { opacity: 0.5; transform: scale(0.9); }
-    }
-
+    .song-info-main { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 3px; display: flex; align-items: center; word-break: keep-all; overflow-wrap: break-word; }
+    .playing-icon { display: inline-block; margin-right: 6px; font-size: 0.85rem; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
     .song-info-sub { font-size: 0.8rem; color: var(--text-muted); }
-    .song-badge {
-      font-size: 0.7rem; font-weight: 600; padding: 4px 8px; border-radius: 6px;
-      background-color: var(--accent-light); color: var(--accent-secondary);
-      border: 1px solid rgba(0,0,0,0.05); white-space: nowrap;
-    }
-
-    .empty-state {
-      text-align: center; padding: 40px 20px; color: var(--text-muted);
-      font-size: 0.95rem; background-color: var(--panel-bg);
-      border-radius: 8px; border: 1px dashed var(--border); margin-top: 10px;
-    }
-
-    /* 🚀 스켈레톤 UI (로딩 애니메이션) */
-    .skeleton-box {
-      background: linear-gradient(90deg, var(--card-bg) 25%, var(--border) 50%, var(--card-bg) 75%);
-      background-size: 200% 100%;
-      animation: skeleton-loading 1.5s infinite linear;
-      border-radius: 4px;
-    }
-    @keyframes skeleton-loading {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    /* Statistics Section */
+    .song-badge { font-size: 0.7rem; font-weight: 600; padding: 4px 8px; border-radius: 6px; background-color: var(--accent-light); color: var(--accent-secondary); border: 1px solid rgba(0,0,0,0.05); white-space: nowrap; }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.95rem; background-color: var(--panel-bg); border-radius: 8px; border: 1px dashed var(--border); margin-top: 10px; }
+    .skeleton-box { background: linear-gradient(90deg, var(--card-bg) 25%, var(--border) 50%, var(--card-bg) 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite linear; border-radius: 4px; }
+    @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     .stats-container { max-width: 1200px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-
-    .stats-header-box {
-      background-color: var(--panel-bg); border: 1px solid var(--border);
-      border-radius: 12px; padding: 16px; display: flex; flex-direction: column; 
-      gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s, border-color 0.3s;
-    }
+    .stats-header-box { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s, border-color 0.3s; }
     .stats-header-controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%; }
-
-    .stats-list {
-      background-color: var(--panel-bg); border: 1px solid var(--border);
-      border-radius: 12px; padding: 16px; display: flex; flex-direction: column;
-      gap: 10px; min-height: 500px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s, border-color 0.3s;
-    }
-
-    .stats-item {
-      background-color: var(--panel-bg); border: 1px solid var(--border);
-      border-radius: 8px; padding: 12px 16px; font-size: 0.9rem;
-      line-height: 1.5; color: var(--text); word-break: break-all;
-      scroll-margin-top: 24px; transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-    }
+    .stats-list { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-height: 500px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s, border-color 0.3s; }
+    .stats-item { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; font-size: 0.9rem; line-height: 1.5; color: var(--text); word-break: break-all; scroll-margin-top: 24px; transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
     .stats-item .index-text { font-weight: 700; color: var(--text-muted); margin-right: 6px; }
     .stats-item .title-text { font-weight: 700; color: var(--accent-secondary); }
     .stats-item .artist-text { color: var(--text-muted); }
     .stats-item .dates-text { color: var(--text-muted); font-size: 0.85rem; }
-    .stats-item .date-link {
-      color: var(--accent-primary); text-decoration: underline; text-underline-offset: 2px;
-      cursor: pointer; transition: all 0.2s; padding: 2px 4px;
-    }
-    .stats-item .date-link.active-date {
-      color: #fff !important; background-color: var(--accent-hover);
-      border-radius: 4px; text-decoration: none; font-weight: bold;
-    }
+    .stats-item .date-link { color: var(--accent-primary); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; transition: all 0.2s; padding: 2px 4px; }
+    .stats-item .date-link.active-date { color: #fff !important; background-color: var(--accent-hover); border-radius: 4px; text-decoration: none; font-weight: bold; }
     .stats-item .count-text { font-weight: 700; color: var(--accent-primary); margin-left: 4px; }
-
-    .stats-player-box {
-      margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border);
-      display: flex; flex-direction: column; gap: 8px; animation: fadeIn 0.25s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
+    .stats-player-box { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 8px; animation: fadeIn 0.25s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
     .stats-player-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); }
     .stats-player-header strong { color: var(--accent-secondary); }
-
-    .stats-player-notice {
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
-      padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px;
-      background-color: var(--card-bg); color: var(--text); font-size: 0.82rem;
-    }
+    .stats-player-notice { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background-color: var(--card-bg); color: var(--text); font-size: 0.82rem; }
     .stats-player-notice[hidden] { display: none; }
-    .stats-player-retry-btn {
-      flex: 0 0 auto; background-color: var(--accent-hover); border: 1px solid var(--accent-hover);
-      color: #fff; cursor: pointer; font-size: 0.78rem; font-weight: 700; padding: 4px 8px; border-radius: 4px;
-    }
-
-    .stats-player-close-btn {
-      background-color: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted);
-      cursor: pointer; font-size: 0.78rem; font-weight: 600; padding: 3px 8px; border-radius: 4px; transition: all 0.2s;
-    }
+    .stats-player-retry-btn { flex: 0 0 auto; background-color: var(--accent-hover); border: 1px solid var(--accent-hover); color: #fff; cursor: pointer; font-size: 0.78rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; }
+    .stats-player-close-btn { background-color: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; font-size: 0.78rem; font-weight: 600; padding: 3px 8px; border-radius: 4px; transition: all 0.2s; }
     .stats-player-close-btn:hover { background-color: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
-
-    .stats-player-wrapper {
-      position: relative; padding-bottom: 56.25%; height: 0; background-color: #000;
-      border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
+    .stats-player-wrapper { position: relative; padding-bottom: 56.25%; height: 0; background-color: #000; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     .stats-player-wrapper iframe, .stats-player-wrapper div#statsPlayerTarget { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-
-    footer {
-      text-align: center; padding: 16px; color: var(--text-muted);
-      font-size: 0.8rem; border-top: 1px solid var(--border); background-color: var(--panel-bg);
-      transition: background-color 0.3s, border-color 0.3s;
-    }
-
-    /* ⭐ 스마트 맨 위로 가기 버튼 */
-    .back-to-top {
-      position: fixed; bottom: 30px; right: 30px;
-      background-color: var(--accent-primary); color: #fff;
-      border: none; border-radius: 50%; width: 50px; height: 50px;
-      font-size: 1.5rem; display: flex; align-items: center; justify-content: center;
-      cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.2s, background-color 0.3s;
-      z-index: 1000;
-    }
+    footer { text-align: center; padding: 16px; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid var(--border); background-color: var(--panel-bg); transition: background-color 0.3s, border-color 0.3s; }
+    .back-to-top { position: fixed; bottom: 30px; right: 30px; background-color: var(--accent-primary); color: #fff; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.2s, background-color 0.3s; z-index: 1000; }
     .back-to-top.show { opacity: 1; pointer-events: auto; }
     .back-to-top:hover { transform: translateY(-3px); background-color: var(--accent-hover); }
-
   </style>
 </head>
 <body>
@@ -441,8 +175,7 @@
             <button class="filter-btn" onclick="setPlayerSort('SHUFFLE', this)">🎲 랜덤</button>
           </div>
         </div>
-        <div class="playlist-scroll" id="playlist">
-          </div>
+        <div class="playlist-scroll" id="playlist"></div>
       </div>
     </div>
   </div>
@@ -477,112 +210,67 @@
           </div>
         </div>
       </div>
-      <div class="stats-list" id="statsList">
-        </div>
+      <div class="stats-list" id="statsList"></div>
     </div>
   </div>
 
   <footer> Unofficial </footer>
-
   <button id="backToTop" class="back-to-top" onclick="scrollToTop()" title="맨 위로 가기">↑</button>
 
   <script>
-    // ==========================================
-    // UI 부가 기능 (다크모드, 검색 클리어, 스켈레톤, 스마트 스크롤탑)
-    // ==========================================
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('themeToggleBtn').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
-    });
-
-    function toggleTheme() {
-      const body = document.documentElement;
-      const currentTheme = body.getAttribute('data-theme');
-      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      body.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-      document.getElementById('themeToggleBtn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
-    }
-
-    function toggleClearBtn(inputId, btnId) {
-      const input = document.getElementById(inputId);
-      const btn = document.getElementById(btnId);
-      btn.style.display = input.value.trim().length > 0 ? 'block' : 'none';
-    }
-
-    function clearInput(inputId, btnId) {
-      const input = document.getElementById(inputId);
-      input.value = '';
-      toggleClearBtn(inputId, btnId);
-      input.focus();
-    }
-
-    // ⭐ 5번 기능: 통계 탭(전체창)과 재생 탭(목록창) 모두 완벽 지원하는 스마트 스크롤 감지
-    const playlistBox = document.getElementById('playlist');
-    const backToTopBtn = document.getElementById('backToTop');
-
-    window.addEventListener('scroll', () => {
-      if (document.getElementById('tab-stats').classList.contains('active')) {
-        if (window.scrollY > 300) backToTopBtn.classList.add('show');
-        else backToTopBtn.classList.remove('show');
+    // =========================================================================
+    // 🛠️ 1. 유틸리티 (순수 함수들 - 부작용 없음)
+    // =========================================================================
+    const Utils = {
+      timeToSeconds: (timeStr) => {
+        if (timeStr === undefined || timeStr === null || timeStr === '') return null;
+        if (typeof timeStr === 'number') return Number.isFinite(timeStr) && timeStr >= 0 ? timeStr : null;
+        const cleanStr = timeStr.toString().trim();
+        if (!cleanStr) return null;
+        if (/^\d+$/.test(cleanStr)) return parseInt(cleanStr, 10);
+        const parts = cleanStr.split(':').map(p => parseInt(p.trim(), 10));
+        if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        if (parts.length === 2) return parts[0] * 60 + parts[1];
+        if (parts.length === 1) return parts[0];
+        return null;
+      },
+      secondsToTimeStr: (totalSeconds) => {
+        if (!totalSeconds) return '0:00';
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = Math.floor(totalSeconds % 60);
+        return h > 0 ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}` 
+                     : `${m}:${s.toString().padStart(2, '0')}`;
+      },
+      formatDate: (dateStr) => (dateStr || '').trim().replace(/-/g, '.'),
+      formatShortDate: (fullDate) => {
+        if (!fullDate) return '';
+        const parts = fullDate.split('.');
+        return parts.length === 3 ? `${parts[0].length === 4 ? parts[0].substring(2) : parts[0]}.${parts[1]}.${parts[2]}` : fullDate;
+      },
+      escapeHtml: (val) => String(val ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;'}[char])),
+      normalizeSearchText: (val) => String(val ?? '').normalize('NFC').toLowerCase(),
+      createSearchText: (values) => Utils.normalizeSearchText(values.filter(Boolean).join(' ')),
+      getSearchQueries: (val) => { const n = Utils.normalizeSearchText(val).trim(); return n ? n.split(/\s+/) : []; },
+      matchesSearch: (text, queries) => { const n = Utils.normalizeSearchText(text); return queries.every(q => n.includes(q)); },
+      getTitleLangCategory: (str) => {
+        if (!str) return 4;
+        const firstChar = str.trim().charAt(0);
+        if (/[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/.test(firstChar)) return 1;
+        if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(firstChar)) return 2;
+        if (/[A-Za-z]/.test(firstChar)) return 3;
+        return 4;
+      },
+      matchCategoryFilter: (song, category) => {
+        if (category === 'ALL') return true;
+        if (category === 'BUNSIK') return song.sourceType === '동요';
+        if (category === 'KO') return song.lang === 'KO' && song.sourceType !== '동요';
+        if (category === 'JA') return song.lang === 'JA';
+        if (category === 'EN') return song.lang === 'EN';
+        return false;
       }
-    });
+    };
 
-    playlistBox.addEventListener('scroll', () => {
-      if (document.getElementById('tab-player').classList.contains('active')) {
-        if (playlistBox.scrollTop > 300) backToTopBtn.classList.add('show');
-        else backToTopBtn.classList.remove('show');
-      }
-    });
-
-    function scrollToTop() {
-      if (document.getElementById('tab-stats').classList.contains('active')) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        playlistBox.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }
-
-    function renderSkeleton(containerId, count = 8, isStats = false) {
-      const container = document.getElementById(containerId);
-      const fragment = document.createDocumentFragment();
-      for(let i=0; i<count; i++) {
-        const div = document.createElement('div');
-        div.className = isStats ? 'stats-item' : 'song-card';
-        div.style.pointerEvents = 'none'; // 클릭 방지
-        
-        if (isStats) {
-          div.innerHTML = `
-            <div class="skeleton-box" style="width: 60%; height: 16px; margin-bottom: 8px;"></div>
-            <div class="skeleton-box" style="width: 40%; height: 12px; margin-bottom: 8px;"></div>
-            <div class="skeleton-box" style="width: 80%; height: 14px;"></div>
-          `;
-        } else {
-          div.innerHTML = `
-            <div style="flex: 1;">
-              <div class="skeleton-box" style="width: 30%; height: 12px; margin-bottom: 8px;"></div>
-              <div class="skeleton-box" style="width: 70%; height: 16px; margin-bottom: 8px;"></div>
-              <div class="skeleton-box" style="width: 50%; height: 12px;"></div>
-            </div>
-            <div class="skeleton-box" style="width: 40px; height: 20px; border-radius: 6px;"></div>
-          `;
-        }
-        fragment.appendChild(div);
-      }
-      container.replaceChildren(fragment);
-    }
-
-    function showError(msg) {
-      const emptyState = `<div class="empty-state" style="color: #e65c5c;">${escapeHtml(msg)}</div>`;
-      document.getElementById('playlist').innerHTML = emptyState;
-      document.getElementById('statsList').innerHTML = emptyState;
-      document.getElementById('npTitle').innerText = '데이터 입력 대기 중';
-      document.getElementById('npDate').innerText = '';
-      document.getElementById('npMeta').innerHTML = '';
-    }
-
-    // ==========================================
-    // 1. 3계층 정규화 DB URL 설정
-    // ==========================================
     const DB_URLS = {
       log: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTvxgmO1qyAwMITyp_J2-m53NOyA4AAlSzLBQPUHnHC5nAEv193nYMxoh2saWMEWxDw4Je0jw-Qz-Yw/pub?gid=0&single=true&output=tsv",
       video: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRqlpmvGEeZ8ZJaC0d7XFdKTqTVznMVeCyXMmZ0rodugXh-nLHbuU5iheV9_CjpUAdx4BCK-sC_vISc/pub?gid=0&single=true&output=tsv",
@@ -594,1019 +282,732 @@
       tenten: { name: '텐플라스텐 텐텐', dbId: '텐텐' }
     };
 
-    let currentStreamerKey = 'kira';
-    let allSongs = []; 
-    let songs = []; 
-    let displayedSongs = []; 
-    
-    let player = null;
-    let isPlayerReady = false;
-    let currentDisplayIndex = -1; 
-    let currentPlayingSongId = null; 
-    let isSeekingForced = false; 
-    
-    let currentLang = 'ALL';
-    let currentPlayerSort = 'DATE_ASC';
-    let currentSelectedVideoId = 'ALL'; // 📺 선택된 방송 ID (재생 탭)
-    let timerCheck = null;
-    let playerRetryTimeout = null;
-    let currentVideoId = null;
-    let isYouTubeApiLoading = false;
-    let searchDebounceTimer = null;
-    
-    let currentStatsLang = 'ALL';
-    let currentStatsSort = 'DATE_ASC';
-    let currentStatsSelectedVideoId = 'ALL'; // 📺 선택된 방송 ID (통계 탭)
-    let statsSearchDebounceTimer = null;
+    // =========================================================================
+    // 💾 2. 데이터 매니저 (상태를 내부에 숨기고 필터링을 전담)
+    // =========================================================================
+    class DataManager {
+      #allSongs = [];
+      
+      // 상태 (State) 캡슐화
+      streamerKey = 'kira';
+      mainFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
+      statsFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
 
-    let statsPlayer = null;
-    let activeStatsEventId = null;
-    let statsTimerCheck = null;
-    let statsSeekingForced = false;
-
-    window.addEventListener('DOMContentLoaded', () => {
-      loadAllData();
-    });
-
-    // ==========================================
-    // 2. 통합 DB Fetching 및 JOIN 로직
-    // ==========================================
-    async function loadAllData() {
-      renderSkeleton('playlist', 8, false);
-      renderSkeleton('statsList', 6, true);
-
-      try {
+      async loadAllData() {
         const [logRes, videoRes, songRes] = await Promise.all([
-          fetchTSV(DB_URLS.log, ['log_id', 'video_id', 'song_id']),
-          // 🔥 video_title도 함께 추출합니다.
-          fetchTSV(DB_URLS.video, ['video_id', 'youtube_video_id', 'streamer_id', 'stream_date']),
-          fetchTSV(DB_URLS.song, ['song_id', 'lang', 'title_primary'])
+          this.#fetchTSV(DB_URLS.log, ['log_id', 'video_id', 'song_id']),
+          this.#fetchTSV(DB_URLS.video, ['video_id', 'youtube_video_id', 'streamer_id', 'stream_date']),
+          this.#fetchTSV(DB_URLS.song, ['song_id', 'lang', 'title_primary'])
         ]);
 
-        const videoMap = {};
-        videoRes.forEach(v => videoMap[v.video_id] = v);
+        const videoMap = {}; videoRes.forEach(v => videoMap[v.video_id] = v);
+        const songMap = {}; songRes.forEach(s => songMap[s.song_id] = s);
 
-        const songMap = {};
-        songRes.forEach(s => songMap[s.song_id] = s);
-
-        const skippedLogs = [];
-
-        allSongs = logRes.map((log, idx) => {
+        this.#allSongs = logRes.map((log, idx) => {
           const video = videoMap[log.video_id];
           const song = songMap[log.song_id];
-
-          if (!video || !song) {
-            skippedLogs.push({
-              log_id: log.log_id || `row-${idx + 2}`,
-              video_id: log.video_id || '',
-              song_id: log.song_id || '',
-              missing: !video && !song ? 'video and song' : (!video ? 'video' : 'song')
-            });
-            return null;
-          }
+          if (!video || !song) return null;
 
           const lang = (song.lang || 'JA').toUpperCase();
-
           let title = song.title_primary || song.title_original || '';
           let artist = song.artist_primary || song.artist_original || '';
 
-          if (song.title_ko_translation && song.title_ko_translation.trim() !== '') {
-            title = `${title} (${song.title_ko_translation})`;
-          } else if (song.title_ko_reading && song.title_ko_reading.trim() !== '') {
-            title = `${title} (${song.title_ko_reading})`;
-          }
+          if (song.title_ko_translation && song.title_ko_translation.trim() !== '') title = `${title} (${song.title_ko_translation})`;
+          else if (song.title_ko_reading && song.title_ko_reading.trim() !== '') title = `${title} (${song.title_ko_reading})`;
 
-          if (lang === 'JA') {
-            if (song.artist_ko && song.artist_ko !== artist) {
-              artist = `${artist} (${song.artist_ko})`;
-            }
-          }
+          if (lang === 'JA' && song.artist_ko && song.artist_ko !== artist) artist = `${artist} (${song.artist_ko})`;
 
-          const titleOrig = song.title_original || song.title_primary || '';
-          const artistOrig = song.artist_original || song.artist_primary || '';
-          
-          const startTimeRaw = log.start_time || '0:00';
-          let endTimeRaw = log.end_time || ''; 
-          const start = timeToSeconds(startTimeRaw) || 0;
-          let end = timeToSeconds(endTimeRaw) || 0;
+          const start = Utils.timeToSeconds(log.start_time || '0:00') || 0;
+          let end = Utils.timeToSeconds(log.end_time || '') || 0;
+          let endTimeRaw = log.end_time || '';
 
           if (end === 0 && song.duration) {
-            const durationSeconds = timeToSeconds(song.duration) || 0;
-            if (durationSeconds > 0) {
-              end = start + durationSeconds + 5;
-              endTimeRaw = secondsToTimeStr(end) + ' (자동)';
-            }
+            const dur = Utils.timeToSeconds(song.duration) || 0;
+            if (dur > 0) { end = start + dur + 5; endTimeRaw = Utils.secondsToTimeStr(end) + ' (자동)'; }
           }
-          
           if (!endTimeRaw || endTimeRaw === '0:00') endTimeRaw = '0:00 (정보 없음)';
 
-          const date = formatDate(video.stream_date);
-          const videoTitle = video.video_title || ''; // 📺 방송 제목 추가
-          const rawVideoId = log.video_id || '';
-          const logId = log.log_id || `L-temp-${idx}`;
-          const songId = log.song_id || '';
-          
-          // 📺 검색어에 방송 제목(videoTitle)도 포함하여 방송명 검색도 허용
-          const searchText = createSearchText([
-            title, titleOrig, song.title_ko_reading, song.title_ko_translation,
-            artist, artistOrig, song.artist_ko,
-            song.search_keywords, song.source_work, date, videoTitle, log.perf_note,
-            logId, songId
-          ]);
+          const date = Utils.formatDate(video.stream_date);
+          const videoTitle = video.video_title || '';
+          const searchText = Utils.createSearchText([title, song.title_original, song.title_ko_reading, song.title_ko_translation, artist, song.artist_original, song.artist_ko, song.search_keywords, song.source_work, date, videoTitle, log.perf_note, log.log_id, log.song_id]);
 
-          const hostIdStr = video.streamer_id || '';
-          const singerIdStr = log.singer_id || '';
-          
-          let actualStreamers = [];
-          if (singerIdStr.trim() !== '') {
-            actualStreamers = singerIdStr.split(',').map(s => s.trim());
-          } else if (hostIdStr.trim() !== '') {
-            actualStreamers = hostIdStr.split(',').map(s => s.trim());
-          }
+          let actualStreamers = (log.singer_id || video.streamer_id || '').split(',').map(s => s.trim());
 
           return {
-            id: logId,
-            logId, songId,
-            title, titleOrig, artist, artistOrig,
-            work: song.source_work || '',
-            sourceType: song.source_type || '',
-            lang, date, start, end,
-            startTimeRaw, endTimeRaw,
-            duration: Math.max(0, end - start),
-            rawVideoId, // 📺 영상 내부 구분 ID (V-00001 등)
-            videoTitle, // 📺 방송 제목
-            videoId: video.youtube_video_id,
-            note: log.perf_note || '',
-            streamers: actualStreamers, 
-            searchText
+            id: log.log_id || `L-temp-${idx}`, logId: log.log_id, songId: log.song_id,
+            title, artist, work: song.source_work || '', sourceType: song.source_type || '', lang,
+            date, start, end, startTimeRaw: log.start_time || '0:00', endTimeRaw, duration: Math.max(0, end - start),
+            rawVideoId: log.video_id, videoTitle, videoId: video.youtube_video_id, streamers: actualStreamers, searchText
           };
         }).filter(Boolean);
 
-        if (skippedLogs.length > 0) {
-          console.warn(`[DB JOIN] ${skippedLogs.length}개의 가창 기록을 표시하지 못했습니다. 참조 ID를 확인하세요.`, skippedLogs);
+        this.#allSongs.sort((a, b) => a.date.localeCompare(b.date) || a.logId.localeCompare(b.logId, undefined, {numeric:true}) || a.start - b.start);
+      }
+
+      #fetchTSV(url, requiredHeaders = []) {
+        return new Promise((resolve, reject) => {
+          Papa.parse(url, {
+            download: true, header: true, skipEmptyLines: 'greedy', delimiter: '\t',
+            transformHeader: h => h.replace(/^\ufeff/, '').trim().split(' ')[0],
+            complete: res => resolve((res.data || []).filter(row => Object.values(row).some(v => String(v ?? '').trim() !== ''))),
+            error: err => reject(err)
+          });
+        });
+      }
+
+      getStreamerSongs() {
+        const dbId = STREAMER_MAP[this.streamerKey].dbId;
+        return this.#allSongs.filter(s => s.streamers.includes(dbId));
+      }
+
+      getUniqueVideos() {
+        const map = new Map();
+        this.getStreamerSongs().forEach(s => {
+          if (s.rawVideoId && !map.has(s.rawVideoId)) map.set(s.rawVideoId, { id: s.rawVideoId, date: s.date, title: s.videoTitle });
+        });
+        return Array.from(map.values()).sort((a, b) => b.date.localeCompare(a.date));
+      }
+
+      getFilteredMainSongs() {
+        const queries = Utils.getSearchQueries(this.mainFilters.search);
+        let list = this.getStreamerSongs().filter(song => {
+          const mSearch = queries.length === 0 || Utils.matchesSearch(song.searchText, queries);
+          const mLang = Utils.matchCategoryFilter(song, this.mainFilters.lang);
+          const mVideo = this.mainFilters.videoId === 'ALL' || song.rawVideoId === this.mainFilters.videoId;
+          return mSearch && mLang && mVideo;
+        });
+
+        // 정렬
+        const { sort } = this.mainFilters;
+        if (sort === 'DATE_DESC') list.sort((a, b) => b.date.localeCompare(a.date) || b.logId.localeCompare(a.logId, undefined, {numeric:true}) || b.start - a.start);
+        else if (sort === 'TITLE_ASC') list.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
+        else if (sort === 'SHUFFLE') list = [...list].sort(() => Math.random() - 0.5);
+        return list;
+      }
+
+      getFilteredStats() {
+        const songMap = new Map();
+        this.getStreamerSongs().forEach(song => {
+          if (!songMap.has(song.songId)) {
+            songMap.set(song.songId, { songId: song.songId, title: song.title, artist: song.artist, searchText: song.searchText, lang: song.lang, sourceType: song.sourceType, playEvents: [], playCount: 0 });
+          }
+          const entry = songMap.get(song.songId);
+          entry.playCount += 1;
+          entry.playEvents.push({ date: song.date, videoId: song.videoId, start: song.start, end: song.end, id: song.id, startRaw: song.startTimeRaw, endRaw: song.endTimeRaw, rawVideoId: song.rawVideoId, videoTitle: song.videoTitle });
+        });
+
+        let aggregated = Array.from(songMap.values()).map(item => {
+          item.playEvents.sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id, undefined, {numeric:true}) || a.start - b.start);
+          return { ...item, firstDate: item.playEvents[0]?.date||'', lastDate: item.playEvents[item.playEvents.length-1]?.date||'', firstId: item.playEvents[0]?.id||'', lastId: item.playEvents[item.playEvents.length-1]?.id||'' };
+        });
+
+        // 통계 필터 적용
+        if (this.statsFilters.videoId !== 'ALL') {
+          aggregated = aggregated.map(item => {
+            const evts = item.playEvents.filter(ev => ev.rawVideoId === this.statsFilters.videoId);
+            if (evts.length === 0) return null;
+            return { ...item, playCount: evts.length, playEvents: evts, firstDate: evts[0].date, lastDate: evts[evts.length-1].date, firstId: evts[0].id, lastId: evts[evts.length-1].id };
+          }).filter(Boolean);
         }
 
-        allSongs.sort((a, b) => {
-          const dateCmp = a.date.localeCompare(b.date);
-          if (dateCmp !== 0) return dateCmp;
-          const idCmp = a.logId.localeCompare(b.logId, undefined, {numeric: true});
-          if (idCmp !== 0) return idCmp;
-          return a.start - b.start;
-        });
-        
-        applyStreamerData();
-      } catch (err) {
-        console.error(err);
-        showError('데이터베이스 연동 중 오류가 발생했습니다.');
-      }
-    }
+        aggregated = this.statsFilters.lang === 'ALL' ? aggregated : aggregated.filter(i => Utils.matchCategoryFilter(i, this.statsFilters.lang));
 
-    function fetchTSV(url, requiredHeaders = []) {
-      return new Promise((resolve, reject) => {
-        Papa.parse(url, {
-          download: true,
-          header: true,
-          skipEmptyLines: 'greedy',
-          delimiter: '\t',
-          transformHeader: h => h.replace(/^\ufeff/, '').trim().split(' ')[0], 
-          complete: res => {
-            if (res.errors && res.errors.length > 0) {
-              const messages = res.errors.slice(0, 3).map(err => err.message).join(' / ');
-              reject(new Error(`TSV 파싱 오류: ${messages}`));
-              return;
-            }
-
-            const rows = (res.data || []).filter(row =>
-              Object.values(row).some(value => String(value ?? '').trim() !== '')
-            );
-            const firstRow = rows[0] || {};
-            const missingHeaders = requiredHeaders.filter(header =>
-              !Object.prototype.hasOwnProperty.call(firstRow, header)
-            );
-
-            if (missingHeaders.length > 0) {
-              reject(new Error(`TSV 헤더를 찾을 수 없습니다: ${missingHeaders.join(', ')}`));
-              return;
-            }
-
-            resolve(rows);
-          },
-          error: err => reject(err)
-        });
-      });
-    }
-
-    // 📺 방송 선택 드롭다운 옵션 목록 동적 생성
-    function populateVideoDropdowns() {
-      const videoMap = new Map();
-
-      // 현재 스트리머의 곡들에서 방송 목록 추출
-      songs.forEach(song => {
-        if (song.rawVideoId && !videoMap.has(song.rawVideoId)) {
-          videoMap.set(song.rawVideoId, {
-            id: song.rawVideoId,
-            date: song.date,
-            title: song.videoTitle
+        const queries = Utils.getSearchQueries(this.statsFilters.search);
+        if (queries.length > 0) {
+          aggregated = aggregated.filter(item => {
+            const dText = item.playEvents.map(ev => `${ev.date} ${Utils.formatShortDate(ev.date)} ${ev.videoTitle||''}`).join(' ');
+            return Utils.matchesSearch(Utils.createSearchText([item.searchText, dText]), queries);
           });
         }
-      });
 
-      // 날짜 최신순 정렬
-      const videoList = Array.from(videoMap.values()).sort((a, b) => b.date.localeCompare(a.date));
-
-      const buildOptionsHtml = () => {
-        let html = `<option value="ALL">📺 전체 방송 보기 (${videoList.length}개 방송)</option>`;
-        videoList.forEach(v => {
-          const label = v.title ? `${v.date} - ${v.title}` : v.date;
-          html += `<option value="${escapeHtml(v.id)}">${escapeHtml(label)}</option>`;
+        // 통계 정렬
+        const st = this.statsFilters.sort;
+        if (st === 'SHUFFLE') return [...aggregated].sort(() => Math.random() - 0.5);
+        return aggregated.sort((a, b) => {
+          if (st === 'COUNT_DESC') return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate) || a.firstId.localeCompare(b.firstId, undefined, {numeric:true}) || a.title.localeCompare(b.title, 'ko');
+          if (st === 'TITLE_LANG') return Utils.getTitleLangCategory(a.title) - Utils.getTitleLangCategory(b.title) || a.title.localeCompare(b.title, 'ko');
+          if (st === 'RECENT_DESC') return b.lastDate.localeCompare(a.lastDate) || b.lastId.localeCompare(a.lastId, undefined, {numeric:true}) || a.title.localeCompare(b.title, 'ko');
+          if (st === 'OLD_ASC') return a.lastDate.localeCompare(b.lastDate) || a.lastId.localeCompare(b.lastId, undefined, {numeric:true}) || a.title.localeCompare(b.title, 'ko');
+          return a.firstDate.localeCompare(b.firstDate) || a.firstId.localeCompare(b.firstId, undefined, {numeric:true}) || a.title.localeCompare(b.title, 'ko');
         });
-        return html;
-      };
-
-      const optionsHtml = buildOptionsHtml();
-      
-      const playerSelect = document.getElementById('videoSelect');
-      const statsSelect = document.getElementById('statsVideoSelect');
-
-      if (playerSelect) {
-        playerSelect.innerHTML = optionsHtml;
-        playerSelect.value = currentSelectedVideoId;
-        // 선택했던 방송이 없는 경우 초기화
-        if (playerSelect.selectedIndex === -1) {
-          playerSelect.value = 'ALL';
-          currentSelectedVideoId = 'ALL';
-        }
-      }
-
-      if (statsSelect) {
-        statsSelect.innerHTML = optionsHtml;
-        statsSelect.value = currentStatsSelectedVideoId;
-        if (statsSelect.selectedIndex === -1) {
-          statsSelect.value = 'ALL';
-          currentStatsSelectedVideoId = 'ALL';
-        }
       }
     }
 
-    function applyStreamerData() {
-      const targetStreamerDbId = STREAMER_MAP[currentStreamerKey].dbId;
-      
-      songs = allSongs.filter(s => s.streamers.includes(targetStreamerDbId));
-      sortSongList(songs, currentPlayerSort);
+    // =========================================================================
+    // 📺 3. 메인 플레이어 매니저 (타이머와 인덱스를 안전하게 보호)
+    // =========================================================================
+    class MainPlayerManager {
+      #player = null;
+      #playlist = [];
+      #currentIndex = -1;
+      #currentSongId = null;
+      #timerCheck = null;
+      #retryTimeout = null;
+      #isReady = false;
+      #isSeekingForced = false;
+      #currentVideoId = null;
+      #onNextCallback = null;
 
-      if (songs.length === 0) {
-        showError(`${STREAMER_MAP[currentStreamerKey].name} 님의 가창 기록이 아직 없습니다.`);
-        return;
+      constructor(onNextCallback) {
+        this.#onNextCallback = onNextCallback;
       }
 
-      populateVideoDropdowns(); // 📺 드롭다운 채우기
+      get isReady() { return this.#isReady; }
+      get playlist() { return this.#playlist; }
+      get currentSongId() { return this.#currentSongId; }
+      get currentIndex() { return this.#currentIndex; }
 
-      currentPlayingSongId = null;
-      renderPlaylist();
+      // 데이터가 바뀌어도 ID를 기준으로 현재 위치를 정확히 추적합니다. (인덱스 버그 해결)
+      updatePlaylist(newSongs) {
+        this.#playlist = newSongs;
+        if (this.#currentSongId) {
+          this.#currentIndex = this.#playlist.findIndex(s => s.id === this.#currentSongId);
+        } else {
+          this.#currentIndex = this.#playlist.length > 0 ? 0 : -1;
+        }
+      }
 
-      if (displayedSongs.length > 0) {
-        const firstSong = displayedSongs[0];
-        currentPlayingSongId = firstSong.id;
-        currentDisplayIndex = 0;
-        updateNowPlaying(firstSong);
-      } else {
-        document.getElementById('npTitle').innerText = '검색 결과 없음';
+      init(firstSong) {
+        if (this.#player || !firstSong) return;
+        this.#currentVideoId = firstSong.videoId;
+        this.#player = new YT.Player('player', {
+          height: '100%', width: '100%', videoId: firstSong.videoId,
+          playerVars: { 'autoplay': 0, 'controls': 1, 'start': firstSong.start },
+          events: { 'onReady': () => { this.#isReady = true; }, 'onStateChange': (e) => this.#onStateChange(e) }
+        });
+      }
+
+      #onStateChange(event) {
+        if (event.data === YT.PlayerState.ENDED) {
+          this.#clearMonitor();
+          if (this.#onNextCallback) this.#onNextCallback();
+        }
+        if (event.data === YT.PlayerState.PLAYING) {
+          const song = this.#playlist[this.#currentIndex];
+          if (song && song.start > 0 && !this.#isSeekingForced) {
+            if (this.#player.getCurrentTime() < song.start - 3) {
+              this.#player.seekTo(song.start, true);
+              this.#isSeekingForced = true;
+            }
+          }
+        }
+      }
+
+      cue(index) {
+        if (index < 0 || index >= this.#playlist.length) return;
+        this.#currentIndex = index;
+        const song = this.#playlist[index];
+        this.#currentSongId = song.id;
+        if (this.#isReady && this.#player && typeof this.#player.cueVideoById === 'function') {
+          this.#currentVideoId = song.videoId;
+          this.#player.cueVideoById({ videoId: song.videoId, startSeconds: Math.max(0, song.start || 0) });
+        }
+      }
+
+      play(index, cueOnly = false) {
+        if (index < 0 || index >= this.#playlist.length) return;
+        this.#isSeekingForced = false;
+        this.#currentIndex = index;
+        const song = this.#playlist[index];
+        this.#currentSongId = song.id;
+        
+        if (this.#retryTimeout) clearTimeout(this.#retryTimeout);
+
+        const targetStart = Math.max(0, song.start || 0);
+
+        if (this.#isReady && this.#player) {
+          if (this.#currentVideoId === song.videoId && typeof this.#player.seekTo === 'function') {
+            this.#player.seekTo(targetStart, true);
+            if (!cueOnly) this.#player.playVideo();
+          } else if (typeof this.#player.loadVideoById === 'function') {
+            this.#currentVideoId = song.videoId;
+            if (cueOnly) this.#player.cueVideoById({ videoId: song.videoId, startSeconds: targetStart });
+            else this.#player.loadVideoById({ videoId: song.videoId, startSeconds: targetStart });
+          }
+        } else {
+          // 플레이어가 준비 안됐을 때만 자신(Manager) 내부 타이머로 재시도
+          const savedId = song.id;
+          this.#retryTimeout = setTimeout(() => { if (this.#currentSongId === savedId) this.play(index, cueOnly); }, 300);
+          return;
+        }
+        this.#startMonitor(song);
+      }
+
+      pause() { if (this.#player && typeof this.#player.pauseVideo === 'function') this.#player.pauseVideo(); }
+      
+      stop() {
+        this.#clearMonitor();
+        if (this.#retryTimeout) clearTimeout(this.#retryTimeout);
+        if (this.#player && typeof this.#player.stopVideo === 'function') this.#player.stopVideo();
+      }
+
+      #clearMonitor() {
+        if (this.#timerCheck) { clearInterval(this.#timerCheck); this.#timerCheck = null; }
+      }
+
+      #startMonitor(song) {
+        this.#clearMonitor(); // 이전 타이머 확실히 제거 (타이머 꼬임 버그 해결)
+        this.#timerCheck = setInterval(() => {
+          if (this.#player && typeof this.#player.getCurrentTime === 'function') {
+            if (song.end > 0 && this.#player.getCurrentTime() >= song.end) {
+              this.#clearMonitor();
+              if (this.#onNextCallback) this.#onNextCallback();
+            }
+          }
+        }, 250);
+      }
+
+      reset() {
+        this.stop();
+        this.#playlist = []; this.#currentIndex = -1; this.#currentSongId = null;
+        this.#isSeekingForced = false; this.#currentVideoId = null;
+      }
+    }
+
+    // =========================================================================
+    // 📊 4. 통계 플레이어 매니저 (메인 플레이어와 상태/타이머 완전 분리)
+    // =========================================================================
+    class StatsPlayerManager {
+      #player = null;
+      #activeEventId = null;
+      #timerCheck = null;
+      #isSeekingForced = false;
+
+      get activeEventId() { return this.#activeEventId; }
+
+      init(videoId, start, end, eventId) {
+        this.close();
+        this.#activeEventId = eventId;
+        this.#isSeekingForced = false;
+
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        this.#player = new YT.Player('statsPlayerTarget', {
+          height: '100%', width: '100%', videoId: videoId,
+          playerVars: { 'autoplay': isMobile ? 0 : 1, 'controls': 1, 'start': start, 'rel': 0 },
+          events: {
+            'onReady': (e) => { if (!isMobile) e.target.playVideo(); },
+            'onStateChange': (e) => this.#onStateChange(e, start, end)
+          }
+        });
+      }
+
+      #onStateChange(event, start, end) {
+        if (event.data === YT.PlayerState.PLAYING) {
+          if (this.#player && start > 0 && !this.#isSeekingForced) {
+            if (this.#player.getCurrentTime() < start - 3) {
+              this.#player.seekTo(start, true);
+              this.#isSeekingForced = true;
+            }
+          }
+          if (!this.#timerCheck) {
+            this.#timerCheck = setInterval(() => {
+              if (this.#player && typeof this.#player.getCurrentTime === 'function') {
+                if (end > 0 && this.#player.getCurrentTime() >= end) {
+                  this.#clearMonitor();
+                  if (typeof this.#player.pauseVideo === 'function') this.#player.pauseVideo();
+                }
+              }
+            }, 250);
+          }
+        } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
+          this.#clearMonitor();
+        }
+      }
+
+      #clearMonitor() {
+        if (this.#timerCheck) { clearInterval(this.#timerCheck); this.#timerCheck = null; }
+      }
+
+      close() {
+        this.#clearMonitor();
+        if (this.#player) { try { if (typeof this.#player.destroy === 'function') this.#player.destroy(); } catch (e) {} this.#player = null; }
+        this.#activeEventId = null;
+      }
+    }
+
+    // =========================================================================
+    // 🎨 5. UI 제어자 (DOM 조작 전담)
+    // =========================================================================
+    class UIController {
+      initTheme() {
+        document.getElementById('themeToggleBtn').innerText = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+      }
+
+      toggleTheme() {
+        const body = document.documentElement;
+        const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        body.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        document.getElementById('themeToggleBtn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
+      }
+
+      updateStreamerNav(btn, key) {
+        document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.documentElement.setAttribute('data-streamer', key);
+      }
+
+      switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(`tab-${tabId}`).classList.add('active');
+      }
+
+      toggleClearBtn(inputId, btnId) {
+        document.getElementById(btnId).style.display = document.getElementById(inputId).value.trim().length > 0 ? 'block' : 'none';
+      }
+
+      clearInput(inputId, btnId) {
+        const input = document.getElementById(inputId);
+        input.value = '';
+        this.toggleClearBtn(inputId, btnId);
+        input.focus();
+      }
+
+      showError(msg) {
+        const emptyState = `<div class="empty-state" style="color: #e65c5c;">${Utils.escapeHtml(msg)}</div>`;
+        document.getElementById('playlist').innerHTML = emptyState;
+        document.getElementById('statsList').innerHTML = emptyState;
+        this.setEmptyNowPlaying();
+      }
+
+      renderSkeleton(containerId, count = 8, isStats = false) {
+        const frag = document.createDocumentFragment();
+        for(let i=0; i<count; i++) {
+          const div = document.createElement('div');
+          div.className = isStats ? 'stats-item' : 'song-card';
+          div.style.pointerEvents = 'none';
+          div.innerHTML = isStats 
+            ? `<div class="skeleton-box" style="width: 60%; height: 16px; margin-bottom: 8px;"></div><div class="skeleton-box" style="width: 40%; height: 12px; margin-bottom: 8px;"></div><div class="skeleton-box" style="width: 80%; height: 14px;"></div>`
+            : `<div style="flex: 1;"><div class="skeleton-box" style="width: 30%; height: 12px; margin-bottom: 8px;"></div><div class="skeleton-box" style="width: 70%; height: 16px; margin-bottom: 8px;"></div><div class="skeleton-box" style="width: 50%; height: 12px;"></div></div><div class="skeleton-box" style="width: 40px; height: 20px; border-radius: 6px;"></div>`;
+          frag.appendChild(div);
+        }
+        document.getElementById(containerId).replaceChildren(frag);
+      }
+
+      populateVideoDropdowns(videoList, currMainId, currStatsId) {
+        let html = `<option value="ALL">📺 전체 방송 보기 (${videoList.length}개 방송)</option>`;
+        videoList.forEach(v => html += `<option value="${Utils.escapeHtml(v.id)}">${Utils.escapeHtml(v.title ? `${v.date} - ${v.title}` : v.date)}</option>`);
+        
+        const setSelect = (id, val) => { const el = document.getElementById(id); if (el) { el.innerHTML = html; el.value = val; if (el.selectedIndex === -1) el.value = 'ALL'; } };
+        setSelect('videoSelect', currMainId);
+        setSelect('statsVideoSelect', currStatsId);
+      }
+
+      setLoadingNowPlaying(name) {
+        document.getElementById('npTitle').innerText = '노래목록 불러오는 중...';
+        document.getElementById('npDate').innerText = '';
+        document.getElementById('npArtist').innerText = name;
+        document.getElementById('npMeta').innerHTML = '';
+      }
+
+      setEmptyNowPlaying() {
+        document.getElementById('npTitle').innerText = '조건에 맞는 곡 없음';
         document.getElementById('npDate').innerText = '';
         document.getElementById('npArtist').innerText = '-';
         document.getElementById('npMeta').innerHTML = '';
       }
 
-      if (!player) {
-        loadYouTubeAPI();
-      } else if (displayedSongs.length > 0) {
-        const firstSong = displayedSongs[0];
-        currentVideoId = firstSong.videoId;
-        if (typeof player.cueVideoById === 'function') {
-          player.cueVideoById({ videoId: firstSong.videoId, startSeconds: firstSong.start });
+      updateNowPlaying(song) {
+        if (!song) return;
+        document.getElementById('npDate').innerText = `${song.date}${song.videoTitle ? ' - ' + song.videoTitle : ''}`;
+        document.getElementById('npTitle').innerText = song.title;
+        document.getElementById('npArtist').innerText = `${song.artist}${song.work ? ' • ' + song.work : ''}`;
+        const metaEl = document.getElementById('npMeta');
+        if (metaEl) {
+          metaEl.innerHTML = `<span class="db-badge">가창 ID: <strong>${Utils.escapeHtml(song.logId)}</strong></span> <span class="db-badge">구간: <strong>${Utils.escapeHtml(song.startTimeRaw)} ~ ${Utils.escapeHtml(song.endTimeRaw)}</strong></span> <span class="db-badge">곡 ID: <strong>${Utils.escapeHtml(song.songId)}</strong></span>`;
         }
       }
 
-      if (document.getElementById('tab-stats').classList.contains('active')) {
-        renderStatistics();
-      }
-    }
-
-    // ==========================================
-    // 3. UI 및 플레이어 제어 로직
-    // ==========================================
-    function switchStreamer(streamerKey, btn) {
-      if (currentStreamerKey === streamerKey && songs.length > 0) return;
-
-      closeStatsPlayer(); 
-
-      currentStreamerKey = streamerKey;
-      document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      // 🔥 자바스크립트 인라인 스타일 지정 대신 속성값 하나로 CSS 연동 처리
-      document.documentElement.setAttribute('data-streamer', streamerKey);
-
-      // 스트리머 변경 시 방송 선택 드롭다운 전체로 리셋
-      currentSelectedVideoId = 'ALL';
-      currentStatsSelectedVideoId = 'ALL';
-
-      clearPlaybackMonitor();
-      clearTimeout(playerRetryTimeout);
-      if (player && typeof player.stopVideo === 'function') player.stopVideo();
-
-      renderSkeleton('playlist', 8, false);
-      renderSkeleton('statsList', 6, true);
-      
-      document.getElementById('npTitle').innerText = '노래목록 불러오는 중...';
-      document.getElementById('npDate').innerText = '';
-      document.getElementById('npArtist').innerText = STREAMER_MAP[streamerKey].name;
-      document.getElementById('npMeta').innerHTML = '';
-
-      if (allSongs.length > 0) {
-        applyStreamerData(); 
-      } else {
-        loadAllData();
-      }
-    }
-
-    function switchMainTab(tabId, btn) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      
-      btn.classList.add('active');
-      document.getElementById(`tab-${tabId}`).classList.add('active');
-
-      if (tabId === 'stats') {
-        renderStatistics();
-      } else {
-        closeStatsPlayer(); 
-      }
-    }
-
-    function timeToSeconds(timeStr) {
-      if (timeStr === undefined || timeStr === null || timeStr === '') return null;
-      if (typeof timeStr === 'number') return Number.isFinite(timeStr) && timeStr >= 0 ? timeStr : null;
-      
-      const cleanStr = timeStr.toString().trim();
-      if (!cleanStr) return null;
-
-      if (/^\d+$/.test(cleanStr)) return parseInt(cleanStr, 10);
-
-      const parts = cleanStr.split(':').map(part => parseInt(part.trim(), 10));
-      if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-      if (parts.length === 2) return parts[0] * 60 + parts[1];
-      if (parts.length === 1) return parts[0];
-      return null;
-    }
-
-    function secondsToTimeStr(totalSeconds) {
-      if (!totalSeconds) return '0:00';
-      const h = Math.floor(totalSeconds / 3600);
-      const m = Math.floor((totalSeconds % 3600) / 60);
-      const s = Math.floor(totalSeconds % 60);
-      if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-      return `${m}:${s.toString().padStart(2, '0')}`;
-    }
-
-    function formatDate(dateStr) {
-      return (dateStr || '').trim().replace(/-/g, '.');
-    }
-
-    function formatShortDate(fullDate) {
-      if (!fullDate) return '';
-      const parts = fullDate.split('.');
-      if (parts.length === 3) {
-        const yy = parts[0].length === 4 ? parts[0].substring(2) : parts[0];
-        return `${yy}.${parts[1]}.${parts[2]}`;
-      }
-      return fullDate;
-    }
-
-    function escapeHtml(value) {
-      return String(value ?? '').replace(/[&<>'"]/g, char => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-      })[char]);
-    }
-
-    function normalizeSearchText(value) {
-      return String(value ?? '').normalize('NFC').toLowerCase();
-    }
-
-    function createSearchText(values) {
-      return normalizeSearchText(values.filter(Boolean).join(' '));
-    }
-
-    function getSearchQueries(value) {
-      const normalized = normalizeSearchText(value).trim();
-      return normalized ? normalized.split(/\s+/) : [];
-    }
-
-    function matchesSearch(searchText, queries) {
-      const normalizedSearchText = normalizeSearchText(searchText);
-      return queries.every(query => normalizedSearchText.includes(query));
-    }
-
-    function loadYouTubeAPI() {
-      if (window.YT && window.YT.Player) {
-        initPlayer();
-      } else if (isYouTubeApiLoading) {
-        return;
-      } else {
-        isYouTubeApiLoading = true;
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-      }
-    }
-
-    window.onYouTubeIframeAPIReady = function() {
-      isYouTubeApiLoading = false;
-      initPlayer();
-    };
-
-    function initPlayer() {
-      if (player || displayedSongs.length === 0) return;
-      const firstSong = displayedSongs[0];
-      currentVideoId = firstSong.videoId;
-      player = new YT.Player('player', {
-        height: '100%',
-        width: '100%',
-        videoId: firstSong.videoId,
-        playerVars: { 'autoplay': 0, 'controls': 1, 'start': firstSong.start },
-        events: {
-          'onReady': () => { isPlayerReady = true; },
-          'onStateChange': onPlayerStateChange
+      renderPlaylist(songs, activeSongId, onPlay) {
+        const container = document.getElementById('playlist');
+        if (songs.length === 0) {
+          container.innerHTML = `<div class="empty-state">조건에 맞는 곡이 없습니다. 텅~ 👻<br><br><small>검색어나 필터를 다시 확인해 보세요!</small></div>`;
+          return;
         }
-      });
-    }
-
-    function onPlayerStateChange(event) {
-      if (event.data === YT.PlayerState.ENDED) {
-        clearPlaybackMonitor();
-        playNextSong();
-      }
-
-      if (event.data === YT.PlayerState.PLAYING) {
-        const song = displayedSongs[currentDisplayIndex];
-        
-        if (song && song.start > 0 && !isSeekingForced) {
-          const currentTime = player.getCurrentTime();
+        const frag = document.createDocumentFragment();
+        songs.forEach((song, idx) => {
+          const isActive = song.id === activeSongId;
+          const card = document.createElement('div');
+          card.className = `song-card ${isActive ? 'active' : ''}`;
+          card.tabIndex = 0;
+          card.addEventListener('click', () => onPlay(idx));
+          card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPlay(idx); } });
           
-          if (currentTime < song.start - 3) {
-            player.seekTo(song.start, true);
-            isSeekingForced = true; 
-          }
-        }
-      }
-    }
-
-    function clearPlaybackMonitor() {
-      clearInterval(timerCheck);
-      timerCheck = null;
-    }
-
-    function matchCategoryFilter(song, category) {
-      if (category === 'ALL') return true;
-      if (category === 'BUNSIK') return song.sourceType === '동요';
-      if (category === 'KO') return song.lang === 'KO' && song.sourceType !== '동요';
-      if (category === 'JA') return song.lang === 'JA';
-      if (category === 'EN') return song.lang === 'EN';
-      return false;
-    }
-
-    function setLangFilter(lang, btn) {
-      currentLang = lang;
-      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderPlaylist();
-    }
-
-    function setPlayerSort(sortType, btn) {
-      currentPlayerSort = sortType;
-      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      sortSongList(songs, currentPlayerSort);
-      renderPlaylist();
-    }
-
-    // 📺 재생 탭 방송 선택 변경 이벤트
-    function onVideoSelectChange(val) {
-      currentSelectedVideoId = val;
-      renderPlaylist();
-    }
-
-    function sortSongList(list, sortType) {
-      if (sortType === 'DATE_DESC') {
-        list.sort((a, b) => {
-          const dateCmp = b.date.localeCompare(a.date);
-          if (dateCmp !== 0) return dateCmp;
-          const idCmp = b.logId.localeCompare(a.logId, undefined, {numeric: true});
-          if (idCmp !== 0) return idCmp;
-          return b.start - a.start;
-        });
-      } else if (sortType === 'DATE_ASC') {
-        list.sort((a, b) => {
-          const dateCmp = a.date.localeCompare(b.date);
-          if (dateCmp !== 0) return dateCmp;
-          const idCmp = a.logId.localeCompare(a.logId, undefined, {numeric: true});
-          if (idCmp !== 0) return idCmp;
-          return a.start - b.start;
-        });
-      } else if (sortType === 'TITLE_ASC') {
-        list.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
-      } else if (sortType === 'SHUFFLE') {
-        for (let i = list.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [list[i], list[j]] = [list[j], list[i]];
-        }
-      }
-    }
-
-    function renderPlaylist() {
-      const container = document.getElementById('playlist');
-      const queries = getSearchQueries(document.getElementById('searchInput').value);
-
-      displayedSongs = songs.filter(song => {
-        let matchSearch = true;
-        if (queries.length > 0) matchSearch = matchesSearch(song.searchText, queries);
-        const matchCategory = matchCategoryFilter(song, currentLang);
-        
-        // 📺 방송 드롭다운 필터링 조건 추가
-        const matchVideo = (currentSelectedVideoId === 'ALL' || song.rawVideoId === currentSelectedVideoId);
-
-        return matchSearch && matchCategory && matchVideo;
-      });
-
-      if (currentPlayingSongId) {
-        currentDisplayIndex = displayedSongs.findIndex(s => s.id === currentPlayingSongId);
-      } else {
-        currentDisplayIndex = displayedSongs.length > 0 ? 0 : -1;
-      }
-
-      const fragment = document.createDocumentFragment();
-
-      displayedSongs.forEach((song, idx) => {
-        const isActive = (song.id === currentPlayingSongId);
-        const card = document.createElement('div');
-        card.className = `song-card ${isActive ? 'active' : ''}`;
-        card.onclick = () => playSong(idx);
-        card.tabIndex = 0;
-        card.onkeydown = event => {
-          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); playSong(idx); }
-        };
-
-        const playIcon = isActive ? `<span class="playing-icon">▶️</span>` : '';
-        // 🔥 우측 재생 목록에서 방송 제목(videoTitle) 제거됨
-        card.innerHTML = `
-          <div>
-            <div class="song-info-date">
-              ${escapeHtml(song.date)}
-              <span class="log-id-tag">[${escapeHtml(song.logId)} | ${escapeHtml(song.startTimeRaw)} ~ ${escapeHtml(song.endTimeRaw)}]</span>
+          card.innerHTML = `
+            <div>
+              <div class="song-info-date">${Utils.escapeHtml(song.date)} <span class="log-id-tag">[${Utils.escapeHtml(song.logId)} | ${Utils.escapeHtml(song.startTimeRaw)} ~ ${Utils.escapeHtml(song.endTimeRaw)}]</span></div>
+              <div class="song-info-main">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)}</div>
+              <div class="song-info-sub">${Utils.escapeHtml(song.artist)}${song.work ? ' • ' + Utils.escapeHtml(song.work) : ''}</div>
             </div>
-            <div class="song-info-main">${playIcon}${escapeHtml(song.title)}</div>
-            <div class="song-info-sub">${escapeHtml(song.artist)}${song.work ? ' • ' + escapeHtml(song.work) : ''}</div>
-          </div>
-          <span class="song-badge">${escapeHtml(song.lang)}</span>
-        `;
-        fragment.appendChild(card);
-      });
-
-      if (displayedSongs.length === 0) {
-        const emptyState = document.createElement('div');
-        emptyState.className = 'empty-state';
-        emptyState.innerHTML = '조건에 맞는 곡이 없습니다. 텅~ 👻<br><br><small>검색어나 필터를 다시 확인해 보세요!</small>';
-        fragment.appendChild(emptyState);
+            <span class="song-badge">${Utils.escapeHtml(song.lang)}</span>
+          `;
+          frag.appendChild(card);
+        });
+        container.replaceChildren(frag);
       }
 
-      container.replaceChildren(fragment);
-    }
-
-    function playSong(index, cueOnly = false) {
-      if (index < 0 || index >= displayedSongs.length) return;
-      
-      closeStatsPlayer(); 
-      isSeekingForced = false; 
-      
-      currentDisplayIndex = index;
-      const song = displayedSongs[index];
-      currentPlayingSongId = song.id;
-      
-      clearTimeout(playerRetryTimeout);
-      renderPlaylist(); 
-      updateNowPlaying(song);
-
-      const targetStart = Math.max(0, song.start || 0); 
-
-      if (isPlayerReady && player) {
-        if (currentVideoId === song.videoId && typeof player.seekTo === 'function') {
-          player.seekTo(targetStart, true);
-          if (!cueOnly) player.playVideo();
-        } else if (typeof player.loadVideoById === 'function') {
-          currentVideoId = song.videoId;
-          if (cueOnly) {
-            player.cueVideoById({ videoId: song.videoId, startSeconds: targetStart });
-          } else {
-            player.loadVideoById({ videoId: song.videoId, startSeconds: targetStart });
-          }
+      renderStatsList(items, onToggleStatsPlayer) {
+        const container = document.getElementById('statsList');
+        if (items.length === 0) {
+          container.innerHTML = `<div class="empty-state">조건에 맞는 곡이 없습니다. 텅~ 👻<br><br><small>검색어나 필터를 다시 확인해 보세요!</small></div>`;
+          return;
         }
-      } else {
-        const songId = song.id;
-        playerRetryTimeout = setTimeout(() => {
-          if (currentPlayingSongId === songId) playSong(index, cueOnly);
-        }, 300);
-        return;
-      }
+        const frag = document.createDocumentFragment();
+        items.forEach((item, idx) => {
+          const div = document.createElement('div');
+          div.className = 'stats-item';
 
-      clearPlaybackMonitor();
-      timerCheck = setInterval(() => {
-        if (player && typeof player.getCurrentTime === 'function') {
-          const currentTime = player.getCurrentTime();
-          if (currentTime >= song.end && song.end > 0) {
-            clearPlaybackMonitor();
-            playNextSong();
-          }
-        }
-      }, 250);
-    }
+          const addText = (cls, txt) => { const s = document.createElement('span'); s.className = cls; s.textContent = txt; div.appendChild(s); };
+          addText('index-text', `${idx + 1}.`); addText('title-text', item.title); div.append(' / '); addText('artist-text', item.artist); div.append(' / ');
 
-    function playNextSong() {
-      if (currentDisplayIndex !== -1 && currentDisplayIndex + 1 < displayedSongs.length) {
-        playSong(currentDisplayIndex + 1);
-      } else if (player && typeof player.stopVideo === 'function') {
-        player.stopVideo();
-      }
-    }
-
-    function updateNowPlaying(song) {
-      if (!song) return;
-      document.getElementById('npDate').innerText = `${song.date}${song.videoTitle ? ' - ' + song.videoTitle : ''}`;
-      document.getElementById('npTitle').innerText = song.title;
-      document.getElementById('npArtist').innerText = `${song.artist}${song.work ? ' • ' + song.work : ''}`;
-
-      const metaEl = document.getElementById('npMeta');
-      if (metaEl) {
-        metaEl.innerHTML = `
-          <span class="db-badge">가창 ID: <strong>${escapeHtml(song.logId)}</strong></span>
-          <span class="db-badge">구간: <strong>${escapeHtml(song.startTimeRaw)} ~ ${escapeHtml(song.endTimeRaw)}</strong></span>
-          <span class="db-badge">곡 ID: <strong>${escapeHtml(song.songId)}</strong></span>
-        `;
-      }
-    }
-
-    function filterSongs() {
-      clearTimeout(searchDebounceTimer);
-      searchDebounceTimer = setTimeout(renderPlaylist, 250);
-    }
-
-    // ==========================================
-    // 4. 통계 파트 처리 로직 및 인라인 플레이어
-    // ==========================================
-    function filterStats() {
-      clearTimeout(statsSearchDebounceTimer);
-      statsSearchDebounceTimer = setTimeout(renderStatistics, 250);
-    }
-
-    function setStatsLangFilter(lang, btn) {
-      currentStatsLang = lang;
-      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderStatistics();
-    }
-
-    function setStatsSort(sortType, btn) {
-      currentStatsSort = sortType;
-      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderStatistics();
-    }
-
-    // 📺 통계 탭 방송 선택 변경 이벤트
-    function onStatsVideoSelectChange(val) {
-      currentStatsSelectedVideoId = val;
-      renderStatistics();
-    }
-
-    function getTitleLangCategory(str) {
-      if (!str) return 4;
-      const firstChar = str.trim().charAt(0);
-      if (/[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/.test(firstChar)) return 1;
-      if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(firstChar)) return 2;
-      if (/[A-Za-z]/.test(firstChar)) return 3;
-      return 4;
-    }
-
-    function aggregateSongStatistics(songList) {
-      const songMap = new Map();
-
-      songList.forEach(song => {
-        const key = song.songId;
-
-        if (!songMap.has(key)) {
-          songMap.set(key, {
-            songId: song.songId,
-            title: song.title,
-            artist: song.artist,
-            searchText: song.searchText,
-            lang: song.lang,
-            sourceType: song.sourceType,
-            playEvents: [],
-            playCount: 0
-          });
-        }
-        
-        const entry = songMap.get(key);
-        entry.playCount += 1;
-        
-        if (song.date) {
-          entry.playEvents.push({ 
-            date: song.date, 
-            videoId: song.videoId, 
-            start: song.start, 
-            end: song.end,
-            id: song.id,
-            startRaw: song.startTimeRaw,
-            endRaw: song.endTimeRaw,
-            rawVideoId: song.rawVideoId, // 📺 영상 구분 ID
-            videoTitle: song.videoTitle  // 📺 방송 제목
-          });
-        }
-      });
-
-      return Array.from(songMap.values()).map(item => {
-        const sortedEvents = item.playEvents.sort((a, b) => {
-          const dateCmp = a.date.localeCompare(b.date);
-          if (dateCmp !== 0) return dateCmp;
+          const datesSpan = document.createElement('span');
+          datesSpan.className = 'dates-text';
           
-          const idCmp = a.id.localeCompare(b.id, undefined, {numeric: true});
-          if (idCmp !== 0) return idCmp;
+          item.playEvents.forEach((ev, evIdx) => {
+            const a = document.createElement('a');
+            a.className = 'date-link';
+            a.textContent = Utils.formatShortDate(ev.date);
+            a.href = `https://www.youtube.com/watch?v=${ev.videoId}&t=${ev.start}s`;
+            a.title = `${ev.videoTitle ? ev.videoTitle + ' | ' : ''}가창 ID: ${ev.id} (${ev.startRaw || ''} ~ ${ev.endRaw || ''})`;
+            a.addEventListener('click', (e) => onToggleStatsPlayer(ev, e, div, a));
+            datesSpan.appendChild(a);
+            if (evIdx < item.playEvents.length - 1) datesSpan.append(' / ');
+          });
+          div.appendChild(datesSpan);
+          addText('count-text', `(${item.playCount}회)`);
+          frag.appendChild(div);
+        });
+        container.replaceChildren(frag);
+      }
 
-          return a.start - b.start;
+      removeStatsPlayerDOM() {
+        document.querySelectorAll('.stats-player-box').forEach(el => el.remove());
+        document.querySelectorAll('.date-link.active-date').forEach(el => el.classList.remove('active-date'));
+      }
+
+      renderStatsPlayerDOM(ev, itemDiv, dateAnchor, onClose) {
+        if (dateAnchor) dateAnchor.classList.add('active-date');
+        const box = document.createElement('div');
+        box.className = 'stats-player-box';
+        
+        const header = document.createElement('div');
+        header.className = 'stats-player-header';
+        header.innerHTML = `<span>🎬 <strong>${Utils.escapeHtml(ev.date)}${ev.videoTitle ? ' (' + Utils.escapeHtml(ev.videoTitle) + ')' : ''}</strong> 가창 영상 (${Utils.escapeHtml(ev.startRaw || '')} ~ ${Utils.escapeHtml(ev.endRaw || '')})</span>`;
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'stats-player-close-btn';
+        closeBtn.textContent = '✕ 닫기';
+        closeBtn.onclick = onClose;
+        header.appendChild(closeBtn);
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'stats-player-wrapper';
+        wrapper.innerHTML = `<div id="statsPlayerTarget"></div>`;
+        
+        box.appendChild(header); box.appendChild(wrapper);
+        itemDiv.appendChild(box);
+        
+        setTimeout(() => itemDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+      }
+
+      updateFilterBtns(btn) {
+        btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+
+      initScrollObserver() {
+        const playlistBox = document.getElementById('playlist');
+        const backToTopBtn = document.getElementById('backToTop');
+        const toggleBtn = (scrollPos) => scrollPos > 300 ? backToTopBtn.classList.add('show') : backToTopBtn.classList.remove('show');
+        
+        window.addEventListener('scroll', () => { if (document.getElementById('tab-stats').classList.contains('active')) toggleBtn(window.scrollY); });
+        playlistBox.addEventListener('scroll', () => { if (document.getElementById('tab-player').classList.contains('active')) toggleBtn(playlistBox.scrollTop); });
+      }
+
+      scrollToTop() {
+        if (document.getElementById('tab-stats').classList.contains('active')) window.scrollTo({ top: 0, behavior: 'smooth' });
+        else document.getElementById('playlist').scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    // =========================================================================
+    // 🚀 6. 앱 오케스트레이터 (Manager들을 연결하고 총괄)
+    // =========================================================================
+    class KaraApp {
+      constructor() {
+        this.data = new DataManager();
+        this.ui = new UIController();
+        this.mainPlayer = new MainPlayerManager(() => this.playNextSong());
+        this.statsPlayer = new StatsPlayerManager();
+        this.isYouTubeApiLoading = false;
+        this.searchDebounceTimer = null;
+        this.statsSearchDebounceTimer = null;
+      }
+
+      async init() {
+        this.ui.initTheme();
+        this.ui.initScrollObserver();
+        this.ui.renderSkeleton('playlist', 8, false);
+        this.ui.renderSkeleton('statsList', 6, true);
+        
+        try {
+          await this.data.loadAllData();
+          this.applyStreamerData();
+        } catch (err) {
+          console.error(err);
+          this.ui.showError('데이터베이스 연동 중 오류가 발생했습니다.');
+        }
+      }
+
+      applyStreamerData() {
+        const songs = this.data.getStreamerSongs();
+        if (songs.length === 0) { this.ui.showError(`${STREAMER_MAP[this.data.streamerKey].name} 님의 가창 기록이 아직 없습니다.`); return; }
+
+        this.ui.populateVideoDropdowns(this.data.getUniqueVideos(), this.data.mainFilters.videoId, this.data.statsFilters.videoId);
+        
+        this.renderPlaylist();
+        
+        if (this.mainPlayer.playlist.length > 0) {
+          this.mainPlayer.cue(0); // 인덱스 0번 큐
+          this.ui.updateNowPlaying(this.mainPlayer.playlist[0]);
+        } else {
+          this.ui.setEmptyNowPlaying();
+        }
+
+        if (document.getElementById('tab-stats').classList.contains('active')) this.renderStatistics();
+        this.loadYouTubeAPI();
+      }
+
+      renderPlaylist() {
+        const list = this.data.getFilteredMainSongs();
+        this.mainPlayer.updatePlaylist(list);
+        this.ui.renderPlaylist(list, this.mainPlayer.currentSongId, (idx) => this.playSong(idx));
+      }
+
+      renderStatistics() {
+        if (this.data.getStreamerSongs().length === 0) { this.ui.showError('집계할 데이터가 없습니다.'); return; }
+        const list = this.data.getFilteredStats();
+        this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
+        this.ui.renderStatsList(list, (ev, e, div, anchor) => this.toggleStatsPlayer(ev, e, div, anchor));
+      }
+
+      playSong(index, cueOnly = false) {
+        this.statsPlayer.close(); this.ui.removeStatsPlayerDOM(); // 통계 플레이어 닫기 (탭 간섭 방어)
+        
+        const song = this.mainPlayer.playlist[index];
+        if (!song) return;
+        
+        this.mainPlayer.play(index, cueOnly);
+        this.renderPlaylist(); // 재생 중인 곡 하이라이트 갱신
+        this.ui.updateNowPlaying(song);
+      }
+
+      playNextSong() {
+        if (this.mainPlayer.currentIndex !== -1 && this.mainPlayer.currentIndex + 1 < this.mainPlayer.playlist.length) {
+          this.playSong(this.mainPlayer.currentIndex + 1);
+        } else {
+          this.mainPlayer.stop();
+        }
+      }
+
+      toggleStatsPlayer(ev, event, itemDiv, dateAnchor) {
+        if (event) event.preventDefault();
+        
+        this.mainPlayer.pause(); // 통계 재생 시 메인 플레이어 정지 (탭 간섭 방어)
+
+        if (this.statsPlayer.activeEventId === ev.id) {
+          this.statsPlayer.close();
+          this.ui.removeStatsPlayerDOM();
+          return;
+        }
+
+        this.statsPlayer.close();
+        this.ui.removeStatsPlayerDOM();
+        
+        this.ui.renderStatsPlayerDOM(ev, itemDiv, dateAnchor, () => {
+          this.statsPlayer.close();
+          this.ui.removeStatsPlayerDOM();
         });
         
-        return {
-          ...item,
-          titleDisplay: item.title,
-          artistDisplay: item.artist,
-          firstDate: sortedEvents.length > 0 ? sortedEvents[0].date : '',
-          lastDate: sortedEvents.length > 0 ? sortedEvents[sortedEvents.length - 1].date : '',
-          firstId: sortedEvents.length > 0 ? sortedEvents[0].id : '',
-          lastId: sortedEvents.length > 0 ? sortedEvents[sortedEvents.length - 1].id : '',
-          sortedEvents: sortedEvents
-        };
-      });
-    }
-
-    function filterStatistics(items, category) {
-      return category === 'ALL' ? items : items.filter(item => matchCategoryFilter(item, category));
-    }
-
-    // 🔥 통계 탭 시간순 정렬 완벽 적용 (RECENT_DESC 수정)
-    function sortStatistics(items, sortType) {
-      if (sortType === 'SHUFFLE') {
-        const shuffled = [...items];
-        for (let i = shuffled.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
-        return shuffled;
-      }
-      return [...items].sort((a, b) => {
-        const aFirstStart = a.sortedEvents.length > 0 ? a.sortedEvents[0].start : 0;
-        const bFirstStart = b.sortedEvents.length > 0 ? b.sortedEvents[0].start : 0;
-        const aLastStart = a.sortedEvents.length > 0 ? a.sortedEvents[a.sortedEvents.length - 1].start : 0;
-        const bLastStart = b.sortedEvents.length > 0 ? b.sortedEvents[b.sortedEvents.length - 1].start : 0;
-
-        if (sortType === 'COUNT_DESC') {
-          return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate) || aFirstStart - bFirstStart || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
-        }
-        if (sortType === 'TITLE_LANG') {
-          return getTitleLangCategory(a.titleDisplay) - getTitleLangCategory(b.titleDisplay) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
-        }
-        if (sortType === 'RECENT_DESC') {
-          // ★★★ 수정: 같은 날짜 내에서는 start 내림차순 (최근 순) ★★★
-          return b.lastDate.localeCompare(a.lastDate) || bLastStart - aLastStart || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
-        }
-        if (sortType === 'OLD_ASC') {
-          return a.lastDate.localeCompare(b.lastDate) || aLastStart - bLastStart || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
-        }
-        
-        // 기본값: '처음 부른 날짜순 (DATE_ASC)'
-        return a.firstDate.localeCompare(b.firstDate) || aFirstStart - bFirstStart || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
-      });
-    }
-
-    // ⭐ 통계 전용 인라인 플레이어 제어
-    function closeStatsPlayer() {
-      if (statsTimerCheck) {
-        clearInterval(statsTimerCheck);
-        statsTimerCheck = null;
-      }
-      if (statsPlayer) {
-        try { if (typeof statsPlayer.destroy === 'function') statsPlayer.destroy(); } 
-        catch (e) { console.error(e); }
-        statsPlayer = null;
-      }
-      activeStatsEventId = null;
-
-      document.querySelectorAll('.stats-player-box').forEach(el => el.remove());
-      document.querySelectorAll('.date-link.active-date').forEach(el => el.classList.remove('active-date'));
-    }
-
-    function toggleStatsPlayer(ev, event, itemDiv, dateAnchor) {
-      if (event) event.preventDefault();
-
-      if (player && typeof player.pauseVideo === 'function') {
-        player.pauseVideo();
+        this.statsPlayer.init(ev.videoId, ev.start, ev.end, ev.id);
       }
 
-      if (activeStatsEventId === ev.id) {
-        closeStatsPlayer();
-        return;
-      }
-
-      closeStatsPlayer();
-
-      activeStatsEventId = ev.id;
-      statsSeekingForced = false;
-
-      if (dateAnchor) dateAnchor.classList.add('active-date');
-
-      const playerBox = document.createElement('div');
-      playerBox.className = 'stats-player-box';
-
-      const header = document.createElement('div');
-      header.className = 'stats-player-header';
-      header.innerHTML = `
-        <span>🎬 <strong>${escapeHtml(ev.date)}${ev.videoTitle ? ' (' + escapeHtml(ev.videoTitle) + ')' : ''}</strong> 가창 영상 (${escapeHtml(ev.startRaw || '')} ~ ${escapeHtml(ev.endRaw || '')})</span>
-        <button class="stats-player-close-btn" onclick="closeStatsPlayer()">✕ 닫기</button>
-      `;
-
-      const wrapper = document.createElement('div');
-      wrapper.className = 'stats-player-wrapper';
-      
-      const playerTarget = document.createElement('div');
-      playerTarget.id = 'statsPlayerTarget';
-      wrapper.appendChild(playerTarget);
-
-      playerBox.appendChild(header);
-      playerBox.appendChild(wrapper);
-
-      itemDiv.appendChild(playerBox);
-
-      setTimeout(() => {
-        if (itemDiv) {
-          itemDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 300);
-
-      if (window.YT && window.YT.Player) {
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-        statsPlayer = new YT.Player('statsPlayerTarget', {
-          height: '100%',
-          width: '100%',
-          videoId: ev.videoId,
-          playerVars: { 'autoplay': isMobile ? 0 : 1, 'controls': 1, 'start': ev.start, 'rel': 0 },
-          events: {
-            'onReady': (e) => { if (!isMobile) e.target.playVideo(); },
-            'onStateChange': (e) => onStatsPlayerStateChange(e, ev)
-          }
-        });
-      }
-    }
-
-    function onStatsPlayerStateChange(event, ev) {
-      if (event.data === YT.PlayerState.PLAYING) {
-        if (statsPlayer && ev.start > 0 && !statsSeekingForced) {
-          const currentTime = statsPlayer.getCurrentTime();
-          if (currentTime < ev.start - 3) {
-            statsPlayer.seekTo(ev.start, true);
-            statsSeekingForced = true;
-          }
-        }
-
-        if (!statsTimerCheck) {
-          statsTimerCheck = setInterval(() => {
-            if (statsPlayer && typeof statsPlayer.getCurrentTime === 'function') {
-              const currentTime = statsPlayer.getCurrentTime();
-              if (ev.end > 0 && currentTime >= ev.end) {
-                clearInterval(statsTimerCheck);
-                statsTimerCheck = null;
-                if (typeof statsPlayer.pauseVideo === 'function') {
-                  statsPlayer.pauseVideo();
-                }
-              }
-            }
-          }, 250);
-        }
-      } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
-        if (statsTimerCheck) {
-          clearInterval(statsTimerCheck);
-          statsTimerCheck = null;
-        }
-      }
-    }
-
-    function renderStatisticsList(items) {
-      const container = document.getElementById('statsList');
-      closeStatsPlayer(); 
-
-      if (items.length === 0) {
-        const emptyState = document.createElement('div');
-        emptyState.className = 'empty-state';
-        emptyState.innerHTML = '조건에 맞는 곡이 없습니다. 텅~ 👻<br><br><small>검색어나 필터를 다시 확인해 보세요!</small>';
-        container.replaceChildren(emptyState);
-        return;
-      }
-
-      const fragment = document.createDocumentFragment();
-      items.forEach((item, idx) => {
-        const div = document.createElement('div');
-        div.className = 'stats-item';
-
-        const addText = (className, text) => {
-          const span = document.createElement('span');
-          span.className = className;
-          span.textContent = text;
-          div.appendChild(span);
-        };
-
-        addText('index-text', `${idx + 1}.`);
-        addText('title-text', item.titleDisplay);
-        div.append(' / ');
-        addText('artist-text', item.artistDisplay); 
-        div.append(' / ');
-
-        const datesSpan = document.createElement('span');
-        datesSpan.className = 'dates-text';
-        
-        item.sortedEvents.forEach((ev, evIdx) => {
-          const a = document.createElement('a');
-          a.className = 'date-link';
-          a.textContent = formatShortDate(ev.date);
-          a.href = `https://www.youtube.com/watch?v=${ev.videoId}&t=${ev.start}s`;
-          a.title = `${ev.videoTitle ? ev.videoTitle + ' | ' : ''}가창 ID: ${ev.id} (${ev.startRaw || ''} ~ ${ev.endRaw || ''})`;
-          a.onclick = (e) => toggleStatsPlayer(ev, e, div, a); 
-          
-          datesSpan.appendChild(a);
-          if (evIdx < item.sortedEvents.length - 1) datesSpan.append(' / ');
-        });
-        
-        div.appendChild(datesSpan);
-        addText('count-text', `(${item.playCount}회)`);
-        
-        fragment.appendChild(div);
-      });
-      container.replaceChildren(fragment);
-    }
-
-    // =====================================================================
-    // ★★★ renderStatistics 함수 (방송 필터링 시 firstDate/lastDate 갱신) ★★★
-    // =====================================================================
-    function renderStatistics() {
-      if (songs.length === 0) {
-        showError('집계할 데이터가 없습니다.');
-        return;
-      }
-
-      let aggregated = aggregateSongStatistics(songs);
-
-      // 📺 통계 탭 방송 드롭다운 필터링
-      if (currentStatsSelectedVideoId !== 'ALL') {
-        aggregated = aggregated.map(item => {
-          const filteredEvents = item.sortedEvents.filter(ev => ev.rawVideoId === currentStatsSelectedVideoId);
-          if (filteredEvents.length === 0) return null;
-          const firstEvent = filteredEvents[0];
-          const lastEvent = filteredEvents[filteredEvents.length - 1];
-          return {
-            ...item,
-            playCount: filteredEvents.length,
-            sortedEvents: filteredEvents,
-            firstDate: firstEvent.date,
-            lastDate: lastEvent.date,
-            firstId: firstEvent.id,
-            lastId: lastEvent.id
+      loadYouTubeAPI() {
+        if (window.YT && window.YT.Player) {
+          this.mainPlayer.init(this.mainPlayer.playlist[0]);
+        } else if (!this.isYouTubeApiLoading) {
+          this.isYouTubeApiLoading = true;
+          window.onYouTubeIframeAPIReady = () => {
+            this.isYouTubeApiLoading = false;
+            this.mainPlayer.init(this.mainPlayer.playlist[0]);
           };
-        }).filter(Boolean);
+          const tag = document.createElement('script'); tag.src = "https://www.youtube.com/iframe_api";
+          document.getElementsByTagName('script')[0].parentNode.insertBefore(tag, document.getElementsByTagName('script')[0]);
+        }
       }
 
-      aggregated = filterStatistics(aggregated, currentStatsLang);
-
-      const queries = getSearchQueries(document.getElementById('statsSearchInput').value);
-
-      if (queries.length > 0) {
-        aggregated = aggregated.filter(item => {
-          const datesText = item.sortedEvents.map(ev => `${ev.date} ${formatShortDate(ev.date)} ${ev.videoTitle || ''}`).join(' ');
-          const searchableText = createSearchText([item.searchText, datesText]);
-          return matchesSearch(searchableText, queries);
-        });
+      // --- 화면 이벤트 연결부 ---
+      switchStreamer(key, btn) {
+        if (this.data.streamerKey === key && this.data.getStreamerSongs().length > 0) return;
+        this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
+        this.data.streamerKey = key;
+        
+        // 상태 초기화
+        this.data.mainFilters.videoId = 'ALL'; this.data.statsFilters.videoId = 'ALL';
+        this.mainPlayer.reset();
+        
+        this.ui.updateStreamerNav(btn, key);
+        this.ui.renderSkeleton('playlist', 8, false);
+        this.ui.renderSkeleton('statsList', 6, true);
+        this.ui.setLoadingNowPlaying(STREAMER_MAP[key].name);
+        
+        this.applyStreamerData();
       }
 
-      const sorted = sortStatistics(aggregated, currentStatsSort);
-      renderStatisticsList(sorted);
+      switchMainTab(tabId, btn) {
+        this.ui.switchTab(tabId, btn);
+        if (tabId === 'stats') this.renderStatistics();
+        else { this.statsPlayer.close(); this.ui.removeStatsPlayerDOM(); }
+      }
+
+      // 메인 필터
+      filterSongs(val) { this.data.mainFilters.search = val; clearTimeout(this.searchDebounceTimer); this.searchDebounceTimer = setTimeout(() => this.renderPlaylist(), 250); }
+      setVideoFilter(val) { this.data.mainFilters.videoId = val; this.renderPlaylist(); }
+      setLangFilter(val, btn) { this.data.mainFilters.lang = val; this.ui.updateFilterBtns(btn); this.renderPlaylist(); }
+      setPlayerSort(val, btn) { this.data.mainFilters.sort = val; this.ui.updateFilterBtns(btn); this.renderPlaylist(); }
+
+      // 통계 필터
+      filterStats(val) { this.data.statsFilters.search = val; clearTimeout(this.statsSearchDebounceTimer); this.statsSearchDebounceTimer = setTimeout(() => this.renderStatistics(), 250); }
+      setStatsVideoFilter(val) { this.data.statsFilters.videoId = val; this.renderStatistics(); }
+      setStatsLangFilter(val, btn) { this.data.statsFilters.lang = val; this.ui.updateFilterBtns(btn); this.renderStatistics(); }
+      setStatsSort(val, btn) { this.data.statsFilters.sort = val; this.ui.updateFilterBtns(btn); this.renderStatistics(); }
     }
+
+    // =========================================================================
+    // 🌐 7. 앱 실행 및 전역 이벤트 바인딩 (HTML 인라인 핸들러 대응)
+    // =========================================================================
+    const App = new KaraApp();
+    window.addEventListener('DOMContentLoaded', () => App.init());
+
+    function toggleTheme() { App.ui.toggleTheme(); }
+    function toggleClearBtn(id1, id2) { App.ui.toggleClearBtn(id1, id2); }
+    function clearInput(id1, id2) { App.ui.clearInput(id1, id2); App.filterSongs(''); App.filterStats(''); }
+    function scrollToTop() { App.ui.scrollToTop(); }
+
+    function switchStreamer(k, b) { App.switchStreamer(k, b); }
+    function switchMainTab(t, b) { App.switchMainTab(t, b); }
+
+    function filterSongs() { App.filterSongs(document.getElementById('searchInput').value); }
+    function onVideoSelectChange(v) { App.setVideoFilter(v); }
+    function setLangFilter(l, b) { App.setLangFilter(l, b); }
+    function setPlayerSort(s, b) { App.setPlayerSort(s, b); }
+
+    function filterStats() { App.filterStats(document.getElementById('statsSearchInput').value); }
+    function onStatsVideoSelectChange(v) { App.setStatsVideoFilter(v); }
+    function setStatsLangFilter(l, b) { App.setStatsLangFilter(l, b); }
+    function setStatsSort(s, b) { App.setStatsSort(s, b); }
   </script>
 </body>
 </html>
