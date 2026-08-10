@@ -1362,7 +1362,7 @@
       return category === 'ALL' ? items : items.filter(item => matchCategoryFilter(item, category));
     }
 
-    // 🔥 통계 탭 시간순 정렬 완벽 적용
+    // 🔥 통계 탭 시간순 정렬 완벽 적용 (RECENT_DESC 수정)
     function sortStatistics(items, sortType) {
       if (sortType === 'SHUFFLE') {
         const shuffled = [...items];
@@ -1373,10 +1373,8 @@
         return shuffled;
       }
       return [...items].sort((a, b) => {
-        // 통계 탭 내부의 이벤트(재생 기록)는 이미 시간순으로 정렬되어 있으므로 첫 번째 기록(0번 인덱스)의 시간(start)을 가져옵니다.
         const aFirstStart = a.sortedEvents.length > 0 ? a.sortedEvents[0].start : 0;
         const bFirstStart = b.sortedEvents.length > 0 ? b.sortedEvents[0].start : 0;
-        
         const aLastStart = a.sortedEvents.length > 0 ? a.sortedEvents[a.sortedEvents.length - 1].start : 0;
         const bLastStart = b.sortedEvents.length > 0 ? b.sortedEvents[b.sortedEvents.length - 1].start : 0;
 
@@ -1387,15 +1385,14 @@
           return getTitleLangCategory(a.titleDisplay) - getTitleLangCategory(b.titleDisplay) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
         }
         if (sortType === 'RECENT_DESC') {
-          // 최근 날짜순: 날짜가 같으면 시간 오름차순(aLastStart - bLastStart) 적용
-          return b.lastDate.localeCompare(a.lastDate) || aLastStart - bLastStart || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
+          // ★★★ 수정: 같은 날짜 내에서는 start 내림차순 (최근 순) ★★★
+          return b.lastDate.localeCompare(a.lastDate) || bLastStart - aLastStart || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
         }
         if (sortType === 'OLD_ASC') {
           return a.lastDate.localeCompare(b.lastDate) || aLastStart - bLastStart || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
         }
         
         // 기본값: '처음 부른 날짜순 (DATE_ASC)'
-        // 🔥 날짜가 같다면 -> 처음 불렀던 시간(start) 순서로 정렬 -> 그래도 같다면 제목순
         return a.firstDate.localeCompare(b.firstDate) || aFirstStart - bFirstStart || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
       });
     }
@@ -1465,14 +1462,12 @@
       }, 300);
 
       if (window.YT && window.YT.Player) {
-        // 🔥 현재 접속한 기기가 모바일(스마트폰/태블릿)인지 확인
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
         statsPlayer = new YT.Player('statsPlayerTarget', {
           height: '100%',
           width: '100%',
           videoId: ev.videoId,
-          // 🔥 모바일이면 autoplay를 0(터치 대기), PC면 1(자동 재생)
           playerVars: { 'autoplay': isMobile ? 0 : 1, 'controls': 1, 'start': ev.start, 'rel': 0 },
           events: {
             'onReady': (e) => { if (!isMobile) e.target.playVideo(); },
@@ -1568,8 +1563,7 @@
     }
 
     // =====================================================================
-    // ★★★ 수정된 renderStatistics 함수 ★★★
-    // - 방송 필터링 시 firstDate, lastDate 등을 갱신하도록 변경
+    // ★★★ renderStatistics 함수 (방송 필터링 시 firstDate/lastDate 갱신) ★★★
     // =====================================================================
     function renderStatistics() {
       if (songs.length === 0) {
@@ -1584,15 +1578,14 @@
         aggregated = aggregated.map(item => {
           const filteredEvents = item.sortedEvents.filter(ev => ev.rawVideoId === currentStatsSelectedVideoId);
           if (filteredEvents.length === 0) return null;
-          // ★★★ 필터링된 이벤트에서 첫 번째와 마지막 이벤트를 추출하여 날짜/ID 갱신 ★★★
           const firstEvent = filteredEvents[0];
           const lastEvent = filteredEvents[filteredEvents.length - 1];
           return {
             ...item,
             playCount: filteredEvents.length,
             sortedEvents: filteredEvents,
-            firstDate: firstEvent.date,          // 갱신
-            lastDate: lastEvent.date,            // 갱신
+            firstDate: firstEvent.date,
+            lastDate: lastEvent.date,
             firstId: firstEvent.id,
             lastId: lastEvent.id
           };
