@@ -1092,7 +1092,7 @@
         list.sort((a, b) => {
           const dateCmp = a.date.localeCompare(b.date);
           if (dateCmp !== 0) return dateCmp;
-          const idCmp = a.logId.localeCompare(b.logId, undefined, {numeric: true}); // 버그 수정
+          const idCmp = a.logId.localeCompare(b.logId, undefined, {numeric: true});
           if (idCmp !== 0) return idCmp;
           return a.start - b.start;
         });
@@ -1340,7 +1340,7 @@
       return category === 'ALL' ? items : items.filter(item => matchCategoryFilter(item, category));
     }
 
-    // 🔥 통계 탭 정렬 (log_id fallback 강화)
+    // 🔥 통계 탭 정렬 (log_id fallback 강화 + RECENT_DESC 내림차순 수정)
     function sortStatistics(items, sortType) {
       if (sortType === 'SHUFFLE') {
         const shuffled = [...items];
@@ -1360,8 +1360,7 @@
         const bFirstStart = bFirstEvent ? bFirstEvent.start : 0;
         const aLastStart = aLastEvent ? aLastEvent.start : 0;
         const bLastStart = bLastEvent ? bLastEvent.start : 0;
-        
-        // 💡 중요: a.firstId / a.lastId를 최종 fallback으로 사용
+
         const aFirstLogId = aFirstEvent ? aFirstEvent.id : a.firstId;
         const bFirstLogId = bFirstEvent ? bFirstEvent.id : b.firstId;
         const aLastLogId = aLastEvent ? aLastEvent.id : a.lastId;
@@ -1374,9 +1373,11 @@
           return getTitleLangCategory(a.titleDisplay) - getTitleLangCategory(b.titleDisplay) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
         }
         if (sortType === 'RECENT_DESC') {
-          return b.lastDate.localeCompare(a.lastDate) || aLastStart - bLastStart || aLastLogId.localeCompare(bLastLogId, undefined, { numeric: true }) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
+          // 최근 날짜순: 날짜가 같으면 시작 시간 내림차순 (최근에 부른 순) -> log_id 내림차순 -> 제목순
+          return b.lastDate.localeCompare(a.lastDate) || bLastStart - aLastStart || bLastLogId.localeCompare(aLastLogId, undefined, { numeric: true }) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
         }
         if (sortType === 'OLD_ASC') {
+          // 오래된 날짜순: 날짜가 같으면 시작 시간 오름차순 (먼저 부른 순) -> log_id 오름차순 -> 제목순
           return a.lastDate.localeCompare(b.lastDate) || aLastStart - bLastStart || aLastLogId.localeCompare(bLastLogId, undefined, { numeric: true }) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
         }
         
