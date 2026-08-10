@@ -717,16 +717,20 @@
 
   <script>
     // ==========================================
-    // 1. 전역 상태 및 데이터 스토어
+    // 1. 3계층 정규화 DB URL 설정 (원래 라이브 주소 보존)
     // ==========================================
-    const GOOGLE_SHEET_TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5K4P_3y3z0vX7Hl-1wX3y3z0vX7Hl/pub?output=tsv'; // TSV 데이터 URL
+    const DB_URLS = {
+      log: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTvxgmO1qyAwMITyp_J2-m53NOyA4AAlSzLBQPUHnHC5nAEv193nYMxoh2saWMEWxDw4Je0jw-Qz-Yw/pub?gid=0&single=true&output=tsv",
+      video: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRqlpmvGEeZ8ZJaC0d7XFdKTqTVznMVeCyXMmZ0rodugXh-nLHbuU5iheV9_CjpUAdx4BCK-sC_vISc/pub?gid=0&single=true&output=tsv",
+      song: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRVDkY7NKTc2mjrbWPMf9a8ygJqRlyqOX5GIqO-k1MBdQsdqCebq-Y7AvuXcxfzCs1s_-psrajLylUj/pub?gid=0&single=true&output=tsv"
+    };
 
     let currentStreamer = 'kira'; // 'kira' | 'tenten'
     let currentTab = 'player';    // 'player' | 'stats'
 
-    let rawSongs = [];        // 전체 파싱 원본 데이터
-    let songs = [];           // 현재 스트리머로 필터링된 데이터
-    let masterVideos = [];    // 방송 목록 드롭다운 데이터
+    let rawSongs = [];        // 3계층 DB 병합 완료된 전체 데이터
+    let songs = [];           // 현재 선택된 스트리머 데이터
+    let masterVideos = [];    // 방송 목록 드롭다운용
 
     // 재생 탭 필터 상태
     let currentPlayerLang = 'ALL';
@@ -796,48 +800,101 @@
     }
 
     // ==========================================
-    // 3. 데이터 로드 및 TSV 파싱
+    // 3. 3계층 데이터 병렬 로드 및 관계 병합
     // ==========================================
     function loadAllData() {
       showSkeletonLoading();
 
-      // ✅ 수정됨: 로컬 파일명 대신 구글 시트 URL 변수를 사용하도록 변경
-      Papa.parse(GOOGLE_SHEET_TSV_URL, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: function(results) {
-          parseAndStoreData(results.data);
-        },
-        error: function(err) {
-          console.warn('데이터 로드 실패', err);
-          showError('데이터를 불러오는데 실패했습니다.');
-        }
+      // Promise.all로 3개 TSV 병렬 수신
+      Promise.all([
+        fetchTSV(DB_URLS.log),
+        fetchTSV(DB_URLS.video),
+        fetchTSV(DB_URLS.song)
+      ]).then(([logsData, videoData, songData]) => {
+        mergeNormalizedData(logsData, videoData, songData);
+      }).catch(err => {
+        console.error("데이터 로드 중 오류 발생:", err);
+        showError('데이터를 불러오는 중 오류가 발생했습니다.');
       });
     }
 
-    function parseAndStoreData(data) {
-      rawSongs = data.map(row => {
-        const logId = row['log_id'] || row['기록 고유 ID (PK)'] || '';
-        const rawVideoId = row['video_id'] || row['영상 ID (FK)'] || '';
-        const streamerId = row['singer_id'] || (logId.startsWith('T') ? 'tenten' : 'kira');
+    function fetchTSV(url) {
+      return new Promise((resolve, reject) => {
+        Papa.parse(url, {
+          download: true,
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => resolve(results.data),
+          error: (err) => reject(err)
+        });
+      });
+    }
+
+    function mergeNormalizedData(logs, videos, songsMaster) {
+      // 1) 영상 DB 맵 생성 (video_id -> video Object)
+      const videoMap = new Map();
+      videos.forEach(v => {
+        const id = v['video_id'] || v['영상 고유 ID (PK)'] || '';
+        if (id) {
+          videoMap.set(id, {
+            videoId: id,
+            youtubeVideoId: v['youtube_video_id'] || v['유튜브 영상 코드'] || '',
+            streamerId: v['streamer_id'] || v['스트리머 ID (FK)'] || '',
+            streamDate: v['stream_date'] || v['방송일'] || '',
+            platform: v['platform'] || v['방송 플랫폼'] || '',
+            videoTitle: v['video_title'] || v['영상/방송 제목'] || '',
+            videoUrl: v['video_url'] || v['다시보기 링크'] || ''
+          });
+        }
+      });
+
+      // 2) 노래 Master DB 맵 생성 (song_id -> song Object)
+      const songMasterMap = new Map();
+      songsMaster.forEach(s => {
+        const id = s['song_id'] || s['곡 고유 ID (PK)'] || '';
+        if (id) {
+          songMasterMap.set(id, {
+            songId: id,
+            lang: s['lang'] || s['언어'] || 'KO',
+            titlePrimary: s['title_primary'] || s['대표 곡 제목'] || '제목 없음',
+            titleOriginal: s['title_original'] || s['원어 제목'] || '',
+            artistPrimary: s['artist_primary'] || s['대표 가수명'] || '아티스트 미상',
+            artistOriginal: s['artist_original'] || s['원어 가수명'] || '',
+            sourceWork: s['source_work'] || s['출전/타이업'] || '',
+            duration: s['duration'] || s['재생시간'] || '',
+            searchKeywords: s['search_keywords'] || s['통합 검색어'] || ''
+          });
+        }
+      });
+
+      // 3) 가창 기록 DB 바인딩 및 최종 비정규화 객체 배열 생성
+      rawSongs = logs.map(l => {
+        const logId = l['log_id'] || l['기록 고유 ID (PK)'] || '';
+        const vId = l['video_id'] || l['영상 ID (FK)'] || '';
+        const sId = l['song_id'] || l['곡 ID (FK)'] || '';
+
+        const vInfo = videoMap.get(vId) || {};
+        const sInfo = songMasterMap.get(sId) || {};
+
+        const streamerId = l['singer_id'] || vInfo.streamerId || (logId.startsWith('T') ? 'tenten' : 'kira');
 
         return {
           logId: logId,
-          rawVideoId: rawVideoId,
-          songId: row['song_id'] || '',
-          title: row['title'] || row['곡 제목'] || '제목 없음',
-          titleOrig: row['title_original'] || '',
-          artist: row['artist'] || row['가수'] || '아티스트 미상',
-          artistOrig: row['artist_original'] || '',
-          date: row['date'] || parseDateFromLogId(logId),
-          start: parseTimeToSeconds(row['start_time'] || row['시작 시간']),
-          end: parseTimeToSeconds(row['end_time'] || row['종료 시간']),
-          lang: row['lang'] || 'KO',
-          searchKeywords: row['search_keywords'] || '',
+          rawVideoId: vInfo.youtubeVideoId || vId,
+          videoIdFK: vId,
+          songId: sId,
+          title: sInfo.titlePrimary || '제목 없음',
+          titleOrig: sInfo.titleOriginal || '',
+          artist: sInfo.artistPrimary || '아티스트 미상',
+          artistOrig: sInfo.artistOriginal || '',
+          date: formatDateString(vInfo.streamDate) || parseDateFromLogId(logId),
+          start: parseTimeToSeconds(l['start_time'] || l['시작 시간']),
+          end: parseTimeToSeconds(l['end_time'] || l['종료 시간']),
+          lang: sInfo.lang || 'KO',
+          searchKeywords: sInfo.searchKeywords || '',
           streamerId: streamerId,
-          videoTitle: row['video_title'] || '',
-          videoUrl: row['video_url'] || row['youtube_video_id'] || ''
+          videoTitle: vInfo.videoTitle || '',
+          videoUrl: vInfo.videoUrl || ''
         };
       });
 
@@ -847,8 +904,17 @@
       renderCurrentTab();
     }
 
+    function formatDateString(str) {
+      if (!str) return '';
+      // 2026-08-09 또는 2026.08.09 -> 26.08.09
+      const cleaned = str.replace(/-/g, '.');
+      if (cleaned.length === 10) {
+        return cleaned.substring(2);
+      }
+      return cleaned;
+    }
+
     function parseDateFromLogId(logId) {
-      // K-20260809_01 형식에서 26.08.09 추출
       const match = logId.match(/\d{8}/);
       if (match) {
         const str = match[0];
@@ -965,7 +1031,6 @@
     }
 
     function formatShortDate(dateStr) {
-      // 26.08.09 -> 08.09
       if (dateStr && dateStr.length >= 8) {
         return dateStr.substring(3);
       }
@@ -986,17 +1051,14 @@
     function renderPlayerTab() {
       let filtered = [...songs];
 
-      // 방송 필터링
       if (currentPlayerSelectedVideoId !== 'ALL') {
         filtered = filtered.filter(s => s.rawVideoId === currentPlayerSelectedVideoId);
       }
 
-      // 언어 필터링
       if (currentPlayerLang !== 'ALL') {
         filtered = filtered.filter(s => s.lang === currentPlayerLang);
       }
 
-      // 검색어 필터링
       const queries = getSearchQueries(document.getElementById('playerSearchInput').value);
       if (queries.length > 0) {
         filtered = filtered.filter(s => {
@@ -1005,10 +1067,8 @@
         });
       }
 
-      // 정렬
       filtered = sortPlayerSongs(filtered, currentPlayerSort);
 
-      // DOM 출력
       const container = document.getElementById('songListContainer');
       const countEl = document.getElementById('playlistCount');
       if (countEl) countEl.textContent = `${filtered.length}곡`;
@@ -1068,7 +1128,7 @@
     }
 
     // ==========================================
-    // 6. 통계 탭 렌더링 및 집계 (log_id 정렬 적용)
+    // 6. 통계 탭 렌더링 및 집계 (수정 및 개선 반영)
     // ==========================================
     function aggregateSongStatistics(songList) {
       const map = new Map();
@@ -1100,7 +1160,6 @@
 
       const result = [];
       map.forEach(item => {
-        // events 정렬 (날짜 -> log_id 숫자 비교 순)
         const sortedEvents = [...item.events].sort((a, b) => {
           const d = a.date.localeCompare(b.date);
           if (d !== 0) return d;
@@ -1126,6 +1185,11 @@
       return result;
     }
 
+    function filterStatistics(data, lang) {
+      if (lang === 'ALL') return data;
+      return data.filter(item => item.lang === lang);
+    }
+
     function renderStatistics() {
       if (songs.length === 0) {
         showError('집계할 데이터가 없습니다.');
@@ -1134,7 +1198,7 @@
 
       let aggregated = aggregateSongStatistics(songs);
 
-      // 📺 통계 탭 방송 드롭다운 필터링
+      // 📺 통계 탭 방송 드롭다운 필터링 (필터링 후 날짜 메타데이터 갱신 적용)
       if (currentStatsSelectedVideoId !== 'ALL') {
         aggregated = aggregated.map(item => {
           const filteredEvents = item.sortedEvents.filter(ev => ev.rawVideoId === currentStatsSelectedVideoId);
@@ -1148,18 +1212,17 @@
             firstDate: firstEvent.date,
             lastDate: lastEvent.date,
             firstId: firstEvent.id,
-            lastId: lastEvent.id
+            lastId: lastEvent.id,
+            firstStart: firstEvent.start,
+            lastStart: lastEvent.start
           };
         }).filter(Boolean);
       }
 
-      // 언어 필터링
-      if (currentStatsLang !== 'ALL') {
-        aggregated = aggregated.filter(item => item.lang === currentStatsLang);
-      }
+      aggregated = filterStatistics(aggregated, currentStatsLang);
 
-      // 검색어 필터링
       const queries = getSearchQueries(document.getElementById('statsSearchInput').value);
+
       if (queries.length > 0) {
         aggregated = aggregated.filter(item => {
           const datesText = item.sortedEvents.map(ev => `${ev.date} ${formatShortDate(ev.date)} ${ev.videoTitle || ''}`).join(' ');
@@ -1168,10 +1231,8 @@
         });
       }
 
-      // 정렬
       const sorted = sortStatistics(aggregated, currentStatsSort);
 
-      // DOM 출력
       const container = document.getElementById('statsGridContainer');
       if (sorted.length === 0) {
         container.replaceChildren(createEmptyElement('통계 조건에 부합하는 곡이 없습니다.'));
@@ -1208,64 +1269,43 @@
       container.replaceChildren(fragment);
     }
 
-    // ✅ 통계 탭 정렬 핵심 로직 (시간 대신 log_id 숫자 정렬 및 오타 완벽 수정 적용)
+    // ✅ 통계 탭 정렬 로직 (log_id 숫자 비교 기반 정렬 및 동점 비교 오타 완벽 수정)
     function sortStatistics(data, sortType) {
       const list = [...data];
 
       list.sort((a, b) => {
         if (sortType === 'DATE_ASC') {
-          // 1순위: 처음 부른 날짜 (오래된 순)
           const dateComp = a.firstDate.localeCompare(b.firstDate);
           if (dateComp !== 0) return dateComp;
-          
-          // 2순위: 처음 부른 가창 기록 ID (log_id 오름차순 - 실제 부른 순서)
           const idComp = (a.firstId || '').localeCompare(b.firstId || '', undefined, { numeric: true });
           if (idComp !== 0) return idComp;
-          
-          // 3순위: 곡 제목 가나다순
           return a.title.localeCompare(b.title, 'ko');
         }
 
         if (sortType === 'RECENT_DESC') {
-          // 1순위: 가장 최근에 부른 날짜 (최신순)
           const dateComp = b.lastDate.localeCompare(a.lastDate);
           if (dateComp !== 0) return dateComp;
-          
-          // 2순위: 최근 부른 가창 기록 ID (log_id 내림차순 - 최근 순)
           const idComp = (b.lastId || '').localeCompare(a.lastId || '', undefined, { numeric: true });
           if (idComp !== 0) return idComp;
-          
-          // 3순위: 곡 제목 가나다순
           return a.title.localeCompare(b.title, 'ko');
         }
 
         if (sortType === 'OLD_ASC') {
-          // 1순위: 마지막으로 부른 날짜 (오래 묵은 순)
           const dateComp = a.lastDate.localeCompare(b.lastDate);
           if (dateComp !== 0) return dateComp;
-          
-          // ✅ 2순위: 마지막 부른 가창 기록 ID (log_id 오름차순) - 오타(a와 b비교) 수정됨
           const idComp = (a.lastId || '').localeCompare(b.lastId || '', undefined, { numeric: true });
           if (idComp !== 0) return idComp;
-          
-          // 3순위: 곡 제목 가나다순
           return a.title.localeCompare(b.title, 'ko');
         }
 
         if (sortType === 'COUNT_DESC') {
-          // 1순위: 많이 부른 횟수순
           if (b.playCount !== a.playCount) {
             return b.playCount - a.playCount;
           }
-          // 2순위: 처음 부른 날짜 (오래된 순)
           const dateComp = a.firstDate.localeCompare(b.firstDate);
           if (dateComp !== 0) return dateComp;
-          
-          // ✅ 3순위: 처음 부른 가창 기록 ID (log_id 오름차순) - 오타(a와 b비교) 수정됨
           const idComp = (a.firstId || '').localeCompare(b.firstId || '', undefined, { numeric: true });
           if (idComp !== 0) return idComp;
-          
-          // 4순위: 곡 제목 가나다순
           return a.title.localeCompare(b.title, 'ko');
         }
 
@@ -1376,7 +1416,6 @@
       container.innerHTML = html;
     }
 
-    // 스마트 스크롤 제어
     function setupScrollListener() {
       const backBtn = document.getElementById('backToTopBtn');
       const playlistCard = document.getElementById('songListContainer');
