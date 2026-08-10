@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="light">
+<html lang="ko" data-theme="light" data-streamer="kira">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,14 +45,36 @@
       --accent-light: var(--kira-light);
     }
 
+    /* 스트리머별 테마 변수 (자바스크립트 버그 방지) */
+    [data-streamer="kira"] {
+      --accent-primary: var(--kira-primary);
+      --accent-secondary: var(--kira-secondary);
+      --accent-hover: var(--kira-hover);
+      --accent-light: var(--kira-light);
+    }
+
+    [data-streamer="tenten"] {
+      --accent-primary: var(--tenten-primary);
+      --accent-secondary: var(--tenten-secondary);
+      --accent-hover: var(--tenten-hover);
+      --accent-light: var(--tenten-light);
+    }
+
     /* 🌙 다크 모드 테마 변수 */
     [data-theme="dark"] {
       --bg-color: #0f172a;
       --panel-bg: #1e293b;
       --card-bg: #334155;
       --text: #f8fafc;
-      --text-muted: #94a3b8;
+      --text-muted: #cbd5e1; /* 다크모드 가독성을 위해 기존보다 한 톤 밝게 수정 */
       --border: #334155;
+      /* 본문용 포인트 색은 밝게, 버튼 배경은 --accent-hover로 유지합니다. */
+      --kira-primary: #c4b5fd;
+      --kira-secondary: #e9d5ff;
+      --kira-hover: #6d28d9;
+      --tenten-primary: #fca5a5;
+      --tenten-secondary: #fecaca;
+      --tenten-hover: #b91c1c;
       --kira-light: #2c2541;
       --tenten-light: #3f2020;
     }
@@ -101,13 +123,13 @@
       padding: 6px 14px; border-radius: 6px; border: none; background-color: transparent;
       color: var(--text-muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
     }
-    .streamer-btn.active { background-color: var(--accent-primary); color: #fff; }
+    .streamer-btn.active { background-color: var(--accent-hover); color: #fff; }
 
     .tab-btn {
       padding: 6px 16px; border-radius: 6px; border: none; background-color: transparent;
       color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
     }
-    .tab-btn.active { background-color: var(--accent-secondary); color: #fff; }
+    .tab-btn.active { background-color: var(--accent-hover); color: #fff; }
 
     .tab-content { display: none; width: 100%; flex: 1; }
     .tab-content.active { display: block; }
@@ -121,7 +143,7 @@
       .main-container { grid-template-columns: 1.2fr 0.8fr; }
     }
 
-    /* Player Box (고정 안 함 - 우측 스크롤이 독립적이기 때문) */
+    /* Player Box */
     .player-section { display: flex; flex-direction: column; gap: 16px; }
 
     .player-container {
@@ -155,7 +177,7 @@
     .db-badge strong { color: var(--accent-secondary); }
     .log-id-tag { font-size: 0.75rem; color: var(--text-muted); margin-left: 6px; font-weight: 500; }
 
-    /* Playlist Section (기존의 독립 스크롤 유지) */
+    /* Playlist Section */
     .playlist-section {
       background-color: var(--panel-bg); border: 1px solid var(--border);
       border-radius: 12px; padding: 16px; display: flex; flex-direction: column;
@@ -190,7 +212,7 @@
       cursor: pointer; transition: all 0.2s;
     }
     .filter-btn.active, .filter-btn:hover {
-      background-color: var(--accent-primary); color: #fff; border-color: var(--accent-primary);
+      background-color: var(--accent-hover); color: #fff; border-color: var(--accent-hover);
     }
 
     /* 독립 스크롤 적용 부분 */
@@ -210,7 +232,7 @@
     @media (hover: hover) {
       .song-card:hover { border-color: var(--accent-primary); transform: translateY(-1px); }
       .stats-item .date-link:hover {
-        color: #fff; background-color: var(--accent-secondary); 
+        color: #fff; background-color: var(--accent-hover); 
         border-radius: 4px; text-decoration: none;
       }
     }
@@ -273,7 +295,7 @@
       background-color: var(--panel-bg); border: 1px solid var(--border);
       border-radius: 8px; padding: 12px 16px; font-size: 0.9rem;
       line-height: 1.5; color: var(--text); word-break: break-all;
-      scroll-margin-top: 24px; transition: background-color 0.3s, border-color 0.3s;
+      scroll-margin-top: 24px; transition: background-color 0.3s, border-color 0.3s, color 0.3s; /* 글자색 트랜지션 추가 */
     }
     .stats-item .index-text { font-weight: 700; color: var(--text-muted); margin-right: 6px; }
     .stats-item .title-text { font-weight: 700; color: var(--accent-secondary); }
@@ -284,7 +306,7 @@
       cursor: pointer; transition: all 0.2s; padding: 2px 4px;
     }
     .stats-item .date-link.active-date {
-      color: #fff !important; background-color: var(--accent-secondary);
+      color: #fff !important; background-color: var(--accent-hover);
       border-radius: 4px; text-decoration: none; font-weight: bold;
     }
     .stats-item .count-text { font-weight: 700; color: var(--accent-primary); margin-left: 4px; }
@@ -301,6 +323,17 @@
 
     .stats-player-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); }
     .stats-player-header strong { color: var(--accent-secondary); }
+
+    .stats-player-notice {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px;
+      background-color: var(--card-bg); color: var(--text); font-size: 0.82rem;
+    }
+    .stats-player-notice[hidden] { display: none; }
+    .stats-player-retry-btn {
+      flex: 0 0 auto; background-color: var(--accent-hover); border: 1px solid var(--accent-hover);
+      color: #fff; cursor: pointer; font-size: 0.78rem; font-weight: 700; padding: 4px 8px; border-radius: 4px;
+    }
 
     .stats-player-close-btn {
       background-color: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted);
@@ -370,7 +403,7 @@
       <div class="playlist-section">
         <div class="search-filter-box">
           <div class="search-wrapper">
-            <input type="text" id="searchInput" class="search-input" placeholder="곡명, 가수, 날짜 등 (띄어쓰기로 정확히 검색)..." oninput="toggleClearBtn('searchInput', 'searchClearBtn'); filterSongs()">
+            <input type="text" id="searchInput" class="search-input" placeholder="곡명 · 가수 · 별칭 · 년월일 검색" oninput="toggleClearBtn('searchInput', 'searchClearBtn'); filterSongs()">
             <button id="searchClearBtn" class="search-clear-btn" onclick="clearInput('searchInput', 'searchClearBtn'); filterSongs()">✕</button>
           </div>
           
@@ -398,7 +431,7 @@
     <div class="stats-container">
       <div class="stats-header-box">
         <div class="search-wrapper">
-          <input type="text" id="statsSearchInput" class="search-input" placeholder="통계 내 곡명, 가수, 날짜 등 검색 (띄어쓰기로 정확히 검색)..." oninput="toggleClearBtn('statsSearchInput', 'statsClearBtn'); filterStats()">
+          <input type="text" id="statsSearchInput" class="search-input" placeholder="곡명 · 가수 · 별칭 · 년월일 검색" oninput="toggleClearBtn('statsSearchInput', 'statsClearBtn'); filterStats()">
           <button id="statsClearBtn" class="search-clear-btn" onclick="clearInput('statsSearchInput', 'statsClearBtn'); filterStats()">✕</button>
         </div>
         
@@ -784,15 +817,8 @@
       document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
-      if (streamerKey === 'kira') {
-        document.documentElement.style.setProperty('--accent-primary', 'var(--kira-primary)');
-        document.documentElement.style.setProperty('--accent-secondary', 'var(--kira-secondary)');
-        document.documentElement.style.setProperty('--accent-hover', 'var(--kira-hover)');
-      } else if (streamerKey === 'tenten') {
-        document.documentElement.style.setProperty('--accent-primary', 'var(--tenten-primary)');
-        document.documentElement.style.setProperty('--accent-secondary', 'var(--tenten-secondary)');
-        document.documentElement.style.setProperty('--accent-hover', 'var(--tenten-hover)');
-      }
+      // 🔥 자바스크립트 인라인 스타일 지정 대신 속성값 하나로 CSS 연동 처리
+      document.documentElement.setAttribute('data-streamer', streamerKey);
 
       clearPlaybackMonitor();
       clearTimeout(playerRetryTimeout);
