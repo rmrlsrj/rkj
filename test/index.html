@@ -1371,7 +1371,6 @@ function sortStatistics(items, sortType) {
         return shuffled;
       }
       return [...items].sort((a, b) => {
-        // 통계 탭 내부의 이벤트(재생 기록)는 이미 시간순으로 정렬되어 있으므로 첫 번째 기록(0번 인덱스)의 시간(start)을 가져옵니다.
         const aFirstStart = a.sortedEvents.length > 0 ? a.sortedEvents[0].start : 0;
         const bFirstStart = b.sortedEvents.length > 0 ? b.sortedEvents[0].start : 0;
         
@@ -1385,16 +1384,14 @@ function sortStatistics(items, sortType) {
           return getTitleLangCategory(a.titleDisplay) - getTitleLangCategory(b.titleDisplay) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
         }
         if (sortType === 'RECENT_DESC') {
-          // 최근 날짜순: 날짜가 같으면 최신 방송의 가장 마지막에 부른 순서대로(시간 역순) 표시하거나, 보통은 시간 오름차순으로 둡니다. 
-          // 여기서는 방송 내의 자연스러운 흐름을 위해 시간 오름차순(aLastStart - bLastStart)을 적용합니다.
-          return b.lastDate.localeCompare(a.lastDate) || aLastStart - bLastStart || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
+          // 🔄 최근에 부른 날짜순 (최신 방송이 위로 오도록 내림차순 유지)
+          return b.lastDate.localeCompare(a.lastDate) || bLastStart - aLastStart || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
         }
         if (sortType === 'OLD_ASC') {
           return a.lastDate.localeCompare(b.lastDate) || aLastStart - bLastStart || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
         }
         
-        // 기본값: '처음 부른 날짜순 (DATE_ASC)'
-        // 🔥 날짜가 같다면 -> 처음 불렀던 시간(start) 순서로 정렬 -> 그래도 같다면 제목순
+        // 🔥 '처음 부른 날짜순 (DATE_ASC)' -> 방송 시간 순서(정방향: 47분 -> 1시간 -> 2시간...)로 나오도록 수정!
         return a.firstDate.localeCompare(b.firstDate) || aFirstStart - bFirstStart || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
       });
     }
