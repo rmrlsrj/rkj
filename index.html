@@ -295,7 +295,7 @@
       background-color: var(--panel-bg); border: 1px solid var(--border);
       border-radius: 8px; padding: 12px 16px; font-size: 0.9rem;
       line-height: 1.5; color: var(--text); word-break: break-all;
-      scroll-margin-top: 24px; transition: background-color 0.3s, border-color 0.3s, color 0.3s; /* 글자색 트랜지션 추가 */
+      scroll-margin-top: 24px; transition: background-color 0.3s, border-color 0.3s, color 0.3s;
     }
     .stats-item .index-text { font-weight: 700; color: var(--text-muted); margin-right: 6px; }
     .stats-item .title-text { font-weight: 700; color: var(--accent-secondary); }
@@ -1338,13 +1338,18 @@
       }, 300);
 
       if (window.YT && window.YT.Player) {
+        // 🔥 1. 현재 접속한 기기가 모바일(스마트폰/태블릿)인지 확인
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
         statsPlayer = new YT.Player('statsPlayerTarget', {
           height: '100%',
           width: '100%',
           videoId: ev.videoId,
-          playerVars: { 'autoplay': 1, 'controls': 1, 'start': ev.start, 'rel': 0 },
+          // 🔥 2. 모바일이면 autoplay를 0(끄기)으로, PC면 1(켜기)로 설정
+          playerVars: { 'autoplay': isMobile ? 0 : 1, 'controls': 1, 'start': ev.start, 'rel': 0 },
           events: {
-            'onReady': (e) => { e.target.playVideo(); },
+            // 🔥 3. PC 환경에서만 즉시 재생 명령(playVideo) 실행
+            'onReady': (e) => { if (!isMobile) e.target.playVideo(); },
             'onStateChange': (e) => onStatsPlayerStateChange(e, ev)
           }
         });
