@@ -1362,7 +1362,7 @@
       return category === 'ALL' ? items : items.filter(item => matchCategoryFilter(item, category));
     }
 
-    // 🔥 통계 탭 시간순 정렬 완벽 적용 (RECENT_DESC 수정)
+    // 🔥 통계 탭 시간순 정렬 완벽 적용 (수정됨)
     function sortStatistics(items, sortType) {
       if (sortType === 'SHUFFLE') {
         const shuffled = [...items];
@@ -1372,28 +1372,37 @@
         }
         return shuffled;
       }
-      return [...items].sort((a, b) => {
-        const aFirstStart = a.sortedEvents.length > 0 ? a.sortedEvents[0].start : 0;
-        const bFirstStart = b.sortedEvents.length > 0 ? b.sortedEvents[0].start : 0;
-        const aLastStart = a.sortedEvents.length > 0 ? a.sortedEvents[a.sortedEvents.length - 1].start : 0;
-        const bLastStart = b.sortedEvents.length > 0 ? b.sortedEvents[b.sortedEvents.length - 1].start : 0;
 
+      return [...items].sort((a, b) => {
         if (sortType === 'COUNT_DESC') {
-          return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate) || aFirstStart - bFirstStart || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
+          // 1. 많이 부른 순: 횟수 내림차순 -> 처음 부른 날짜순 -> ID순
+          return b.playCount - a.playCount 
+              || a.firstDate.localeCompare(b.firstDate) 
+              || a.firstId.localeCompare(b.firstId, undefined, {numeric: true}) 
+              || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
         }
         if (sortType === 'TITLE_LANG') {
-          return getTitleLangCategory(a.titleDisplay) - getTitleLangCategory(b.titleDisplay) || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
+          // 2. 원제목순: 언어 카테고리 -> 가나다순
+          return getTitleLangCategory(a.titleDisplay) - getTitleLangCategory(b.titleDisplay) 
+              || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
         }
         if (sortType === 'RECENT_DESC') {
-          // ★★★ 수정: 같은 날짜 내에서는 start 내림차순 (최근 순) ★★★
-          return b.lastDate.localeCompare(a.lastDate) || bLastStart - aLastStart || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
+          // 3. 최근에 부른 날짜순: 마지막으로 부른 날짜 내림차순 -> ID 내림차순
+          return b.lastDate.localeCompare(a.lastDate) 
+              || b.lastId.localeCompare(a.lastId, undefined, {numeric: true}) 
+              || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
         }
         if (sortType === 'OLD_ASC') {
-          return a.lastDate.localeCompare(b.lastDate) || aLastStart - bLastStart || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
+          // 4. 오래 묵은 곡 순: 마지막으로 부른 날짜 오름차순 -> ID 오름차순
+          return a.lastDate.localeCompare(b.lastDate) 
+              || a.lastId.localeCompare(b.lastId, undefined, {numeric: true}) 
+              || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
         }
         
-        // 기본값: '처음 부른 날짜순 (DATE_ASC)'
-        return a.firstDate.localeCompare(b.firstDate) || aFirstStart - bFirstStart || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
+        // 5. 기본값 (DATE_ASC - 처음 부른 날짜순): 처음 부른 날짜 오름차순 -> ID 오름차순
+        return a.firstDate.localeCompare(b.firstDate) 
+            || a.firstId.localeCompare(b.firstId, undefined, {numeric: true}) 
+            || a.titleDisplay.localeCompare(b.titleDisplay, 'ko');
       });
     }
 
