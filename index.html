@@ -1161,7 +1161,7 @@
         card.innerHTML = `
           <div>
             <div class="song-info-date">
-              ${escapeHtml(song.date)}${song.videoTitle ? ' (' + escapeHtml(song.videoTitle) + ')' : ''}
+              ${escapeHtml(song.date)}
               <span class="log-id-tag">[${escapeHtml(song.logId)} | ${escapeHtml(song.startTimeRaw)} ~ ${escapeHtml(song.endTimeRaw)}]</span>
             </div>
             <div class="song-info-main">${playIcon}${escapeHtml(song.title)}</div>
