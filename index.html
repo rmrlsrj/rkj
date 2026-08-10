@@ -801,8 +801,8 @@
     function loadAllData() {
       showSkeletonLoading();
 
-      // PapaParse를 이용해 TSV 데이터 로드
-      Papa.parse('최종_가창 기록 DB - 시트1.tsv', {
+      // ✅ 수정됨: 로컬 파일명 대신 구글 시트 URL 변수를 사용하도록 변경
+      Papa.parse(GOOGLE_SHEET_TSV_URL, {
         download: true,
         header: true,
         skipEmptyLines: true,
@@ -810,7 +810,7 @@
           parseAndStoreData(results.data);
         },
         error: function(err) {
-          console.warn('로컬 TSV 파일 로드 실패, 백업 로직을 수행합니다.', err);
+          console.warn('데이터 로드 실패', err);
           showError('데이터를 불러오는데 실패했습니다.');
         }
       });
@@ -1208,7 +1208,7 @@
       container.replaceChildren(fragment);
     }
 
-    // ✅ 통계 탭 정렬 핵심 로직 (시간 대신 log_id 숫자 정렬 적용)
+    // ✅ 통계 탭 정렬 핵심 로직 (시간 대신 log_id 숫자 정렬 및 오타 완벽 수정 적용)
     function sortStatistics(data, sortType) {
       const list = [...data];
 
@@ -1244,8 +1244,8 @@
           const dateComp = a.lastDate.localeCompare(b.lastDate);
           if (dateComp !== 0) return dateComp;
           
-          // 2순위: 마지막 부른 가창 기록 ID (log_id 오름차순)
-          const idComp = (a.lastId || '').localeCompare(a.lastId || '', undefined, { numeric: true });
+          // ✅ 2순위: 마지막 부른 가창 기록 ID (log_id 오름차순) - 오타(a와 b비교) 수정됨
+          const idComp = (a.lastId || '').localeCompare(b.lastId || '', undefined, { numeric: true });
           if (idComp !== 0) return idComp;
           
           // 3순위: 곡 제목 가나다순
@@ -1261,8 +1261,8 @@
           const dateComp = a.firstDate.localeCompare(b.firstDate);
           if (dateComp !== 0) return dateComp;
           
-          // 3순위: 처음 부른 가창 기록 ID (log_id 오름차순)
-          const idComp = (a.firstId || '').localeCompare(a.firstId || '', undefined, { numeric: true });
+          // ✅ 3순위: 처음 부른 가창 기록 ID (log_id 오름차순) - 오타(a와 b비교) 수정됨
+          const idComp = (a.firstId || '').localeCompare(b.firstId || '', undefined, { numeric: true });
           if (idComp !== 0) return idComp;
           
           // 4순위: 곡 제목 가나다순
