@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title> Unofficial </title>
+  <title>Unofficial Archive</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,7 +11,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   
   <script>
-    // 페이지 로딩 시 번쩍거림 방지를 위한 다크모드 초기화 스크립트
     const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', savedTheme);
   </script>
@@ -70,7 +69,7 @@
     .filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
     .filter-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background-color: var(--panel-bg); color: var(--text-muted); font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
     .filter-btn.active, .filter-btn:hover { background-color: var(--accent-hover); color: #fff; border-color: var(--accent-hover); }
-    .playlist-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; }
+    .playlist-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; position: relative; }
     .playlist-scroll::-webkit-scrollbar { width: 6px; }
     .playlist-scroll::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 3px; }
     .song-card { padding: 12px 14px; border-radius: 8px; background-color: var(--panel-bg); border: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
@@ -85,13 +84,13 @@
     @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
     .song-info-sub { font-size: 0.8rem; color: var(--text-muted); }
     .song-badge { font-size: 0.7rem; font-weight: 600; padding: 4px 8px; border-radius: 6px; background-color: var(--accent-light); color: var(--accent-secondary); border: 1px solid rgba(0,0,0,0.05); white-space: nowrap; }
-    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.95rem; background-color: var(--panel-bg); border-radius: 8px; border: 1px dashed var(--border); margin-top: 10px; }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.95rem; background-color: var(--panel-bg); border-radius: 8px; border: 1px dashed var(--border); margin-top: 10px; width: 100%; }
     .skeleton-box { background: linear-gradient(90deg, var(--card-bg) 25%, var(--border) 50%, var(--card-bg) 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite linear; border-radius: 4px; }
     @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     .stats-container { max-width: 1200px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
     .stats-header-box { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s, border-color 0.3s; }
     .stats-header-controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%; }
-    .stats-list { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-height: 500px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s, border-color 0.3s; }
+    .stats-list { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-height: 500px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s, border-color 0.3s; position: relative; }
     .stats-item { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; font-size: 0.9rem; line-height: 1.5; color: var(--text); word-break: break-all; scroll-margin-top: 24px; transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
     .stats-item .index-text { font-weight: 700; color: var(--text-muted); margin-right: 6px; }
     .stats-item .title-text { font-weight: 700; color: var(--accent-secondary); }
@@ -112,18 +111,22 @@
     .back-to-top { position: fixed; bottom: 30px; right: 30px; background-color: var(--accent-primary); color: #fff; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.2s, background-color 0.3s; z-index: 1000; }
     .back-to-top.show { opacity: 1; pointer-events: auto; }
     .back-to-top:hover { transform: translateY(-3px); background-color: var(--accent-hover); }
+
+    /* 리스트 짝수 번째 항목에 옅은 배경색 추가 (지브라 패턴) */
+    .song-card:nth-child(even):not(.active),
+    .stats-item:nth-child(even) {
+      background-color: var(--bg-color);
+    }
   </style>
 </head>
 <body>
 
   <header>
-    <h1> Unofficial </h1>
+    <h1>Unofficial Archive</h1>
     <div class="header-controls">
-      <!-- 🧹 인라인 이벤트 모두 제거 -->
       <button id="themeToggleBtn" class="theme-toggle-btn" title="다크 모드 변경"></button>
       
       <div class="streamer-nav">
-        <!-- 식별용 data-* 속성만 남김 -->
         <button class="streamer-btn active" data-streamer-target="kira">세이로쿠 키라</button>
         <button class="streamer-btn" data-streamer-target="tenten">텐플라스텐 텐텐</button>
       </div>
@@ -220,17 +223,18 @@
     // ⚙️ 0. 전역 설정 (매직 넘버 관리)
     // =========================================================================
     const CONFIG = {
-      TIMER_INTERVAL: 250,      // 타이머 감시 주기 (ms)
-      DEBOUNCE_DELAY: 250,      // 검색어 입력 지연 시간 (ms)
-      RETRY_DELAY: 300,         // 플레이어 로드 실패 시 재시도 간격 (ms)
-      SCROLL_SHOW_POS: 300,     // Top 버튼이 나타나는 스크롤 위치 (px)
-      SCROLL_DELAY: 300,        // 스크롤 이동 애니메이션 대기 시간 (ms)
-      SKELETON_COUNT_MAIN: 8,   // 재생 탭 로딩 스켈레톤 개수
-      SKELETON_COUNT_STATS: 6   // 통계 탭 로딩 스켈레톤 개수
+      TIMER_INTERVAL: 250,      
+      DEBOUNCE_DELAY: 250,      
+      RETRY_DELAY: 300,         
+      SCROLL_SHOW_POS: 300,     
+      SCROLL_DELAY: 300,        
+      SKELETON_COUNT_MAIN: 8,   
+      SKELETON_COUNT_STATS: 6,
+      CHUNK_SIZE: 50            // 무한 스크롤 한 번에 렌더링할 청크 크기
     };
 
     // =========================================================================
-    // 🛠️ 1. 유틸리티 (순수 함수들 - 부작용 없음)
+    // 🛠️ 1. 유틸리티
     // =========================================================================
     const Utils = {
       timeToSeconds: (timeStr) => {
@@ -294,11 +298,10 @@
     };
 
     // =========================================================================
-    // 💾 2. 데이터 매니저 (상태를 내부에 숨기고 필터링을 전담)
+    // 💾 2. 데이터 매니저
     // =========================================================================
     class DataManager {
       #allSongs = [];
-      
       streamerKey = 'kira';
       mainFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
       statsFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
@@ -631,9 +634,81 @@
     }
 
     // =========================================================================
-    // 🎨 5. UI 제어자 (DOM 조작 전담)
+    // ⚙️ 5. 지연 렌더링 매니저 (무한 스크롤 캡슐화)
+    // =========================================================================
+    class LazyListRenderer {
+      #container;
+      #createCardFn;
+      #observer;
+      #sentinel;
+      #dataList = [];
+      #currentIndex = 0;
+      context = {};
+
+      constructor(containerId, createCardFn) {
+        this.#container = document.getElementById(containerId);
+        this.#createCardFn = createCardFn;
+        
+        this.#sentinel = document.createElement('div');
+        this.#sentinel.style.height = '1px';
+
+        this.#observer = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) {
+            this.#renderNextChunk();
+          }
+        }, { root: this.#container, rootMargin: '300px' });
+      }
+
+      render(newData, context = {}) {
+        this.#dataList = newData;
+        this.#currentIndex = 0;
+        this.context = context;
+        this.#container.innerHTML = '';
+        this.#container.scrollTop = 0;
+
+        if (this.#dataList.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty-state';
+          empty.innerHTML = '조건에 맞는 곡이 없습니다. 텅~ 👻<br><br><small>검색어나 필터를 다시 확인해 보세요!</small>';
+          this.#container.appendChild(empty);
+          return;
+        }
+
+        this.#container.appendChild(this.#sentinel);
+        this.#observer.observe(this.#sentinel);
+        
+        this.#renderNextChunk(); // 첫 청크 즉시 렌더링
+      }
+
+      #renderNextChunk() {
+        if (this.#currentIndex >= this.#dataList.length) return;
+
+        const fragment = document.createDocumentFragment();
+        const end = Math.min(this.#currentIndex + CONFIG.CHUNK_SIZE, this.#dataList.length);
+
+        for (let i = this.#currentIndex; i < end; i++) {
+          fragment.appendChild(this.#createCardFn(this.#dataList[i], i, this.context));
+        }
+
+        this.#currentIndex = end;
+        this.#container.insertBefore(fragment, this.#sentinel);
+
+        if (this.#currentIndex >= this.#dataList.length) {
+          this.#observer.unobserve(this.#sentinel);
+          this.#sentinel.remove();
+        }
+      }
+    }
+
+    // =========================================================================
+    // 🎨 6. UI 제어자 (DOM 조작 전담)
     // =========================================================================
     class UIController {
+      constructor() {
+        this.playlistRenderer = new LazyListRenderer('playlist', this.#createPlaylistCard.bind(this));
+        this.statsListRenderer = new LazyListRenderer('statsList', this.#createStatsCard.bind(this));
+      }
+
       initTheme() {
         document.getElementById('themeToggleBtn').innerText = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
       }
@@ -725,66 +800,77 @@
         }
       }
 
-      renderPlaylist(songs, activeSongId, onPlay) {
-        const container = document.getElementById('playlist');
-        if (songs.length === 0) {
-          container.innerHTML = `<div class="empty-state">조건에 맞는 곡이 없습니다. 텅~ 👻<br><br><small>검색어나 필터를 다시 확인해 보세요!</small></div>`;
-          return;
+      // DOM 전체 재생성이 아닌 CSS 클래스만 갱신 (스크롤 초기화 방지)
+      highlightActiveSong(songId) {
+        document.querySelectorAll('.song-card').forEach(card => card.classList.remove('active'));
+        document.querySelectorAll('.playing-icon').forEach(icon => icon.remove());
+        
+        if (!songId) return;
+        const targetCard = document.querySelector(`.song-card[data-song-id="${songId}"]`);
+        if (targetCard) {
+          targetCard.classList.add('active');
+          const mainInfo = targetCard.querySelector('.song-info-main');
+          if (mainInfo && !mainInfo.querySelector('.playing-icon')) {
+            mainInfo.insertAdjacentHTML('afterbegin', '<span class="playing-icon">▶️</span>');
+          }
         }
-        const frag = document.createDocumentFragment();
-        songs.forEach((song, idx) => {
-          const isActive = song.id === activeSongId;
-          const card = document.createElement('div');
-          card.className = `song-card ${isActive ? 'active' : ''}`;
-          card.tabIndex = 0;
-          card.addEventListener('click', () => onPlay(idx));
-          card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPlay(idx); } });
-          
-          card.innerHTML = `
-            <div>
-              <div class="song-info-date">${Utils.escapeHtml(song.date)} <span class="log-id-tag">[${Utils.escapeHtml(song.logId)} | ${Utils.escapeHtml(song.startTimeRaw)} ~ ${Utils.escapeHtml(song.endTimeRaw)}]</span></div>
-              <div class="song-info-main">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)}</div>
-              <div class="song-info-sub">${Utils.escapeHtml(song.artist)}${song.work ? ' • ' + Utils.escapeHtml(song.work) : ''}</div>
-            </div>
-            <span class="song-badge">${Utils.escapeHtml(song.lang)}</span>
-          `;
-          frag.appendChild(card);
+      }
+
+      // 지연 렌더링에 주입할 개별 카드 생성 함수들
+      #createPlaylistCard(song, idx, context) {
+        const { activeSongId, onPlay } = context;
+        const isActive = song.id === activeSongId;
+        const card = document.createElement('div');
+        card.className = `song-card ${isActive ? 'active' : ''}`;
+        card.dataset.songId = song.id; 
+        card.tabIndex = 0;
+        card.addEventListener('click', () => onPlay(idx));
+        card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPlay(idx); } });
+        
+        card.innerHTML = `
+          <div>
+            <div class="song-info-date">${Utils.escapeHtml(song.date)} <span class="log-id-tag">[${Utils.escapeHtml(song.logId)} | ${Utils.escapeHtml(song.startTimeRaw)} ~ ${Utils.escapeHtml(song.endTimeRaw)}]</span></div>
+            <div class="song-info-main">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)}</div>
+            <div class="song-info-sub">${Utils.escapeHtml(song.artist)}${song.work ? ' • ' + Utils.escapeHtml(song.work) : ''}</div>
+          </div>
+          <span class="song-badge">${Utils.escapeHtml(song.lang)}</span>
+        `;
+        return card;
+      }
+
+      #createStatsCard(item, idx, context) {
+        const { onToggleStatsPlayer } = context;
+        const div = document.createElement('div');
+        div.className = 'stats-item';
+
+        const addText = (cls, txt) => { const s = document.createElement('span'); s.className = cls; s.textContent = txt; div.appendChild(s); };
+        addText('index-text', `${idx + 1}.`); addText('title-text', item.title); div.append(' / '); addText('artist-text', item.artist); div.append(' / ');
+
+        const datesSpan = document.createElement('span');
+        datesSpan.className = 'dates-text';
+        
+        item.playEvents.forEach((ev, evIdx) => {
+          const a = document.createElement('a');
+          a.className = 'date-link';
+          a.textContent = Utils.formatShortDate(ev.date);
+          a.href = `https://www.youtube.com/watch?v=${ev.videoId}&t=${ev.start}s`;
+          a.title = `${ev.videoTitle ? ev.videoTitle + ' | ' : ''}가창 ID: ${ev.id} (${ev.startRaw || ''} ~ ${ev.endRaw || ''})`;
+          a.addEventListener('click', (e) => onToggleStatsPlayer(ev, e, div, a));
+          datesSpan.appendChild(a);
+          if (evIdx < item.playEvents.length - 1) datesSpan.append(' / ');
         });
-        container.replaceChildren(frag);
+        
+        div.appendChild(datesSpan);
+        addText('count-text', `(${item.playCount}회)`);
+        return div;
+      }
+
+      renderPlaylist(songs, activeSongId, onPlay) {
+        this.playlistRenderer.render(songs, { activeSongId, onPlay });
       }
 
       renderStatsList(items, onToggleStatsPlayer) {
-        const container = document.getElementById('statsList');
-        if (items.length === 0) {
-          container.innerHTML = `<div class="empty-state">조건에 맞는 곡이 없습니다. 텅~ 👻<br><br><small>검색어나 필터를 다시 확인해 보세요!</small></div>`;
-          return;
-        }
-        const frag = document.createDocumentFragment();
-        items.forEach((item, idx) => {
-          const div = document.createElement('div');
-          div.className = 'stats-item';
-
-          const addText = (cls, txt) => { const s = document.createElement('span'); s.className = cls; s.textContent = txt; div.appendChild(s); };
-          addText('index-text', `${idx + 1}.`); addText('title-text', item.title); div.append(' / '); addText('artist-text', item.artist); div.append(' / ');
-
-          const datesSpan = document.createElement('span');
-          datesSpan.className = 'dates-text';
-          
-          item.playEvents.forEach((ev, evIdx) => {
-            const a = document.createElement('a');
-            a.className = 'date-link';
-            a.textContent = Utils.formatShortDate(ev.date);
-            a.href = `https://www.youtube.com/watch?v=${ev.videoId}&t=${ev.start}s`;
-            a.title = `${ev.videoTitle ? ev.videoTitle + ' | ' : ''}가창 ID: ${ev.id} (${ev.startRaw || ''} ~ ${ev.endRaw || ''})`;
-            a.addEventListener('click', (e) => onToggleStatsPlayer(ev, e, div, a));
-            datesSpan.appendChild(a);
-            if (evIdx < item.playEvents.length - 1) datesSpan.append(' / ');
-          });
-          div.appendChild(datesSpan);
-          addText('count-text', `(${item.playCount}회)`);
-          frag.appendChild(div);
-        });
-        container.replaceChildren(frag);
+        this.statsListRenderer.render(items, { onToggleStatsPlayer });
       }
 
       removeStatsPlayerDOM() {
@@ -838,7 +924,7 @@
     }
 
     // =========================================================================
-    // 🚀 6. 앱 오케스트레이터 및 이벤트 바인더
+    // 🚀 7. 앱 오케스트레이터 및 이벤트 바인더
     // =========================================================================
     class KaraApp {
       constructor() {
@@ -854,7 +940,7 @@
       async init() {
         this.ui.initTheme();
         this.ui.initScrollObserver();
-        this.bindEvents(); // DOM 이벤트 리스너 일괄 연결
+        this.bindEvents(); 
         this.ui.renderSkeleton('playlist', CONFIG.SKELETON_COUNT_MAIN, false);
         this.ui.renderSkeleton('statsList', CONFIG.SKELETON_COUNT_STATS, true);
         
@@ -867,12 +953,10 @@
         }
       }
 
-      // --- HTML 이벤트 위임(Event Delegation) 설정 ---
       bindEvents() {
         document.getElementById('themeToggleBtn').addEventListener('click', () => this.ui.toggleTheme());
         document.getElementById('backToTop').addEventListener('click', () => this.ui.scrollToTop());
 
-        // 스트리머 & 탭 전환
         document.querySelectorAll('.streamer-btn').forEach(btn => {
           btn.addEventListener('click', (e) => this.switchStreamer(e.target.dataset.streamerTarget, e.target));
         });
@@ -880,7 +964,6 @@
           btn.addEventListener('click', (e) => this.switchMainTab(e.target.dataset.tabTarget, e.target));
         });
 
-        // 재생 탭 (메인) 필터 및 검색
         const searchInput = document.getElementById('searchInput');
         const searchClearBtn = document.getElementById('searchClearBtn');
         searchInput.addEventListener('input', () => {
@@ -916,7 +999,6 @@
           });
         });
 
-        // 통계 탭 필터 및 검색
         const statsSearchInput = document.getElementById('statsSearchInput');
         const statsClearBtn = document.getElementById('statsClearBtn');
         statsSearchInput.addEventListener('input', () => {
@@ -992,7 +1074,7 @@
         if (!song) return;
         
         this.mainPlayer.play(index, cueOnly);
-        this.renderPlaylist(); 
+        this.ui.highlightActiveSong(song.id); 
         this.ui.updateNowPlaying(song);
       }
 
@@ -1064,7 +1146,7 @@
     }
 
     // =========================================================================
-    // 🌐 7. 앱 실행
+    // 🌐 8. 앱 실행
     // =========================================================================
     const App = new KaraApp();
     window.addEventListener('DOMContentLoaded', () => App.init());
