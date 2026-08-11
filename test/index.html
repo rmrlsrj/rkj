@@ -18,21 +18,50 @@
   <style>
     :root {
       --bg-color: #f8fafc; --panel-bg: #ffffff; --card-bg: #f1f5f9;
-      --zebra-bg: #f4f6f9; /* 라이트모드용 지브라 패턴 색상 */
       --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0;
-      --kira-primary: #9b95c9; --kira-secondary: #654374; --kira-hover: #867eb6; --kira-light: #f4f2f9;     
-      --tenten-primary: #e65c5c; --tenten-secondary: #2b2b2b; --tenten-hover: #d24a4a; --tenten-light: #fdf2f2;   
+      
+      /* 키라 (Kira) 퍼스널 컬러 */
+      --kira-primary: #9b95c9; --kira-secondary: #654374; --kira-hover: #867eb6; 
+      --kira-light: #ece9f5; /* 재생 중인 곡 하이라이트 (조금 더 진함) */
+      --kira-zebra: #f6f4fa; /* 짝수 번째 지브라 배경 (아주 옅은 보라) */
+
+      /* 텐텐 (Tenten) 퍼스널 컬러 */
+      --tenten-primary: #e65c5c; --tenten-secondary: #2b2b2b; --tenten-hover: #d24a4a; 
+      --tenten-light: #fce8e8; /* 재생 중인 곡 하이라이트 (조금 더 진함) */
+      --tenten-zebra: #fdf5f5; /* 짝수 번째 지브라 배경 (아주 옅은 다홍/코랄) */
+
+      /* 현재 선택된 스트리머에 따라 변수 매핑 */
       --accent-primary: var(--kira-primary); --accent-secondary: var(--kira-secondary);
       --accent-hover: var(--kira-hover); --accent-light: var(--kira-light);
+      --accent-zebra: var(--kira-zebra);
     }
-    [data-streamer="kira"] { --accent-primary: var(--kira-primary); --accent-secondary: var(--kira-secondary); --accent-hover: var(--kira-hover); --accent-light: var(--kira-light); }
-    [data-streamer="tenten"] { --accent-primary: var(--tenten-primary); --accent-secondary: var(--tenten-secondary); --accent-hover: var(--tenten-hover); --accent-light: var(--tenten-light); }
+    
+    [data-streamer="kira"] { 
+      --accent-primary: var(--kira-primary); --accent-secondary: var(--kira-secondary); 
+      --accent-hover: var(--kira-hover); --accent-light: var(--kira-light); 
+      --accent-zebra: var(--kira-zebra); 
+    }
+    
+    [data-streamer="tenten"] { 
+      --accent-primary: var(--tenten-primary); --accent-secondary: var(--tenten-secondary); 
+      --accent-hover: var(--tenten-hover); --accent-light: var(--tenten-light); 
+      --accent-zebra: var(--tenten-zebra); 
+    }
+    
     [data-theme="dark"] {
       --bg-color: #0f172a; --panel-bg: #1e293b; --card-bg: #334155; 
-      --zebra-bg: #253145; /* 다크모드용 지브라 패턴 색상 (테두리와 안 겹침) */
       --text: #f8fafc; --text-muted: #cbd5e1; --border: #334155;
-      --kira-primary: #c4b5fd; --kira-secondary: #e9d5ff; --kira-hover: #6d28d9; --tenten-primary: #fca5a5; --tenten-secondary: #fecaca; --tenten-hover: #b91c1c; --kira-light: #2c2541; --tenten-light: #3f2020;
+      
+      /* 다크모드 색상 재정의 */
+      --kira-primary: #c4b5fd; --kira-secondary: #e9d5ff; --kira-hover: #6d28d9; 
+      --kira-light: #32284d; /* 다크모드 재생 중 하이라이트 */
+      --kira-zebra: #242a42; /* 다크모드 짝수 번째 지브라 배경 */
+
+      --tenten-primary: #fca5a5; --tenten-secondary: #fecaca; --tenten-hover: #b91c1c; 
+      --tenten-light: #452222; /* 다크모드 재생 중 하이라이트 */
+      --tenten-zebra: #2c232f; /* 다크모드 짝수 번째 지브라 배경 */
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; transition: background-color 0.3s ease, color 0.3s ease; }
     header { background-color: var(--panel-bg); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: background-color 0.3s ease, border-color 0.3s ease; }
@@ -76,7 +105,16 @@
     .playlist-scroll::-webkit-scrollbar { width: 6px; }
     .playlist-scroll::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 3px; }
     .song-card { padding: 12px 14px; border-radius: 8px; background-color: var(--panel-bg); border: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
+    
+    /* Active 상태 색상은 더 강하게 하이라이트 */
     .song-card.active { border-left: 4px solid var(--accent-primary); background-color: var(--accent-light); }
+    
+    /* 리스트 짝수 번째 항목에 옅은 퍼스널 컬러 배경 추가 (지브라 패턴) */
+    .song-card:nth-child(even):not(.active),
+    .stats-item:nth-child(even) {
+      background-color: var(--accent-zebra);
+    }
+
     @media (hover: hover) {
       .song-card:hover { border-color: var(--accent-primary); transform: translateY(-1px); }
       .stats-item .date-link:hover { color: #fff; background-color: var(--accent-hover); border-radius: 4px; text-decoration: none; }
@@ -114,12 +152,6 @@
     .back-to-top { position: fixed; bottom: 30px; right: 30px; background-color: var(--accent-primary); color: #fff; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.2s, background-color 0.3s; z-index: 1000; }
     .back-to-top.show { opacity: 1; pointer-events: auto; }
     .back-to-top:hover { transform: translateY(-3px); background-color: var(--accent-hover); }
-
-    /* 리스트 짝수 번째 항목에 옅은 배경색 추가 (지브라 패턴) */
-    .song-card:nth-child(even):not(.active),
-    .stats-item:nth-child(even) {
-      background-color: var(--zebra-bg);
-    }
   </style>
 </head>
 <body>
