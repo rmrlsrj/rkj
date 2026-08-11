@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Unofficial Archive</title>
+  <title>Unofficial</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,25 +19,26 @@
     :root {
       --bg-color: #f8fafc; --panel-bg: #ffffff; --card-bg: #f1f5f9;
       --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0;
+      
       --kira-primary: #9b95c9; --kira-secondary: #654374; --kira-hover: #867eb6; --kira-light: #f4f2f9;     
       --tenten-primary: #e65c5c; --tenten-secondary: #2b2b2b; --tenten-hover: #d24a4a; --tenten-light: #fdf2f2;   
-      /* 🟤 신규 추가: 코네코토 스야 (라떼/브라운) */
       --suya-primary: #9a6b52; --suya-secondary: #5c3e31; --suya-hover: #85563e; --suya-light: #f6eee9;
-
+      
       --accent-primary: var(--kira-primary); --accent-secondary: var(--kira-secondary);
       --accent-hover: var(--kira-hover); --accent-light: var(--kira-light);
     }
+    
     [data-streamer="kira"] { --accent-primary: var(--kira-primary); --accent-secondary: var(--kira-secondary); --accent-hover: var(--kira-hover); --accent-light: var(--kira-light); }
     [data-streamer="tenten"] { --accent-primary: var(--tenten-primary); --accent-secondary: var(--tenten-secondary); --accent-hover: var(--tenten-hover); --accent-light: var(--tenten-light); }
-    /* 🟤 신규 추가 */
     [data-streamer="suya"] { --accent-primary: var(--suya-primary); --accent-secondary: var(--suya-secondary); --accent-hover: var(--suya-hover); --accent-light: var(--suya-light); }
-
+    
     [data-theme="dark"] {
       --bg-color: #0f172a; --panel-bg: #1e293b; --card-bg: #334155; --text: #f8fafc; --text-muted: #cbd5e1; --border: #334155;
-      --kira-primary: #c4b5fd; --kira-secondary: #e9d5ff; --kira-hover: #6d28d9; --tenten-primary: #fca5a5; --tenten-secondary: #fecaca; --tenten-hover: #b91c1c; --kira-light: #2c2541; --tenten-light: #3f2020;
-      /* 🟤 다크 모드 스야 색상 추가 */
-      --suya-primary: #d4a389; --suya-secondary: #edd6ca; --suya-hover: #7a4b33; --suya-light: #33231a;
+      --kira-primary: #c4b5fd; --kira-secondary: #e9d5ff; --kira-hover: #6d28d9; --kira-light: #2c2541; 
+      --tenten-primary: #fca5a5; --tenten-secondary: #fecaca; --tenten-hover: #b91c1c; --tenten-light: #3f2020;
+      --suya-primary: #c29f8a; --suya-secondary: #e6d1c3; --suya-hover: #9a6b52; --suya-light: #3b2c25;
     }
+    
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; transition: background-color 0.3s ease, color 0.3s ease; }
     header { background-color: var(--panel-bg); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: background-color 0.3s ease, border-color 0.3s ease; }
@@ -124,7 +125,7 @@
 <body>
 
   <header>
-    <h1>Unofficial Archive</h1>
+    <h1>Unofficial</h1>
     <div class="header-controls">
       <button id="themeToggleBtn" class="theme-toggle-btn" title="다크 모드 변경"></button>
       
@@ -133,6 +134,7 @@
         <button class="streamer-btn" data-streamer-target="tenten">텐플라스텐 텐텐</button>
         <button class="streamer-btn" data-streamer-target="suya">코네코토 스야</button>
       </div>
+      
       <div class="tab-nav">
         <button class="tab-btn active" data-tab-target="player">재생</button>
         <button class="tab-btn" data-tab-target="stats">통계</button>
