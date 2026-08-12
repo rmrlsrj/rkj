@@ -711,8 +711,8 @@
     // =========================================================================
     class UIController {
       constructor() {
+        // 재생 탭만 무한 스크롤(Lazy Loading) 적용
         this.playlistRenderer = new LazyListRenderer('playlist', this.#createPlaylistCard.bind(this));
-        this.statsListRenderer = new LazyListRenderer('statsList', this.#createStatsCard.bind(this));
       }
 
       initTheme() {
@@ -875,8 +875,28 @@
         this.playlistRenderer.render(songs, { activeSongId, onPlay });
       }
 
+      // 📌 통계 리스트 전체를 한 번에 렌더링하도록 변경된 부분
       renderStatsList(items, onToggleStatsPlayer) {
-        this.statsListRenderer.render(items, { onToggleStatsPlayer });
+        const container = document.getElementById('statsList');
+        container.innerHTML = '';
+        container.scrollTop = 0;
+
+        if (items.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty-state';
+          empty.innerHTML = '조건에 맞는 곡이 없습니다. 텅~ 👻<br><br><small>검색어나 필터를 다시 확인해 보세요!</small>';
+          container.appendChild(empty);
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        const context = { onToggleStatsPlayer };
+
+        items.forEach((item, idx) => {
+          fragment.appendChild(this.#createStatsCard(item, idx, context));
+        });
+
+        container.appendChild(fragment);
       }
 
       removeStatsPlayerDOM() {
