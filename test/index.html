@@ -87,7 +87,6 @@
       .song-card:hover { border-color: var(--accent-primary); transform: translateY(-1px); }
       .stats-item .date-link:hover { color: #fff; background-color: var(--accent-hover); border-radius: 4px; text-decoration: none; }
     }
-    .song-card:nth-child(even):not(.active), .stats-item:nth-child(even) { background-color: var(--bg-color); }
     .song-info-date { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px; }
     .song-info-main { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 3px; display: flex; align-items: center; word-break: break-word; overflow-wrap: anywhere; }
     .playing-icon { display: inline-block; margin-right: 6px; font-size: 0.85rem; animation: pulse 1.5s infinite; }
@@ -484,7 +483,7 @@
     }
 
     // =========================================================================
-    // 📺 3. 메인 플레이어 매니저 
+    // 📺 3. 메인 플레이어 매니저 (4단계 강제 초기화 및 좀비 차단 반영)
     // =========================================================================
     class MainPlayerManager {
       #player = null;
@@ -514,6 +513,7 @@
         } else {
           this.#currentIndex = this.#playlist.length > 0 ? 0 : -1;
         }
+        this.#isSeekingForced = false; // [Step 4] 생명주기 초기화 엄격화
       }
 
       init(firstSong) {
@@ -544,6 +544,8 @@
 
       cue(index) {
         if (index < 0 || index >= this.#playlist.length) return;
+        this.#clearMonitor(); // [Step 4] 좀비 타이머 방어
+        this.#isSeekingForced = false; // [Step 4] 강제 멱살잡이 변수 리셋
         this.#currentIndex = index;
         const song = this.#playlist[index];
         this.#currentSongId = song.id;
@@ -555,12 +557,13 @@
 
       play(index, cueOnly = false) {
         if (index < 0 || index >= this.#playlist.length) return;
-        this.#isSeekingForced = false;
+        this.#clearMonitor(); // [Step 4] 좀비 타이머 완벽 차단
+        this.#isSeekingForced = false; // [Step 4] 강제 멱살잡이 변수 리셋
         this.#currentIndex = index;
         const song = this.#playlist[index];
         this.#currentSongId = song.id;
         
-        if (this.#retryTimeout) clearTimeout(this.#retryTimeout);
+        if (this.#retryTimeout) { clearTimeout(this.#retryTimeout); this.#retryTimeout = null; }
 
         const targetStart = Math.max(0, song.start || 0);
 
@@ -584,8 +587,8 @@
       pause() { if (this.#player && typeof this.#player.pauseVideo === 'function') this.#player.pauseVideo(); }
       
       stop() {
-        this.#clearMonitor();
-        if (this.#retryTimeout) clearTimeout(this.#retryTimeout);
+        this.#clearMonitor(); // [Step 4] 좀비 타이머 차단
+        if (this.#retryTimeout) { clearTimeout(this.#retryTimeout); this.#retryTimeout = null; }
         if (this.#player && typeof this.#player.stopVideo === 'function') this.#player.stopVideo();
       }
 
@@ -607,13 +610,16 @@
 
       reset() {
         this.stop();
-        this.#playlist = []; this.#currentIndex = -1; this.#currentSongId = null;
-        this.#isSeekingForced = false; this.#currentVideoId = null;
+        this.#playlist = []; 
+        this.#currentIndex = -1; 
+        this.#currentSongId = null;
+        this.#isSeekingForced = false; 
+        this.#currentVideoId = null;
       }
     }
 
     // =========================================================================
-    // 📊 4. 통계 플레이어 매니저
+    // 📊 4. 통계 플레이어 매니저 (4단계 파괴 후처리 깔끔화 반영)
     // =========================================================================
     class StatsPlayerManager {
       #player = null;
@@ -624,7 +630,7 @@
       get activeEventId() { return this.#activeEventId; }
 
       init(videoId, start, end, eventId) {
-        this.close();
+        this.close(); // [Step 4] 무조건 안전하게 기존 객체부터 파괴
         this.#activeEventId = eventId;
         this.#isSeekingForced = false;
 
@@ -667,9 +673,10 @@
       }
 
       close() {
-        this.#clearMonitor();
+        this.#clearMonitor(); // [Step 4] 모니터 싹 날리기
         if (this.#player) { try { if (typeof this.#player.destroy === 'function') this.#player.destroy(); } catch (e) {} this.#player = null; }
-        this.#activeEventId = null;
+        this.#activeEventId = null; // [Step 4] 식별자까지 완벽하게 비움
+        this.#isSeekingForced = false;
       }
     }
 
@@ -705,7 +712,6 @@
         this.context = context;
         this.#containerEl.innerHTML = '';
         
-        // 브라우저 렌더링 사이클에 맞춰 안전하게 스크롤 초기화
         requestAnimationFrame(() => {
           this.#containerEl.scrollTop = 0;
         });
@@ -749,7 +755,6 @@
     // =========================================================================
     class UIController {
       constructor() {
-        // DOM 탐색 비용을 줄이기 위한 엘리먼트 캐싱
         this.els = {
           themeToggleBtn: document.getElementById('themeToggleBtn'),
           playlist: document.getElementById('playlist'),
@@ -857,14 +862,12 @@
         if (this.npMetaCached) this.els.npMeta.style.display = 'none';
       }
 
-      // innerHTML 재생성을 막고 textContent만 교체하는 최적화 로직 적용
       updateNowPlaying(song) {
         if (!song) return;
         this.els.npDate.textContent = `${song.date}${song.videoTitle ? ' - ' + song.videoTitle : ''}`;
         this.els.npTitle.textContent = song.title;
         this.els.npArtist.textContent = `${song.artist}${song.work ? ' • ' + song.work : ''}`;
         
-        // 뼈대가 없을 때 최초 한 번만 innerHTML로 생성
         if (!this.npMetaCached) {
           this.els.npMeta.innerHTML = `
             <span class="db-badge">가창 ID: <strong id="npMetaLogId"></strong></span>
@@ -879,14 +882,12 @@
           this.npMetaCached = true;
         }
         
-        // 이후에는 요소 안의 텍스트만 갈아 끼움 (렌더링 부하 최소화)
         this.els.npMeta.style.display = 'flex';
         this.npMetaEls.logId.textContent = song.logId;
         this.npMetaEls.duration.textContent = `${song.startTimeRaw} ~ ${song.endTimeRaw}`;
         this.npMetaEls.songId.textContent = song.songId;
       }
 
-      // 전체 document가 아닌 playlist 컨테이너 안에서만 탐색
       highlightActiveSong(songId) {
         this.els.playlist.querySelectorAll('.song-card.active').forEach(card => card.classList.remove('active'));
         this.els.playlist.querySelectorAll('.playing-icon').forEach(icon => icon.remove());
@@ -1229,6 +1230,7 @@
       switchStreamer(key, btn) {
         if (this.data.streamerKey === key && this.data.getStreamerSongs().length > 0) return;
         this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
+        
         this.data.streamerKey = key;
         
         this.data.mainFilters.videoId = 'ALL'; this.data.statsFilters.videoId = 'ALL';
