@@ -235,24 +235,27 @@
       SCROLL_DELAY: 300,        
       SKELETON_COUNT_MAIN: 8,   
       SKELETON_COUNT_STATS: 6,
-      CHUNK_SIZE: 50            // 무한 스크롤 한 번에 렌더링할 청크 크기
+      CHUNK_SIZE: 50            
     };
+
+    // Utils 최적화를 위한 정규식 캐싱
+    const REGEX_LANG_KO = /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/;
+    const REGEX_LANG_JA = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
+    const REGEX_LANG_EN = /[A-Za-z]/;
+    const REGEX_SHORT_DATE = /^\d{2}(\d{2}\.\d{1,2}\.\d{1,2})$/;
 
     // =========================================================================
     // 🛠️ 1. 유틸리티
     // =========================================================================
     const Utils = {
       timeToSeconds: (timeStr) => {
-        if (timeStr === undefined || timeStr === null || timeStr === '') return null;
-        if (typeof timeStr === 'number') return Number.isFinite(timeStr) && timeStr >= 0 ? timeStr : null;
-        const cleanStr = timeStr.toString().trim();
+        if (timeStr == null || timeStr === '') return null;
+        if (typeof timeStr === 'number') return (Number.isFinite(timeStr) && timeStr >= 0) ? timeStr : null;
+        const cleanStr = String(timeStr).trim();
         if (!cleanStr) return null;
-        if (/^\d+$/.test(cleanStr)) return parseInt(cleanStr, 10);
-        const parts = cleanStr.split(':').map(p => parseInt(p.trim(), 10));
-        if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-        if (parts.length === 2) return parts[0] * 60 + parts[1];
-        if (parts.length === 1) return parts[0];
-        return null;
+        const parts = cleanStr.split(':').map(Number);
+        if (parts.some(isNaN)) return null;
+        return parts.reduce((acc, val) => acc * 60 + val, 0);
       },
       secondsToTimeStr: (totalSeconds) => {
         if (!totalSeconds) return '0:00';
@@ -264,9 +267,7 @@
       },
       formatDate: (dateStr) => (dateStr || '').trim().replace(/-/g, '.'),
       formatShortDate: (fullDate) => {
-        if (!fullDate) return '';
-        const parts = fullDate.split('.');
-        return parts.length === 3 ? `${parts[0].length === 4 ? parts[0].substring(2) : parts[0]}.${parts[1]}.${parts[2]}` : fullDate;
+        return (fullDate || '').replace(REGEX_SHORT_DATE, '$1');
       },
       escapeHtml: (val) => String(val ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;'}[char])),
       normalizeSearchText: (val) => String(val ?? '').normalize('NFC').toLowerCase(),
@@ -276,9 +277,9 @@
       getTitleLangCategory: (str) => {
         if (!str) return 4;
         const firstChar = str.trim().charAt(0);
-        if (/[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/.test(firstChar)) return 1;
-        if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(firstChar)) return 2;
-        if (/[A-Za-z]/.test(firstChar)) return 3;
+        if (REGEX_LANG_KO.test(firstChar)) return 1;
+        if (REGEX_LANG_JA.test(firstChar)) return 2;
+        if (REGEX_LANG_EN.test(firstChar)) return 3;
         return 4;
       },
       matchCategoryFilter: (song, category) => {
@@ -683,7 +684,7 @@
         this.#container.appendChild(this.#sentinel);
         this.#observer.observe(this.#sentinel);
         
-        this.#renderNextChunk(); // 첫 청크 즉시 렌더링
+        this.#renderNextChunk(); 
       }
 
       #renderNextChunk() {
@@ -712,7 +713,6 @@
     class UIController {
       constructor() {
         this.playlistRenderer = new LazyListRenderer('playlist', this.#createPlaylistCard.bind(this));
-        this.statsListRenderer = new LazyListRenderer('statsList', this.#createStatsCard.bind(this));
       }
 
       initTheme() {
@@ -806,7 +806,6 @@
         }
       }
 
-      // DOM 전체 재생성이 아닌 CSS 클래스만 갱신 (스크롤 초기화 방지)
       highlightActiveSong(songId) {
         document.querySelectorAll('.song-card').forEach(card => card.classList.remove('active'));
         document.querySelectorAll('.playing-icon').forEach(icon => icon.remove());
@@ -822,7 +821,6 @@
         }
       }
 
-      // 지연 렌더링에 주입할 개별 카드 생성 함수들
       #createPlaylistCard(song, idx, context) {
         const { activeSongId, onPlay } = context;
         const isActive = song.id === activeSongId;
@@ -876,7 +874,26 @@
       }
 
       renderStatsList(items, onToggleStatsPlayer) {
-        this.statsListRenderer.render(items, { onToggleStatsPlayer });
+        const container = document.getElementById('statsList');
+        container.innerHTML = '';
+        container.scrollTop = 0;
+
+        if (items.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty-state';
+          empty.innerHTML = '조건에 맞는 곡이 없습니다. 텅~ 👻<br><br><small>검색어나 필터를 다시 확인해 보세요!</small>';
+          container.appendChild(empty);
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        const context = { onToggleStatsPlayer };
+
+        items.forEach((item, idx) => {
+          fragment.appendChild(this.#createStatsCard(item, idx, context));
+        });
+
+        container.appendChild(fragment);
       }
 
       removeStatsPlayerDOM() {
