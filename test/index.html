@@ -87,6 +87,7 @@
       .song-card:hover { border-color: var(--accent-primary); transform: translateY(-1px); }
       .stats-item .date-link:hover { color: #fff; background-color: var(--accent-hover); border-radius: 4px; text-decoration: none; }
     }
+    .song-card:nth-child(even):not(.active), .stats-item:nth-child(even) { background-color: var(--bg-color); }
     .song-info-date { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px; }
     .song-info-main { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 3px; display: flex; align-items: center; word-break: break-word; overflow-wrap: anywhere; }
     .playing-icon { display: inline-block; margin-right: 6px; font-size: 0.85rem; animation: pulse 1.5s infinite; }
@@ -225,7 +226,7 @@
 
   <script>
     // =========================================================================
-    // ⚙️ 0. 전역 설정 (매직 넘버 관리)
+    // ⚙️ 0. 전역 설정
     // =========================================================================
     const CONFIG = {
       TIMER_INTERVAL: 250,      
@@ -238,7 +239,6 @@
       CHUNK_SIZE: 50            
     };
 
-    // Utils 최적화를 위한 정규식 캐싱
     const REGEX_LANG_KO = /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/;
     const REGEX_LANG_JA = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
     const REGEX_LANG_EN = /[A-Za-z]/;
@@ -266,9 +266,7 @@
                      : `${m}:${s.toString().padStart(2, '0')}`;
       },
       formatDate: (dateStr) => (dateStr || '').trim().replace(/-/g, '.'),
-      formatShortDate: (fullDate) => {
-        return (fullDate || '').replace(REGEX_SHORT_DATE, '$1');
-      },
+      formatShortDate: (fullDate) => (fullDate || '').replace(REGEX_SHORT_DATE, '$1'),
       escapeHtml: (val) => String(val ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;'}[char])),
       normalizeSearchText: (val) => String(val ?? '').normalize('NFC').toLowerCase(),
       createSearchText: (values) => Utils.normalizeSearchText(values.filter(Boolean).join(' ')),
@@ -305,13 +303,25 @@
     };
 
     // =========================================================================
-    // 💾 2. 데이터 매니저
+    // 💾 2. 데이터 매니저 (캐싱 및 필터 최적화 적용)
     // =========================================================================
     class DataManager {
       #allSongs = [];
-      streamerKey = 'kira';
+      #currentStreamerSongs = []; // 현재 선택된 스트리머의 곡 캐싱
+      #cachedStats = [];          // 통계 탭 기초 그룹화 데이터 캐싱
+      #streamerKey = 'kira';
+
       mainFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
       statsFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
+
+      // Getter/Setter를 이용해 스트리머 변경 시 즉시 캐시 업데이트
+      get streamerKey() { return this.#streamerKey; }
+      set streamerKey(key) {
+        if (this.#streamerKey !== key) {
+          this.#streamerKey = key;
+          this.#updateCaches();
+        }
+      }
 
       async loadAllData() {
         const [logRes, videoRes, songRes] = await Promise.all([
@@ -361,7 +371,10 @@
           };
         }).filter(Boolean);
 
+        // 전체 데이터를 로드 시 날짜순(기본값)으로 미리 정렬
         this.#allSongs.sort((a, b) => a.date.localeCompare(b.date) || a.logId.localeCompare(b.logId, undefined, {numeric:true}) || a.start - b.start);
+        
+        this.#updateCaches(); // 최초 캐시 생성
       }
 
       #fetchTSV(url, requiredHeaders = []) {
@@ -375,77 +388,117 @@
         });
       }
 
+      // 스트리머가 바뀔 때마다 하위 데이터를 미리 정리해두는 캐싱 메서드
+      #updateCaches() {
+        const dbId = STREAMER_MAP[this.#streamerKey].dbId;
+        this.#currentStreamerSongs = this.#allSongs.filter(s => s.streamers.includes(dbId));
+        this.#buildStatsCache();
+      }
+
+      // 통계 화면을 위한 1차 그룹화 작업 결과를 메모리에 상주
+      #buildStatsCache() {
+        const songMap = new Map();
+        this.#currentStreamerSongs.forEach(song => {
+          if (!songMap.has(song.songId)) {
+            songMap.set(song.songId, { 
+              songId: song.songId, title: song.title, artist: song.artist, 
+              searchText: song.searchText, lang: song.lang, sourceType: song.sourceType, 
+              playEvents: []
+            });
+          }
+          const entry = songMap.get(song.songId);
+          entry.playEvents.push({ 
+            date: song.date, videoId: song.videoId, start: song.start, end: song.end, 
+            id: song.id, startRaw: song.startTimeRaw, endRaw: song.endTimeRaw, 
+            rawVideoId: song.rawVideoId, videoTitle: song.videoTitle 
+          });
+        });
+
+        this.#cachedStats = Array.from(songMap.values()).map(item => {
+          item.playEvents.sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id, undefined, {numeric:true}) || a.start - b.start);
+          return { 
+            ...item, 
+            playCount: item.playEvents.length,
+            firstDate: item.playEvents[0]?.date || '', 
+            lastDate: item.playEvents[item.playEvents.length-1]?.date || '', 
+            firstId: item.playEvents[0]?.id || '', 
+            lastId: item.playEvents[item.playEvents.length-1]?.id || '' 
+          };
+        });
+      }
+
       getStreamerSongs() {
-        const dbId = STREAMER_MAP[this.streamerKey].dbId;
-        return this.#allSongs.filter(s => s.streamers.includes(dbId));
+        return this.#currentStreamerSongs;
       }
 
       getUniqueVideos() {
         const map = new Map();
-        this.getStreamerSongs().forEach(s => {
+        this.#currentStreamerSongs.forEach(s => {
           if (s.rawVideoId && !map.has(s.rawVideoId)) map.set(s.rawVideoId, { id: s.rawVideoId, date: s.date, title: s.videoTitle });
         });
         return Array.from(map.values()).sort((a, b) => b.date.localeCompare(a.date));
       }
 
       getFilteredMainSongs() {
-        const queries = Utils.getSearchQueries(this.mainFilters.search);
-        let list = this.getStreamerSongs().filter(song => {
-          const mSearch = queries.length === 0 || Utils.matchesSearch(song.searchText, queries);
-          const mLang = Utils.matchCategoryFilter(song, this.mainFilters.lang);
-          const mVideo = this.mainFilters.videoId === 'ALL' || song.rawVideoId === this.mainFilters.videoId;
-          return mSearch && mLang && mVideo;
+        const { search, lang, sort, videoId } = this.mainFilters;
+        const queries = Utils.getSearchQueries(search);
+        
+        let list = this.#currentStreamerSongs.filter(song => {
+          if (videoId !== 'ALL' && song.rawVideoId !== videoId) return false;
+          if (lang !== 'ALL' && !Utils.matchCategoryFilter(song, lang)) return false;
+          if (queries.length > 0 && !Utils.matchesSearch(song.searchText, queries)) return false;
+          return true;
         });
 
-        const { sort } = this.mainFilters;
         if (sort === 'DATE_DESC') list.sort((a, b) => b.date.localeCompare(a.date) || b.logId.localeCompare(a.logId, undefined, {numeric:true}) || b.start - a.start);
-        else if (sort === 'TITLE_ASC') list.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
-        else if (sort === 'SHUFFLE') list = [...list].sort(() => Math.random() - 0.5);
+        else if (sort === 'TITLE_ASC') list.sort((a, b) => this.#sortByTitle(a, b));
+        else if (sort === 'SHUFFLE') list.sort(() => Math.random() - 0.5);
+        // DATE_ASC는 원본 데이터가 이미 정렬되어 있으므로 연산 생략 가능
+        
         return list;
       }
 
+      // 공통된 정렬 기준 (가나다순) 모듈화
+      #sortByTitle(a, b) {
+        return a.title.localeCompare(b.title, 'ko');
+      }
+
       getFilteredStats() {
-        const songMap = new Map();
-        this.getStreamerSongs().forEach(song => {
-          if (!songMap.has(song.songId)) {
-            songMap.set(song.songId, { songId: song.songId, title: song.title, artist: song.artist, searchText: song.searchText, lang: song.lang, sourceType: song.sourceType, playEvents: [], playCount: 0 });
+        const { search, lang, sort, videoId } = this.statsFilters;
+        const queries = Utils.getSearchQueries(search);
+
+        // Map과 다중 Filter를 한 번의 순회(reduce)로 최적화
+        let list = this.#cachedStats.reduce((acc, item) => {
+          if (lang !== 'ALL' && !Utils.matchCategoryFilter(item, lang)) return acc;
+
+          let events = item.playEvents;
+          if (videoId !== 'ALL') {
+            events = events.filter(ev => ev.rawVideoId === videoId);
+            if (events.length === 0) return acc;
           }
-          const entry = songMap.get(song.songId);
-          entry.playCount += 1;
-          entry.playEvents.push({ date: song.date, videoId: song.videoId, start: song.start, end: song.end, id: song.id, startRaw: song.startTimeRaw, endRaw: song.endTimeRaw, rawVideoId: song.rawVideoId, videoTitle: song.videoTitle });
-        });
 
-        let aggregated = Array.from(songMap.values()).map(item => {
-          item.playEvents.sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id, undefined, {numeric:true}) || a.start - b.start);
-          return { ...item, firstDate: item.playEvents[0]?.date||'', lastDate: item.playEvents[item.playEvents.length-1]?.date||'', firstId: item.playEvents[0]?.id||'', lastId: item.playEvents[item.playEvents.length-1]?.id||'' };
-        });
+          if (queries.length > 0) {
+            const dText = events.map(ev => `${ev.date} ${Utils.formatShortDate(ev.date)} ${ev.videoTitle||''}`).join(' ');
+            if (!Utils.matchesSearch(Utils.createSearchText([item.searchText, dText]), queries)) return acc;
+          }
 
-        if (this.statsFilters.videoId !== 'ALL') {
-          aggregated = aggregated.map(item => {
-            const evts = item.playEvents.filter(ev => ev.rawVideoId === this.statsFilters.videoId);
-            if (evts.length === 0) return null;
-            return { ...item, playCount: evts.length, playEvents: evts, firstDate: evts[0].date, lastDate: evts[evts.length-1].date, firstId: evts[0].id, lastId: evts[evts.length-1].id };
-          }).filter(Boolean);
-        }
-
-        aggregated = this.statsFilters.lang === 'ALL' ? aggregated : aggregated.filter(i => Utils.matchCategoryFilter(i, this.statsFilters.lang));
-
-        const queries = Utils.getSearchQueries(this.statsFilters.search);
-        if (queries.length > 0) {
-          aggregated = aggregated.filter(item => {
-            const dText = item.playEvents.map(ev => `${ev.date} ${Utils.formatShortDate(ev.date)} ${ev.videoTitle||''}`).join(' ');
-            return Utils.matchesSearch(Utils.createSearchText([item.searchText, dText]), queries);
+          // 비디오 ID가 선택되었다면, 원본 캐시를 건드리지 않고 새로운 집계 결과 반환
+          acc.push(videoId === 'ALL' ? item : {
+            ...item, playCount: events.length, playEvents: events,
+            firstDate: events[0].date, lastDate: events[events.length-1].date,
+            firstId: events[0].id, lastId: events[events.length-1].id
           });
-        }
+          return acc;
+        }, []);
 
-        const st = this.statsFilters.sort;
-        if (st === 'SHUFFLE') return [...aggregated].sort(() => Math.random() - 0.5);
-        return aggregated.sort((a, b) => {
-          if (st === 'COUNT_DESC') return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate) || a.firstId.localeCompare(b.firstId, undefined, {numeric:true}) || a.title.localeCompare(b.title, 'ko');
-          if (st === 'TITLE_LANG') return Utils.getTitleLangCategory(a.title) - Utils.getTitleLangCategory(b.title) || a.title.localeCompare(b.title, 'ko');
-          if (st === 'RECENT_DESC') return b.lastDate.localeCompare(a.lastDate) || b.lastId.localeCompare(a.lastId, undefined, {numeric:true}) || a.title.localeCompare(b.title, 'ko');
-          if (st === 'OLD_ASC') return a.lastDate.localeCompare(b.lastDate) || a.lastId.localeCompare(b.lastId, undefined, {numeric:true}) || a.title.localeCompare(b.title, 'ko');
-          return a.firstDate.localeCompare(b.firstDate) || a.firstId.localeCompare(b.firstId, undefined, {numeric:true}) || a.title.localeCompare(b.title, 'ko');
+        if (sort === 'SHUFFLE') return list.sort(() => Math.random() - 0.5);
+        
+        return list.sort((a, b) => {
+          if (sort === 'COUNT_DESC') return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate) || a.firstId.localeCompare(b.firstId, undefined, {numeric:true}) || this.#sortByTitle(a, b);
+          if (sort === 'TITLE_LANG') return Utils.getTitleLangCategory(a.title) - Utils.getTitleLangCategory(b.title) || this.#sortByTitle(a, b);
+          if (sort === 'RECENT_DESC') return b.lastDate.localeCompare(a.lastDate) || b.lastId.localeCompare(a.lastId, undefined, {numeric:true}) || this.#sortByTitle(a, b);
+          if (sort === 'OLD_ASC') return a.lastDate.localeCompare(b.lastDate) || a.lastId.localeCompare(b.lastId, undefined, {numeric:true}) || this.#sortByTitle(a, b);
+          return a.firstDate.localeCompare(b.firstDate) || a.firstId.localeCompare(b.firstId, undefined, {numeric:true}) || this.#sortByTitle(a, b);
         });
       }
     }
@@ -641,7 +694,7 @@
     }
 
     // =========================================================================
-    // ⚙️ 5. 지연 렌더링 매니저 (무한 스크롤 캡슐화)
+    // ⚙️ 5. 지연 렌더링 매니저
     // =========================================================================
     class LazyListRenderer {
       #container;
@@ -1148,6 +1201,8 @@
       switchStreamer(key, btn) {
         if (this.data.streamerKey === key && this.data.getStreamerSongs().length > 0) return;
         this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
+        
+        // Setter가 실행되면서 내부 캐시를 자동으로 다시 빌드합니다!
         this.data.streamerKey = key;
         
         this.data.mainFilters.videoId = 'ALL'; this.data.statsFilters.videoId = 'ALL';
