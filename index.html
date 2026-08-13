@@ -152,7 +152,7 @@
           <div class="now-playing-date" id="npDate">데이터 로딩 중...</div>
           <div class="now-playing-title" id="npTitle">노래목록 불러오는 중...</div>
           <div class="now-playing-artist" id="npArtist">노래 아카이브 플레이어</div>
-          <div class="now-playing-meta" id="npMeta"></div>
+          <div class="now-playing-meta" id="npMeta" style="display: none;"></div>
         </div>
       </div>
 
@@ -225,7 +225,7 @@
 
   <script>
     // =========================================================================
-    // ⚙️ 0. 전역 설정 (매직 넘버 관리)
+    // ⚙️ 0. 전역 설정
     // =========================================================================
     const CONFIG = {
       TIMER_INTERVAL: 250,      
@@ -235,24 +235,26 @@
       SCROLL_DELAY: 300,        
       SKELETON_COUNT_MAIN: 8,   
       SKELETON_COUNT_STATS: 6,
-      CHUNK_SIZE: 50            // 무한 스크롤 한 번에 렌더링할 청크 크기
+      CHUNK_SIZE: 50            
     };
 
+    const REGEX_LANG_KO = /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/;
+    const REGEX_LANG_JA = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
+    const REGEX_LANG_EN = /[A-Za-z]/;
+    const REGEX_SHORT_DATE = /^\d{2}(\d{2}\.\d{1,2}\.\d{1,2})$/;
+
     // =========================================================================
-    // 🛠️ 1. 유틸리티
+    // 🛠️ 1. 유틸리티 (1단계 반영)
     // =========================================================================
     const Utils = {
       timeToSeconds: (timeStr) => {
-        if (timeStr === undefined || timeStr === null || timeStr === '') return null;
-        if (typeof timeStr === 'number') return Number.isFinite(timeStr) && timeStr >= 0 ? timeStr : null;
-        const cleanStr = timeStr.toString().trim();
+        if (timeStr == null || timeStr === '') return null;
+        if (typeof timeStr === 'number') return (Number.isFinite(timeStr) && timeStr >= 0) ? timeStr : null;
+        const cleanStr = String(timeStr).trim();
         if (!cleanStr) return null;
-        if (/^\d+$/.test(cleanStr)) return parseInt(cleanStr, 10);
-        const parts = cleanStr.split(':').map(p => parseInt(p.trim(), 10));
-        if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-        if (parts.length === 2) return parts[0] * 60 + parts[1];
-        if (parts.length === 1) return parts[0];
-        return null;
+        const parts = cleanStr.split(':').map(Number);
+        if (parts.some(isNaN)) return null;
+        return parts.reduce((acc, val) => acc * 60 + val, 0);
       },
       secondsToTimeStr: (totalSeconds) => {
         if (!totalSeconds) return '0:00';
@@ -263,11 +265,7 @@
                      : `${m}:${s.toString().padStart(2, '0')}`;
       },
       formatDate: (dateStr) => (dateStr || '').trim().replace(/-/g, '.'),
-      formatShortDate: (fullDate) => {
-        if (!fullDate) return '';
-        const parts = fullDate.split('.');
-        return parts.length === 3 ? `${parts[0].length === 4 ? parts[0].substring(2) : parts[0]}.${parts[1]}.${parts[2]}` : fullDate;
-      },
+      formatShortDate: (fullDate) => (fullDate || '').replace(REGEX_SHORT_DATE, '$1'),
       escapeHtml: (val) => String(val ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;'}[char])),
       normalizeSearchText: (val) => String(val ?? '').normalize('NFC').toLowerCase(),
       createSearchText: (values) => Utils.normalizeSearchText(values.filter(Boolean).join(' ')),
@@ -276,9 +274,9 @@
       getTitleLangCategory: (str) => {
         if (!str) return 4;
         const firstChar = str.trim().charAt(0);
-        if (/[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/.test(firstChar)) return 1;
-        if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(firstChar)) return 2;
-        if (/[A-Za-z]/.test(firstChar)) return 3;
+        if (REGEX_LANG_KO.test(firstChar)) return 1;
+        if (REGEX_LANG_JA.test(firstChar)) return 2;
+        if (REGEX_LANG_EN.test(firstChar)) return 3;
         return 4;
       },
       matchCategoryFilter: (song, category) => {
@@ -304,13 +302,24 @@
     };
 
     // =========================================================================
-    // 💾 2. 데이터 매니저
+    // 💾 2. 데이터 매니저 (2단계 반영)
     // =========================================================================
     class DataManager {
       #allSongs = [];
-      streamerKey = 'kira';
+      #currentStreamerSongs = [];
+      #cachedStats = [];
+      #streamerKey = 'kira';
+
       mainFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
       statsFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
+
+      get streamerKey() { return this.#streamerKey; }
+      set streamerKey(key) {
+        if (this.#streamerKey !== key) {
+          this.#streamerKey = key;
+          this.#updateCaches();
+        }
+      }
 
       async loadAllData() {
         const [logRes, videoRes, songRes] = await Promise.all([
@@ -361,6 +370,7 @@
         }).filter(Boolean);
 
         this.#allSongs.sort((a, b) => a.date.localeCompare(b.date) || a.logId.localeCompare(b.logId, undefined, {numeric:true}) || a.start - b.start);
+        this.#updateCaches(); 
       }
 
       #fetchTSV(url, requiredHeaders = []) {
@@ -374,83 +384,106 @@
         });
       }
 
-      getStreamerSongs() {
-        const dbId = STREAMER_MAP[this.streamerKey].dbId;
-        return this.#allSongs.filter(s => s.streamers.includes(dbId));
+      #updateCaches() {
+        const dbId = STREAMER_MAP[this.#streamerKey].dbId;
+        this.#currentStreamerSongs = this.#allSongs.filter(s => s.streamers.includes(dbId));
+        this.#buildStatsCache();
       }
+
+      #buildStatsCache() {
+        const songMap = new Map();
+        this.#currentStreamerSongs.forEach(song => {
+          if (!songMap.has(song.songId)) {
+            songMap.set(song.songId, { 
+              songId: song.songId, title: song.title, artist: song.artist, 
+              searchText: song.searchText, lang: song.lang, sourceType: song.sourceType, 
+              playEvents: []
+            });
+          }
+          const entry = songMap.get(song.songId);
+          entry.playEvents.push({ 
+            date: song.date, videoId: song.videoId, start: song.start, end: song.end, 
+            id: song.id, startRaw: song.startTimeRaw, endRaw: song.endTimeRaw, 
+            rawVideoId: song.rawVideoId, videoTitle: song.videoTitle 
+          });
+        });
+
+        this.#cachedStats = Array.from(songMap.values()).map(item => {
+          item.playEvents.sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id, undefined, {numeric:true}) || a.start - b.start);
+          return { 
+            ...item, playCount: item.playEvents.length,
+            firstDate: item.playEvents[0]?.date || '', lastDate: item.playEvents[item.playEvents.length-1]?.date || '', 
+            firstId: item.playEvents[0]?.id || '', lastId: item.playEvents[item.playEvents.length-1]?.id || '' 
+          };
+        });
+      }
+
+      getStreamerSongs() { return this.#currentStreamerSongs; }
 
       getUniqueVideos() {
         const map = new Map();
-        this.getStreamerSongs().forEach(s => {
+        this.#currentStreamerSongs.forEach(s => {
           if (s.rawVideoId && !map.has(s.rawVideoId)) map.set(s.rawVideoId, { id: s.rawVideoId, date: s.date, title: s.videoTitle });
         });
         return Array.from(map.values()).sort((a, b) => b.date.localeCompare(a.date));
       }
 
       getFilteredMainSongs() {
-        const queries = Utils.getSearchQueries(this.mainFilters.search);
-        let list = this.getStreamerSongs().filter(song => {
-          const mSearch = queries.length === 0 || Utils.matchesSearch(song.searchText, queries);
-          const mLang = Utils.matchCategoryFilter(song, this.mainFilters.lang);
-          const mVideo = this.mainFilters.videoId === 'ALL' || song.rawVideoId === this.mainFilters.videoId;
-          return mSearch && mLang && mVideo;
+        const { search, lang, sort, videoId } = this.mainFilters;
+        const queries = Utils.getSearchQueries(search);
+        
+        let list = this.#currentStreamerSongs.filter(song => {
+          if (videoId !== 'ALL' && song.rawVideoId !== videoId) return false;
+          if (lang !== 'ALL' && !Utils.matchCategoryFilter(song, lang)) return false;
+          if (queries.length > 0 && !Utils.matchesSearch(song.searchText, queries)) return false;
+          return true;
         });
 
-        const { sort } = this.mainFilters;
         if (sort === 'DATE_DESC') list.sort((a, b) => b.date.localeCompare(a.date) || b.logId.localeCompare(a.logId, undefined, {numeric:true}) || b.start - a.start);
-        else if (sort === 'TITLE_ASC') list.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
-        else if (sort === 'SHUFFLE') list = [...list].sort(() => Math.random() - 0.5);
+        else if (sort === 'TITLE_ASC') list.sort((a, b) => this.#sortByTitle(a, b));
+        else if (sort === 'SHUFFLE') list.sort(() => Math.random() - 0.5);
         return list;
       }
 
+      #sortByTitle(a, b) { return a.title.localeCompare(b.title, 'ko'); }
+
       getFilteredStats() {
-        const songMap = new Map();
-        this.getStreamerSongs().forEach(song => {
-          if (!songMap.has(song.songId)) {
-            songMap.set(song.songId, { songId: song.songId, title: song.title, artist: song.artist, searchText: song.searchText, lang: song.lang, sourceType: song.sourceType, playEvents: [], playCount: 0 });
+        const { search, lang, sort, videoId } = this.statsFilters;
+        const queries = Utils.getSearchQueries(search);
+
+        let list = this.#cachedStats.reduce((acc, item) => {
+          if (lang !== 'ALL' && !Utils.matchCategoryFilter(item, lang)) return acc;
+          let events = item.playEvents;
+          if (videoId !== 'ALL') {
+            events = events.filter(ev => ev.rawVideoId === videoId);
+            if (events.length === 0) return acc;
           }
-          const entry = songMap.get(song.songId);
-          entry.playCount += 1;
-          entry.playEvents.push({ date: song.date, videoId: song.videoId, start: song.start, end: song.end, id: song.id, startRaw: song.startTimeRaw, endRaw: song.endTimeRaw, rawVideoId: song.rawVideoId, videoTitle: song.videoTitle });
-        });
-
-        let aggregated = Array.from(songMap.values()).map(item => {
-          item.playEvents.sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id, undefined, {numeric:true}) || a.start - b.start);
-          return { ...item, firstDate: item.playEvents[0]?.date||'', lastDate: item.playEvents[item.playEvents.length-1]?.date||'', firstId: item.playEvents[0]?.id||'', lastId: item.playEvents[item.playEvents.length-1]?.id||'' };
-        });
-
-        if (this.statsFilters.videoId !== 'ALL') {
-          aggregated = aggregated.map(item => {
-            const evts = item.playEvents.filter(ev => ev.rawVideoId === this.statsFilters.videoId);
-            if (evts.length === 0) return null;
-            return { ...item, playCount: evts.length, playEvents: evts, firstDate: evts[0].date, lastDate: evts[evts.length-1].date, firstId: evts[0].id, lastId: evts[evts.length-1].id };
-          }).filter(Boolean);
-        }
-
-        aggregated = this.statsFilters.lang === 'ALL' ? aggregated : aggregated.filter(i => Utils.matchCategoryFilter(i, this.statsFilters.lang));
-
-        const queries = Utils.getSearchQueries(this.statsFilters.search);
-        if (queries.length > 0) {
-          aggregated = aggregated.filter(item => {
-            const dText = item.playEvents.map(ev => `${ev.date} ${Utils.formatShortDate(ev.date)} ${ev.videoTitle||''}`).join(' ');
-            return Utils.matchesSearch(Utils.createSearchText([item.searchText, dText]), queries);
+          if (queries.length > 0) {
+            const dText = events.map(ev => `${ev.date} ${Utils.formatShortDate(ev.date)} ${ev.videoTitle||''}`).join(' ');
+            if (!Utils.matchesSearch(Utils.createSearchText([item.searchText, dText]), queries)) return acc;
+          }
+          acc.push(videoId === 'ALL' ? item : {
+            ...item, playCount: events.length, playEvents: events,
+            firstDate: events[0].date, lastDate: events[events.length-1].date,
+            firstId: events[0].id, lastId: events[events.length-1].id
           });
-        }
+          return acc;
+        }, []);
 
-        const st = this.statsFilters.sort;
-        if (st === 'SHUFFLE') return [...aggregated].sort(() => Math.random() - 0.5);
-        return aggregated.sort((a, b) => {
-          if (st === 'COUNT_DESC') return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate) || a.firstId.localeCompare(b.firstId, undefined, {numeric:true}) || a.title.localeCompare(b.title, 'ko');
-          if (st === 'TITLE_LANG') return Utils.getTitleLangCategory(a.title) - Utils.getTitleLangCategory(b.title) || a.title.localeCompare(b.title, 'ko');
-          if (st === 'RECENT_DESC') return b.lastDate.localeCompare(a.lastDate) || b.lastId.localeCompare(a.lastId, undefined, {numeric:true}) || a.title.localeCompare(b.title, 'ko');
-          if (st === 'OLD_ASC') return a.lastDate.localeCompare(b.lastDate) || a.lastId.localeCompare(b.lastId, undefined, {numeric:true}) || a.title.localeCompare(b.title, 'ko');
-          return a.firstDate.localeCompare(b.firstDate) || a.firstId.localeCompare(b.firstId, undefined, {numeric:true}) || a.title.localeCompare(b.title, 'ko');
+        if (sort === 'SHUFFLE') return list.sort(() => Math.random() - 0.5);
+        
+        return list.sort((a, b) => {
+          if (sort === 'COUNT_DESC') return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate) || a.firstId.localeCompare(b.firstId, undefined, {numeric:true}) || this.#sortByTitle(a, b);
+          if (sort === 'TITLE_LANG') return Utils.getTitleLangCategory(a.title) - Utils.getTitleLangCategory(b.title) || this.#sortByTitle(a, b);
+          if (sort === 'RECENT_DESC') return b.lastDate.localeCompare(a.lastDate) || b.lastId.localeCompare(a.lastId, undefined, {numeric:true}) || this.#sortByTitle(a, b);
+          if (sort === 'OLD_ASC') return a.lastDate.localeCompare(b.lastDate) || a.lastId.localeCompare(b.lastId, undefined, {numeric:true}) || this.#sortByTitle(a, b);
+          return a.firstDate.localeCompare(b.firstDate) || a.firstId.localeCompare(b.firstId, undefined, {numeric:true}) || this.#sortByTitle(a, b);
         });
       }
     }
 
     // =========================================================================
-    // 📺 3. 메인 플레이어 매니저 
+    // 📺 3. 메인 플레이어 매니저 (4단계 강제 초기화 및 좀비 차단 반영)
     // =========================================================================
     class MainPlayerManager {
       #player = null;
@@ -480,6 +513,7 @@
         } else {
           this.#currentIndex = this.#playlist.length > 0 ? 0 : -1;
         }
+        this.#isSeekingForced = false; // [Step 4] 생명주기 초기화 엄격화
       }
 
       init(firstSong) {
@@ -510,6 +544,8 @@
 
       cue(index) {
         if (index < 0 || index >= this.#playlist.length) return;
+        this.#clearMonitor(); // [Step 4] 좀비 타이머 방어
+        this.#isSeekingForced = false; // [Step 4] 강제 멱살잡이 변수 리셋
         this.#currentIndex = index;
         const song = this.#playlist[index];
         this.#currentSongId = song.id;
@@ -521,12 +557,13 @@
 
       play(index, cueOnly = false) {
         if (index < 0 || index >= this.#playlist.length) return;
-        this.#isSeekingForced = false;
+        this.#clearMonitor(); // [Step 4] 좀비 타이머 완벽 차단
+        this.#isSeekingForced = false; // [Step 4] 강제 멱살잡이 변수 리셋
         this.#currentIndex = index;
         const song = this.#playlist[index];
         this.#currentSongId = song.id;
         
-        if (this.#retryTimeout) clearTimeout(this.#retryTimeout);
+        if (this.#retryTimeout) { clearTimeout(this.#retryTimeout); this.#retryTimeout = null; }
 
         const targetStart = Math.max(0, song.start || 0);
 
@@ -550,8 +587,8 @@
       pause() { if (this.#player && typeof this.#player.pauseVideo === 'function') this.#player.pauseVideo(); }
       
       stop() {
-        this.#clearMonitor();
-        if (this.#retryTimeout) clearTimeout(this.#retryTimeout);
+        this.#clearMonitor(); // [Step 4] 좀비 타이머 차단
+        if (this.#retryTimeout) { clearTimeout(this.#retryTimeout); this.#retryTimeout = null; }
         if (this.#player && typeof this.#player.stopVideo === 'function') this.#player.stopVideo();
       }
 
@@ -573,13 +610,16 @@
 
       reset() {
         this.stop();
-        this.#playlist = []; this.#currentIndex = -1; this.#currentSongId = null;
-        this.#isSeekingForced = false; this.#currentVideoId = null;
+        this.#playlist = []; 
+        this.#currentIndex = -1; 
+        this.#currentSongId = null;
+        this.#isSeekingForced = false; 
+        this.#currentVideoId = null;
       }
     }
 
     // =========================================================================
-    // 📊 4. 통계 플레이어 매니저
+    // 📊 4. 통계 플레이어 매니저 (4단계 파괴 후처리 깔끔화 반영)
     // =========================================================================
     class StatsPlayerManager {
       #player = null;
@@ -590,7 +630,7 @@
       get activeEventId() { return this.#activeEventId; }
 
       init(videoId, start, end, eventId) {
-        this.close();
+        this.close(); // [Step 4] 무조건 안전하게 기존 객체부터 파괴
         this.#activeEventId = eventId;
         this.#isSeekingForced = false;
 
@@ -633,17 +673,18 @@
       }
 
       close() {
-        this.#clearMonitor();
+        this.#clearMonitor(); // [Step 4] 모니터 싹 날리기
         if (this.#player) { try { if (typeof this.#player.destroy === 'function') this.#player.destroy(); } catch (e) {} this.#player = null; }
-        this.#activeEventId = null;
+        this.#activeEventId = null; // [Step 4] 식별자까지 완벽하게 비움
+        this.#isSeekingForced = false;
       }
     }
 
     // =========================================================================
-    // ⚙️ 5. 지연 렌더링 매니저 (무한 스크롤 캡슐화)
+    // ⚙️ 5. 지연 렌더링 매니저 
     // =========================================================================
     class LazyListRenderer {
-      #container;
+      #containerEl;
       #createCardFn;
       #observer;
       #sentinel;
@@ -651,8 +692,8 @@
       #currentIndex = 0;
       context = {};
 
-      constructor(containerId, createCardFn) {
-        this.#container = document.getElementById(containerId);
+      constructor(containerEl, createCardFn) {
+        this.#containerEl = containerEl;
         this.#createCardFn = createCardFn;
         
         this.#sentinel = document.createElement('div');
@@ -662,28 +703,31 @@
           if (entries[0].isIntersecting) {
             this.#renderNextChunk();
           }
-        }, { root: this.#container, rootMargin: '300px' });
+        }, { root: this.#containerEl, rootMargin: '300px' });
       }
 
       render(newData, context = {}) {
         this.#dataList = newData;
         this.#currentIndex = 0;
         this.context = context;
-        this.#container.innerHTML = '';
-        this.#container.scrollTop = 0;
+        this.#containerEl.innerHTML = '';
+        
+        requestAnimationFrame(() => {
+          this.#containerEl.scrollTop = 0;
+        });
 
         if (this.#dataList.length === 0) {
           const empty = document.createElement('div');
           empty.className = 'empty-state';
           empty.innerHTML = '조건에 맞는 곡이 없습니다. 텅~ 👻<br><br><small>검색어나 필터를 다시 확인해 보세요!</small>';
-          this.#container.appendChild(empty);
+          this.#containerEl.appendChild(empty);
           return;
         }
 
-        this.#container.appendChild(this.#sentinel);
+        this.#containerEl.appendChild(this.#sentinel);
         this.#observer.observe(this.#sentinel);
         
-        this.#renderNextChunk(); // 첫 청크 즉시 렌더링
+        this.#renderNextChunk(); 
       }
 
       #renderNextChunk() {
@@ -697,7 +741,7 @@
         }
 
         this.#currentIndex = end;
-        this.#container.insertBefore(fragment, this.#sentinel);
+        this.#containerEl.insertBefore(fragment, this.#sentinel);
 
         if (this.#currentIndex >= this.#dataList.length) {
           this.#observer.unobserve(this.#sentinel);
@@ -707,16 +751,37 @@
     }
 
     // =========================================================================
-    // 🎨 6. UI 제어자 (DOM 조작 전담)
+    // 🎨 6. UI 제어자 (3단계 DOM 캐싱 반영)
     // =========================================================================
     class UIController {
       constructor() {
-        // 재생 탭만 무한 스크롤(Lazy Loading) 적용
-        this.playlistRenderer = new LazyListRenderer('playlist', this.#createPlaylistCard.bind(this));
+        this.els = {
+          themeToggleBtn: document.getElementById('themeToggleBtn'),
+          playlist: document.getElementById('playlist'),
+          statsList: document.getElementById('statsList'),
+          npDate: document.getElementById('npDate'),
+          npTitle: document.getElementById('npTitle'),
+          npArtist: document.getElementById('npArtist'),
+          npMeta: document.getElementById('npMeta'),
+          videoSelect: document.getElementById('videoSelect'),
+          statsVideoSelect: document.getElementById('statsVideoSelect'),
+          backToTop: document.getElementById('backToTop'),
+          tabPlayer: document.getElementById('tab-player'),
+          tabStats: document.getElementById('tab-stats'),
+          searchInput: document.getElementById('searchInput'),
+          searchClearBtn: document.getElementById('searchClearBtn'),
+          statsSearchInput: document.getElementById('statsSearchInput'),
+          statsClearBtn: document.getElementById('statsClearBtn')
+        };
+        
+        this.npMetaCached = false;
+        this.npMetaEls = {};
+
+        this.playlistRenderer = new LazyListRenderer(this.els.playlist, this.#createPlaylistCard.bind(this));
       }
 
       initTheme() {
-        document.getElementById('themeToggleBtn').innerText = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+        this.els.themeToggleBtn.innerText = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
       }
 
       toggleTheme() {
@@ -724,7 +789,7 @@
         const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         body.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
-        document.getElementById('themeToggleBtn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
+        this.els.themeToggleBtn.innerText = newTheme === 'dark' ? '☀️' : '🌙';
       }
 
       updateStreamerNav(btn, key) {
@@ -735,30 +800,30 @@
 
       switchTab(tabId, btn) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        this.els.tabPlayer.classList.remove('active');
+        this.els.tabStats.classList.remove('active');
         btn.classList.add('active');
-        document.getElementById(`tab-${tabId}`).classList.add('active');
+        (tabId === 'player' ? this.els.tabPlayer : this.els.tabStats).classList.add('active');
       }
 
-      toggleClearBtn(inputId, btnId) {
-        document.getElementById(btnId).style.display = document.getElementById(inputId).value.trim().length > 0 ? 'block' : 'none';
+      toggleClearBtn(inputEl, btnEl) {
+        btnEl.style.display = inputEl.value.trim().length > 0 ? 'block' : 'none';
       }
 
-      clearInput(inputId, btnId) {
-        const input = document.getElementById(inputId);
-        input.value = '';
-        this.toggleClearBtn(inputId, btnId);
-        input.focus();
+      clearInput(inputEl, btnEl) {
+        inputEl.value = '';
+        this.toggleClearBtn(inputEl, btnEl);
+        inputEl.focus();
       }
 
       showError(msg) {
         const emptyState = `<div class="empty-state" style="color: #e65c5c;">${Utils.escapeHtml(msg)}</div>`;
-        document.getElementById('playlist').innerHTML = emptyState;
-        document.getElementById('statsList').innerHTML = emptyState;
+        this.els.playlist.innerHTML = emptyState;
+        this.els.statsList.innerHTML = emptyState;
         this.setEmptyNowPlaying();
       }
 
-      renderSkeleton(containerId, count, isStats = false) {
+      renderSkeleton(containerKey, count, isStats = false) {
         const frag = document.createDocumentFragment();
         for(let i=0; i<count; i++) {
           const div = document.createElement('div');
@@ -769,50 +834,66 @@
             : `<div style="flex: 1;"><div class="skeleton-box" style="width: 30%; height: 12px; margin-bottom: 8px;"></div><div class="skeleton-box" style="width: 70%; height: 16px; margin-bottom: 8px;"></div><div class="skeleton-box" style="width: 50%; height: 12px;"></div></div><div class="skeleton-box" style="width: 40px; height: 20px; border-radius: 6px;"></div>`;
           frag.appendChild(div);
         }
-        document.getElementById(containerId).replaceChildren(frag);
+        this.els[containerKey].replaceChildren(frag);
       }
 
       populateVideoDropdowns(videoList, currMainId, currStatsId) {
         let html = `<option value="ALL">📺 전체 방송 보기 (${videoList.length}개 방송)</option>`;
         videoList.forEach(v => html += `<option value="${Utils.escapeHtml(v.id)}">${Utils.escapeHtml(v.title ? `${v.date} - ${v.title}` : v.date)}</option>`);
         
-        const setSelect = (id, val) => { const el = document.getElementById(id); if (el) { el.innerHTML = html; el.value = val; if (el.selectedIndex === -1) el.value = 'ALL'; } };
-        setSelect('videoSelect', currMainId);
-        setSelect('statsVideoSelect', currStatsId);
+        this.els.videoSelect.innerHTML = html;
+        this.els.videoSelect.value = currMainId || 'ALL';
+        
+        this.els.statsVideoSelect.innerHTML = html;
+        this.els.statsVideoSelect.value = currStatsId || 'ALL';
       }
 
       setLoadingNowPlaying(name) {
-        document.getElementById('npTitle').innerText = '노래목록 불러오는 중...';
-        document.getElementById('npDate').innerText = '';
-        document.getElementById('npArtist').innerText = name;
-        document.getElementById('npMeta').innerHTML = '';
+        this.els.npTitle.textContent = '노래목록 불러오는 중...';
+        this.els.npDate.textContent = '';
+        this.els.npArtist.textContent = name;
+        if (this.npMetaCached) this.els.npMeta.style.display = 'none';
       }
 
       setEmptyNowPlaying() {
-        document.getElementById('npTitle').innerText = '조건에 맞는 곡 없음';
-        document.getElementById('npDate').innerText = '';
-        document.getElementById('npArtist').innerText = '-';
-        document.getElementById('npMeta').innerHTML = '';
+        this.els.npTitle.textContent = '조건에 맞는 곡 없음';
+        this.els.npDate.textContent = '';
+        this.els.npArtist.textContent = '-';
+        if (this.npMetaCached) this.els.npMeta.style.display = 'none';
       }
 
       updateNowPlaying(song) {
         if (!song) return;
-        document.getElementById('npDate').innerText = `${song.date}${song.videoTitle ? ' - ' + song.videoTitle : ''}`;
-        document.getElementById('npTitle').innerText = song.title;
-        document.getElementById('npArtist').innerText = `${song.artist}${song.work ? ' • ' + song.work : ''}`;
-        const metaEl = document.getElementById('npMeta');
-        if (metaEl) {
-          metaEl.innerHTML = `<span class="db-badge">가창 ID: <strong>${Utils.escapeHtml(song.logId)}</strong></span> <span class="db-badge">구간: <strong>${Utils.escapeHtml(song.startTimeRaw)} ~ ${Utils.escapeHtml(song.endTimeRaw)}</strong></span> <span class="db-badge">곡 ID: <strong>${Utils.escapeHtml(song.songId)}</strong></span>`;
+        this.els.npDate.textContent = `${song.date}${song.videoTitle ? ' - ' + song.videoTitle : ''}`;
+        this.els.npTitle.textContent = song.title;
+        this.els.npArtist.textContent = `${song.artist}${song.work ? ' • ' + song.work : ''}`;
+        
+        if (!this.npMetaCached) {
+          this.els.npMeta.innerHTML = `
+            <span class="db-badge">가창 ID: <strong id="npMetaLogId"></strong></span>
+            <span class="db-badge">구간: <strong id="npMetaDuration"></strong></span>
+            <span class="db-badge">곡 ID: <strong id="npMetaSongId"></strong></span>
+          `;
+          this.npMetaEls = {
+            logId: document.getElementById('npMetaLogId'),
+            duration: document.getElementById('npMetaDuration'),
+            songId: document.getElementById('npMetaSongId')
+          };
+          this.npMetaCached = true;
         }
+        
+        this.els.npMeta.style.display = 'flex';
+        this.npMetaEls.logId.textContent = song.logId;
+        this.npMetaEls.duration.textContent = `${song.startTimeRaw} ~ ${song.endTimeRaw}`;
+        this.npMetaEls.songId.textContent = song.songId;
       }
 
-      // DOM 전체 재생성이 아닌 CSS 클래스만 갱신 (스크롤 초기화 방지)
       highlightActiveSong(songId) {
-        document.querySelectorAll('.song-card').forEach(card => card.classList.remove('active'));
-        document.querySelectorAll('.playing-icon').forEach(icon => icon.remove());
+        this.els.playlist.querySelectorAll('.song-card.active').forEach(card => card.classList.remove('active'));
+        this.els.playlist.querySelectorAll('.playing-icon').forEach(icon => icon.remove());
         
         if (!songId) return;
-        const targetCard = document.querySelector(`.song-card[data-song-id="${songId}"]`);
+        const targetCard = this.els.playlist.querySelector(`.song-card[data-song-id="${songId}"]`);
         if (targetCard) {
           targetCard.classList.add('active');
           const mainInfo = targetCard.querySelector('.song-info-main');
@@ -822,7 +903,6 @@
         }
       }
 
-      // 지연 렌더링에 주입할 개별 카드 생성 함수들
       #createPlaylistCard(song, idx, context) {
         const { activeSongId, onPlay } = context;
         const isActive = song.id === activeSongId;
@@ -875,11 +955,10 @@
         this.playlistRenderer.render(songs, { activeSongId, onPlay });
       }
 
-      // 📌 통계 리스트 전체를 한 번에 렌더링하도록 변경된 부분
       renderStatsList(items, onToggleStatsPlayer) {
-        const container = document.getElementById('statsList');
+        const container = this.els.statsList;
         container.innerHTML = '';
-        container.scrollTop = 0;
+        requestAnimationFrame(() => { container.scrollTop = 0; });
 
         if (items.length === 0) {
           const empty = document.createElement('div');
@@ -900,8 +979,8 @@
       }
 
       removeStatsPlayerDOM() {
-        document.querySelectorAll('.stats-player-box').forEach(el => el.remove());
-        document.querySelectorAll('.date-link.active-date').forEach(el => el.classList.remove('active-date'));
+        this.els.statsList.querySelectorAll('.stats-player-box').forEach(el => el.remove());
+        this.els.statsList.querySelectorAll('.date-link.active-date').forEach(el => el.classList.remove('active-date'));
       }
 
       renderStatsPlayerDOM(ev, itemDiv, dateAnchor, onClose) {
@@ -935,17 +1014,15 @@
       }
 
       initScrollObserver() {
-        const playlistBox = document.getElementById('playlist');
-        const backToTopBtn = document.getElementById('backToTop');
-        const toggleBtn = (scrollPos) => scrollPos > CONFIG.SCROLL_SHOW_POS ? backToTopBtn.classList.add('show') : backToTopBtn.classList.remove('show');
+        const toggleBtn = (scrollPos) => scrollPos > CONFIG.SCROLL_SHOW_POS ? this.els.backToTop.classList.add('show') : this.els.backToTop.classList.remove('show');
         
-        window.addEventListener('scroll', () => { if (document.getElementById('tab-stats').classList.contains('active')) toggleBtn(window.scrollY); });
-        playlistBox.addEventListener('scroll', () => { if (document.getElementById('tab-player').classList.contains('active')) toggleBtn(playlistBox.scrollTop); });
+        window.addEventListener('scroll', () => { if (this.els.tabStats.classList.contains('active')) toggleBtn(window.scrollY); });
+        this.els.playlist.addEventListener('scroll', () => { if (this.els.tabPlayer.classList.contains('active')) toggleBtn(this.els.playlist.scrollTop); });
       }
 
       scrollToTop() {
-        if (document.getElementById('tab-stats').classList.contains('active')) window.scrollTo({ top: 0, behavior: 'smooth' });
-        else document.getElementById('playlist').scrollTo({ top: 0, behavior: 'smooth' });
+        if (this.els.tabStats.classList.contains('active')) window.scrollTo({ top: 0, behavior: 'smooth' });
+        else this.els.playlist.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
 
@@ -980,8 +1057,8 @@
       }
 
       bindEvents() {
-        document.getElementById('themeToggleBtn').addEventListener('click', () => this.ui.toggleTheme());
-        document.getElementById('backToTop').addEventListener('click', () => this.ui.scrollToTop());
+        this.ui.els.themeToggleBtn.addEventListener('click', () => this.ui.toggleTheme());
+        this.ui.els.backToTop.addEventListener('click', () => this.ui.scrollToTop());
 
         document.querySelectorAll('.streamer-btn').forEach(btn => {
           btn.addEventListener('click', (e) => this.switchStreamer(e.target.dataset.streamerTarget, e.target));
@@ -990,10 +1067,11 @@
           btn.addEventListener('click', (e) => this.switchMainTab(e.target.dataset.tabTarget, e.target));
         });
 
-        const searchInput = document.getElementById('searchInput');
-        const searchClearBtn = document.getElementById('searchClearBtn');
+        // 메인 탭 이벤트
+        const searchInput = this.ui.els.searchInput;
+        const searchClearBtn = this.ui.els.searchClearBtn;
         searchInput.addEventListener('input', () => {
-          this.ui.toggleClearBtn('searchInput', 'searchClearBtn');
+          this.ui.toggleClearBtn(searchInput, searchClearBtn);
           clearTimeout(this.searchDebounceTimer);
           this.searchDebounceTimer = setTimeout(() => {
             this.data.mainFilters.search = searchInput.value;
@@ -1001,12 +1079,12 @@
           }, CONFIG.DEBOUNCE_DELAY);
         });
         searchClearBtn.addEventListener('click', () => {
-          this.ui.clearInput('searchInput', 'searchClearBtn');
+          this.ui.clearInput(searchInput, searchClearBtn);
           this.data.mainFilters.search = '';
           this.renderPlaylist();
         });
 
-        document.getElementById('videoSelect').addEventListener('change', (e) => {
+        this.ui.els.videoSelect.addEventListener('change', (e) => {
           this.data.mainFilters.videoId = e.target.value;
           this.renderPlaylist();
         });
@@ -1025,10 +1103,11 @@
           });
         });
 
-        const statsSearchInput = document.getElementById('statsSearchInput');
-        const statsClearBtn = document.getElementById('statsClearBtn');
+        // 통계 탭 이벤트
+        const statsSearchInput = this.ui.els.statsSearchInput;
+        const statsClearBtn = this.ui.els.statsClearBtn;
         statsSearchInput.addEventListener('input', () => {
-          this.ui.toggleClearBtn('statsSearchInput', 'statsClearBtn');
+          this.ui.toggleClearBtn(statsSearchInput, statsClearBtn);
           clearTimeout(this.statsSearchDebounceTimer);
           this.statsSearchDebounceTimer = setTimeout(() => {
             this.data.statsFilters.search = statsSearchInput.value;
@@ -1036,12 +1115,12 @@
           }, CONFIG.DEBOUNCE_DELAY);
         });
         statsClearBtn.addEventListener('click', () => {
-          this.ui.clearInput('statsSearchInput', 'statsClearBtn');
+          this.ui.clearInput(statsSearchInput, statsClearBtn);
           this.data.statsFilters.search = '';
           this.renderStatistics();
         });
 
-        document.getElementById('statsVideoSelect').addEventListener('change', (e) => {
+        this.ui.els.statsVideoSelect.addEventListener('change', (e) => {
           this.data.statsFilters.videoId = e.target.value;
           this.renderStatistics();
         });
@@ -1076,7 +1155,7 @@
           this.ui.setEmptyNowPlaying();
         }
 
-        if (document.getElementById('tab-stats').classList.contains('active')) this.renderStatistics();
+        if (this.ui.els.tabStats.classList.contains('active')) this.renderStatistics();
         this.loadYouTubeAPI();
       }
 
@@ -1151,6 +1230,7 @@
       switchStreamer(key, btn) {
         if (this.data.streamerKey === key && this.data.getStreamerSongs().length > 0) return;
         this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
+        
         this.data.streamerKey = key;
         
         this.data.mainFilters.videoId = 'ALL'; this.data.statsFilters.videoId = 'ALL';
