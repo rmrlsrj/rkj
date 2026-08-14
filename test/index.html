@@ -145,10 +145,63 @@
     .back-to-top { position: fixed; bottom: 30px; right: 30px; background-color: var(--accent-primary); color: #fff; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.2s, background-color 0.3s; z-index: 1000; }
     .back-to-top.show { opacity: 1; pointer-events: auto; }
     .back-to-top:hover { transform: translateY(-3px); background-color: var(--accent-hover); }
+
+    .initial-loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-color);
+}
+
+.initial-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 24px;
+}
+
+.initial-loading-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.initial-loading-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.initial-loading-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: initial-loading-spin 0.8s linear infinite;
+}
+
+@keyframes initial-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
   </style>
 </head>
 <body>
 
+<div id="initialLoadingScreen" class="initial-loading-screen">
+  <div class="initial-loading-content">
+    <div class="initial-loading-title">데이터를 불러오는 중...</div>
+    <div class="initial-loading-text">노래 목록을 준비하고 있습니다.</div>
+    <div class="initial-loading-spinner"></div>
+  </div>
+</div>
+  
   <header>
     <h1>Unofficial</h1>
     <div class="header-controls">
@@ -799,7 +852,8 @@
           searchClearBtn: document.getElementById('searchClearBtn'),
           statsSearchInput: document.getElementById('statsSearchInput'),
           statsClearBtn: document.getElementById('statsClearBtn'),
-          statsSummary: document.getElementById('statsSummary') // ✨ 통계 요약 DOM 등록
+          statsSummary: document.getElementById('statsSummary'), // ✨ 통계 요약 DOM 등록
+          initialLoadingScreen: document.getElementById('initialLoadingScreen')
         };
         
         this.npMetaCached = false;
@@ -808,6 +862,10 @@
         this.playlistRenderer = new LazyListRenderer(this.els.playlist, this.#createPlaylistCard.bind(this));
       }
 
+      hideInitialLoading() {
+  this.els.initialLoadingScreen.style.display = 'none';
+      }
+      
       initTheme() {
         this.els.themeToggleBtn.innerText = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
       }
@@ -1088,8 +1146,10 @@
         try {
           await this.data.loadAllData();
           this.applyStreamerData();
+          this.ui.hideInitialLoading();
         } catch (err) {
           console.error(err);
+          this.ui.hideInitialLoading();
           this.ui.showError('데이터베이스 연동 중 오류가 발생했습니다.');
         }
       }
