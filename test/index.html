@@ -104,6 +104,26 @@
     .stats-container { max-width: 1200px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
     .stats-header-box { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s, border-color 0.3s; }
     .stats-header-controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%; }
+    
+    /* 통계 요약 UI 스타일 */
+    .stats-summary {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent-secondary);
+      background-color: var(--accent-light);
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px dashed var(--accent-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .stats-summary strong {
+      color: var(--accent-primary);
+      font-size: 1.1rem;
+    }
+
     .stats-list { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-height: 500px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s, border-color 0.3s; position: relative; }
     .stats-item { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; font-size: 0.9rem; line-height: 1.5; color: var(--text); word-break: break-all; scroll-margin-top: 24px; transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
     .stats-item .index-text { font-weight: 700; color: var(--text-muted); margin-right: 6px; }
@@ -156,7 +176,7 @@
         <div class="now-playing-card">
           <div class="now-playing-date" id="npDate">데이터 로딩 중...</div>
           <div class="now-playing-title" id="npTitle">노래목록 불러오는 중...</div>
-          <div class="now-playing-artist" id="npArtist">노래 아카이브 플레이어</div>
+          <div class="now-playing-artist" id="npArtist">로딩 대기 중...</div>
           <div class="now-playing-meta" id="npMeta" style="display: none;"></div>
         </div>
       </div>
@@ -203,6 +223,8 @@
           <option value="ALL">📺 전체 방송 보기</option>
         </select>
         
+        <div id="statsSummary" class="stats-summary">집계 중...</div>
+
         <div class="stats-header-controls">
           <div class="filter-group">
             <button class="filter-btn stats-lang-btn active" data-lang="ALL">전체</button>
@@ -518,7 +540,7 @@
         } else {
           this.#currentIndex = this.#playlist.length > 0 ? 0 : -1;
         }
-        this.#isSeekingForced = false; // [Step 4] 생명주기 초기화 엄격화
+        this.#isSeekingForced = false;
       }
 
       init(firstSong) {
@@ -549,8 +571,8 @@
 
       cue(index) {
         if (index < 0 || index >= this.#playlist.length) return;
-        this.#clearMonitor(); // [Step 4] 좀비 타이머 방어
-        this.#isSeekingForced = false; // [Step 4] 강제 멱살잡이 변수 리셋
+        this.#clearMonitor();
+        this.#isSeekingForced = false;
         this.#currentIndex = index;
         const song = this.#playlist[index];
         this.#currentSongId = song.id;
@@ -562,8 +584,8 @@
 
       play(index, cueOnly = false) {
         if (index < 0 || index >= this.#playlist.length) return;
-        this.#clearMonitor(); // [Step 4] 좀비 타이머 완벽 차단
-        this.#isSeekingForced = false; // [Step 4] 강제 멱살잡이 변수 리셋
+        this.#clearMonitor();
+        this.#isSeekingForced = false;
         this.#currentIndex = index;
         const song = this.#playlist[index];
         this.#currentSongId = song.id;
@@ -592,7 +614,7 @@
       pause() { if (this.#player && typeof this.#player.pauseVideo === 'function') this.#player.pauseVideo(); }
       
       stop() {
-        this.#clearMonitor(); // [Step 4] 좀비 타이머 차단
+        this.#clearMonitor();
         if (this.#retryTimeout) { clearTimeout(this.#retryTimeout); this.#retryTimeout = null; }
         if (this.#player && typeof this.#player.stopVideo === 'function') this.#player.stopVideo();
       }
@@ -635,7 +657,7 @@
       get activeEventId() { return this.#activeEventId; }
 
       init(videoId, start, end, eventId) {
-        this.close(); // [Step 4] 무조건 안전하게 기존 객체부터 파괴
+        this.close();
         this.#activeEventId = eventId;
         this.#isSeekingForced = false;
 
@@ -678,9 +700,9 @@
       }
 
       close() {
-        this.#clearMonitor(); // [Step 4] 모니터 싹 날리기
+        this.#clearMonitor();
         if (this.#player) { try { if (typeof this.#player.destroy === 'function') this.#player.destroy(); } catch (e) {} this.#player = null; }
-        this.#activeEventId = null; // [Step 4] 식별자까지 완벽하게 비움
+        this.#activeEventId = null;
         this.#isSeekingForced = false;
       }
     }
@@ -776,7 +798,8 @@
           searchInput: document.getElementById('searchInput'),
           searchClearBtn: document.getElementById('searchClearBtn'),
           statsSearchInput: document.getElementById('statsSearchInput'),
-          statsClearBtn: document.getElementById('statsClearBtn')
+          statsClearBtn: document.getElementById('statsClearBtn'),
+          statsSummary: document.getElementById('statsSummary') // ✨ 통계 요약 DOM 등록
         };
         
         this.npMetaCached = false;
@@ -964,6 +987,16 @@
         const container = this.els.statsList;
         container.innerHTML = '';
         requestAnimationFrame(() => { container.scrollTop = 0; });
+
+        // ✨ 통계 요약 데이터 계산 및 UI 반영
+        const totalSongs = items.length;
+        const totalPlays = items.reduce((sum, item) => sum + item.playCount, 0);
+
+        if (totalSongs === 0) {
+          this.els.statsSummary.innerHTML = '조건에 맞는 가창 기록이 없습니다.';
+        } else {
+          this.els.statsSummary.innerHTML = `총 <strong>${totalSongs}</strong>곡 / <strong>${totalPlays}</strong>회 가창`;
+        }
 
         if (items.length === 0) {
           const empty = document.createElement('div');
