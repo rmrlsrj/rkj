@@ -993,9 +993,9 @@
         const totalPlays = items.reduce((sum, item) => sum + item.playCount, 0);
 
         if (totalSongs === 0) {
-          this.els.statsSummary.innerHTML = '조건에 맞는 기록이 없습니다.';
+          this.els.statsSummary.innerHTML = '조건에 맞는 가창 기록이 없습니다.';
         } else {
-          this.els.statsSummary.innerHTML = `총 <strong>${totalSongs}</strong>곡 / 누적 <strong>${totalPlays}</strong>회`;
+          this.els.statsSummary.innerHTML = `총 <strong>${totalSongs}</strong>곡 / <strong>${totalPlays}</strong>회 가창`;
         }
 
         if (items.length === 0) {
