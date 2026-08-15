@@ -417,6 +417,8 @@
       #allSongs = [];
       #currentStreamerSongs = [];
       #cachedStats = [];
+      #mainShuffleOrder = new Map();
+      #statsShuffleOrder = new Map();
       #streamerKey = 'kira';
 
       mainFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
@@ -497,6 +499,7 @@
         const dbId = STREAMER_MAP[this.#streamerKey].dbId;
         this.#currentStreamerSongs = this.#allSongs.filter(s => s.streamers.includes(dbId));
         this.#buildStatsCache();
+        this.#resetShuffleOrders();
       }
 
       #buildStatsCache() {
@@ -537,6 +540,28 @@
         return Array.from(map.values()).sort((a, b) => b.date.localeCompare(a.date));
       }
 
+      reshuffleMainSongs() {
+        this.#mainShuffleOrder = this.#createShuffleOrder(this.#currentStreamerSongs, song => song.id);
+      }
+
+      reshuffleStats() {
+        this.#statsShuffleOrder = this.#createShuffleOrder(this.#cachedStats, item => item.songId);
+      }
+
+      #resetShuffleOrders() {
+        this.reshuffleMainSongs();
+        this.reshuffleStats();
+      }
+
+      #createShuffleOrder(items, getId) {
+        const shuffled = [...items];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return new Map(shuffled.map((item, index) => [getId(item), index]));
+      }
+
       getFilteredMainSongs() {
         const { search, lang, sort, videoId } = this.mainFilters;
         const queries = Utils.getSearchQueries(search);
@@ -550,7 +575,7 @@
 
         if (sort === 'DATE_DESC') list.sort((a, b) => b.date.localeCompare(a.date) || b.logId.localeCompare(a.logId, undefined, {numeric:true}) || b.start - a.start);
         else if (sort === 'TITLE_ASC') list.sort((a, b) => this.#sortByTitle(a, b));
-        else if (sort === 'SHUFFLE') list.sort(() => Math.random() - 0.5);
+        else if (sort === 'SHUFFLE') list.sort((a, b) => this.#mainShuffleOrder.get(a.id) - this.#mainShuffleOrder.get(b.id));
         return list;
       }
 
@@ -579,7 +604,7 @@
           return acc;
         }, []);
 
-        if (sort === 'SHUFFLE') return list.sort(() => Math.random() - 0.5);
+        if (sort === 'SHUFFLE') return list.sort((a, b) => this.#statsShuffleOrder.get(a.songId) - this.#statsShuffleOrder.get(b.songId));
         
         return list.sort((a, b) => {
           if (sort === 'COUNT_DESC') return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate) || a.firstId.localeCompare(b.firstId, undefined, {numeric:true}) || this.#sortByTitle(a, b);
@@ -1224,7 +1249,9 @@
         });
         document.querySelectorAll('.main-sort-btn').forEach(btn => {
           btn.addEventListener('click', (e) => {
-            this.data.mainFilters.sort = e.target.dataset.sort;
+            const sort = e.target.dataset.sort;
+            if (sort === 'SHUFFLE') this.data.reshuffleMainSongs();
+            this.data.mainFilters.sort = sort;
             this.ui.updateFilterBtns(e.target);
             this.renderPlaylist();
           });
@@ -1260,7 +1287,9 @@
         });
         document.querySelectorAll('.stats-sort-btn').forEach(btn => {
           btn.addEventListener('click', (e) => {
-            this.data.statsFilters.sort = e.target.dataset.sort;
+            const sort = e.target.dataset.sort;
+            if (sort === 'SHUFFLE') this.data.reshuffleStats();
+            this.data.statsFilters.sort = sort;
             this.ui.updateFilterBtns(e.target);
             this.renderStatistics();
           });
