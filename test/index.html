@@ -437,24 +437,23 @@
       }
 
       async loadAllData() {
-// 구글 서버의 동시 요청 지연(트래픽 락)을 피하기 위해 1개씩 순차적으로 호출합니다.
-        const logRes = await this.#fetchTSV(
-            DB_URLS.log,
-            ['log_id', 'video_id', 'song_id'],
-            'log'
-        );
-        
-        const videoRes = await this.#fetchTSV(
-            DB_URLS.video,
-            ['video_id', 'youtube_video_id', 'streamer_id', 'stream_date'],
-            'video'
-        );
-        
-        const songRes = await this.#fetchTSV(
-            DB_URLS.song,
-            ['song_id', 'lang', 'title_primary'],
-            'song'
-        );
+        const [logRes, videoRes, songRes] = await Promise.all([
+          this.#fetchTSV(
+              DB_URLS.log,
+              ['log_id', 'video_id', 'song_id'],
+              'log'
+          ),
+          this.#fetchTSV(
+              DB_URLS.video,
+              ['video_id', 'youtube_video_id', 'streamer_id', 'stream_date'],
+              'video'
+          ),
+          this.#fetchTSV(
+              DB_URLS.song,
+              ['song_id', 'lang', 'title_primary'],
+              'song'
+          )
+        ]);
 
         const videoMap = {}; videoRes.forEach(v => videoMap[v.video_id] = v);
         const songMap = {}; songRes.forEach(s => songMap[s.song_id] = s);
@@ -518,7 +517,7 @@
       const xhr = new XMLHttpRequest();
 
       // 5.5초 안에 완료되지 않으면 이번 요청을 중단
-      xhr.timeout = 8000;
+      xhr.timeout = 5500;
 
       xhr.open('GET', url, true);
       xhr.responseType = 'text';
@@ -560,7 +559,7 @@
       };
 
       xhr.ontimeout = () => {
-        fail(new Error('TSV 요청이 8초 동안 완료되지 않았습니다.'));
+        fail(new Error('TSV 요청이 5.5초 동안 완료되지 않았습니다.'));
       };
 
       xhr.onabort = () => {
