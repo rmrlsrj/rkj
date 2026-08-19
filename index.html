@@ -516,8 +516,8 @@
 
       const xhr = new XMLHttpRequest();
 
-      // 5.5초 안에 완료되지 않으면 이번 요청을 중단
-      xhr.timeout = 5500;
+      // 7초 안에 완료되지 않으면 이번 요청을 중단
+      xhr.timeout = 7000;
 
       xhr.open('GET', url, true);
       xhr.responseType = 'text';
@@ -559,7 +559,7 @@
       };
 
       xhr.ontimeout = () => {
-        fail(new Error('TSV 요청이 5.5초 동안 완료되지 않았습니다.'));
+        fail(new Error('TSV 요청이 7초 동안 완료되지 않았습니다.'));
       };
 
       xhr.onabort = () => {
