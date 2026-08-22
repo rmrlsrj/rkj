@@ -120,10 +120,48 @@
     .streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
     .streamer-btn { padding: 6px 14px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
     @media (max-width: 767px) {
+      header {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+          "title tabs"
+          "theme streamers";
+        align-items: center;
+        column-gap: 10px;
+        row-gap: 8px;
+      }
+
+      header h1 {
+        grid-area: title;
+      }
+
+      header .header-controls {
+        display: contents;
+      }
+
+      header .theme-toggle-btn {
+        grid-area: theme;
+        justify-self: start;
+        font-size: 1.2rem;
+        padding: 4px;
+      }
+
+      header .streamer-nav {
+        grid-area: streamers;
+        justify-self: end;
+        min-width: 0;
+      }
+
+      header .tab-nav {
+        grid-area: tabs;
+        justify-self: end;
+      }
+
       .streamer-btn {
         font-size: 0;
         padding: 6px 10px;
-        flex: 1 1 0;
+        flex: 0 0 auto;
+        white-space: nowrap;
       }
       .streamer-btn[data-streamer-target="ALL"]::after { content: "전체"; font-size: 0.85rem; }
       .streamer-btn[data-streamer-target="kira"]::after { content: "키라"; font-size: 0.85rem; }
@@ -131,25 +169,6 @@
       .streamer-btn[data-streamer-target="nao"]::after { content: "나오"; font-size: 0.85rem; }
       .streamer-btn[data-streamer-target="suya"]::after { content: "스야"; font-size: 0.85rem; }
 
-      header .header-controls {
-        width: 100%;
-        flex-wrap: nowrap;
-        gap: 6px;
-      }
-      header .streamer-nav {
-        order: 1;
-        flex: 1 1 auto;
-        min-width: 0;
-      }
-      header .tab-nav {
-        order: 2;
-        flex: 0 0 auto;
-      }
-      header .theme-toggle-btn {
-        order: 3;
-        flex: 0 0 auto;
-        margin-left: 0;
-      }
       header .tab-btn {
         padding: 6px 10px;
         font-size: 0.85rem;
