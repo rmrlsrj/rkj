@@ -431,7 +431,7 @@
       #allSongs = [];
       #currentStreamerSongs = [];
       #cachedStats = [];
-      #mainShuffleOrder = new Map();
+      #mainShuffleOrders = new Map();
       #statsShuffleOrder = new Map();
       #streamerKey = 'kira';
       #mainScopeKey = 'kira';
@@ -451,7 +451,6 @@
       set mainScopeKey(key) {
         if (this.#mainScopeKey !== key) {
           this.#mainScopeKey = key;
-          this.reshuffleMainSongs();
         }
       }
 
@@ -516,6 +515,7 @@
         }).filter(Boolean);
 
         this.#allSongs.sort((a, b) => a.date.localeCompare(b.date) || a.logId.localeCompare(b.logId, undefined, {numeric:true}) || a.start - b.start);
+        this.#initializeMainShuffleOrders();
         this.#updateCaches(); 
       }
 
@@ -621,7 +621,7 @@
         const dbId = STREAMER_MAP[this.#streamerKey].dbId;
         this.#currentStreamerSongs = this.#allSongs.filter(s => s.streamers.includes(dbId));
         this.#buildStatsCache();
-        this.#resetShuffleOrders();
+        this.reshuffleStats();
       }
 
       #buildStatsCache() {
@@ -674,17 +674,24 @@
         return Array.from(map.values()).sort((a, b) => b.date.localeCompare(a.date));
       }
 
+      #initializeMainShuffleOrders() {
+        this.#mainShuffleOrders.clear();
+        const scopes = ['ALL', ...Object.keys(STREAMER_MAP)];
+        scopes.forEach(scopeKey => {
+          const songs = scopeKey === 'ALL'
+            ? this.#allSongs
+            : this.#allSongs.filter(song => song.streamers.includes(STREAMER_MAP[scopeKey].dbId));
+          this.#mainShuffleOrders.set(scopeKey, this.#createShuffleOrder(songs, song => song.id));
+        });
+      }
+
       reshuffleMainSongs() {
-        this.#mainShuffleOrder = this.#createShuffleOrder(this.getMainSongs(), song => song.id);
+        const scopeKey = this.#mainScopeKey;
+        this.#mainShuffleOrders.set(scopeKey, this.#createShuffleOrder(this.getMainSongs(), song => song.id));
       }
 
       reshuffleStats() {
         this.#statsShuffleOrder = this.#createShuffleOrder(this.#cachedStats, item => item.songId);
-      }
-
-      #resetShuffleOrders() {
-        this.reshuffleMainSongs();
-        this.reshuffleStats();
       }
 
       #createShuffleOrder(items, getId) {
@@ -709,7 +716,10 @@
 
         if (sort === 'DATE_DESC') list.sort((a, b) => b.date.localeCompare(a.date) || b.logId.localeCompare(a.logId, undefined, {numeric:true}) || b.start - a.start);
         else if (sort === 'TITLE_ASC') list.sort((a, b) => this.#sortByTitle(a, b));
-        else if (sort === 'SHUFFLE') list.sort((a, b) => this.#mainShuffleOrder.get(a.id) - this.#mainShuffleOrder.get(b.id));
+        else if (sort === 'SHUFFLE') {
+          const order = this.#mainShuffleOrders.get(this.#mainScopeKey);
+          if (order) list.sort((a, b) => order.get(a.id) - order.get(b.id));
+        }
         return list;
       }
 
