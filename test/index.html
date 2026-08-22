@@ -53,10 +53,16 @@
     [data-streamer="nao"] .back-to-top { color: #2f2921 !important; }
 
     /* 전체 범위에서는 나오의 검정색 예외보다 전체용 UI 색상을 우선 적용 */
-    [data-main-scope="ALL"] .streamer-btn[data-streamer-target="ALL"],
-    [data-main-scope="ALL"] .tab-btn,
-    [data-main-scope="ALL"] .main-lang-btn,
-    [data-main-scope="ALL"] .main-sort-btn { color: #fff !important; }
+    [data-main-scope="ALL"] .streamer-btn[data-streamer-target="ALL"].active,
+    [data-main-scope="ALL"] .tab-btn.active,
+    [data-main-scope="ALL"] .main-lang-btn.active,
+    [data-main-scope="ALL"] .main-sort-btn.active { color: #fff !important; }
+
+    /* 전체 범위의 비활성 버튼은 원래의 흐린 글씨색을 유지 */
+    [data-main-scope="ALL"] .streamer-btn[data-streamer-target="ALL"]:not(.active),
+    [data-main-scope="ALL"] .tab-btn:not(.active),
+    [data-main-scope="ALL"] .main-lang-btn:not(.active),
+    [data-main-scope="ALL"] .main-sort-btn:not(.active) { color: var(--text-muted) !important; }
 
     [data-streamer="nao"] .stats-summary strong,
     [data-streamer="nao"] .stats-item .date-link,
