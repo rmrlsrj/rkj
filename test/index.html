@@ -432,7 +432,7 @@
       #currentStreamerSongs = [];
       #cachedStats = [];
       #mainShuffleOrders = new Map();
-      #statsShuffleOrder = new Map();
+      #statsShuffleOrders = new Map();
       #streamerKey = 'kira';
       #mainScopeKey = 'kira';
 
@@ -621,7 +621,15 @@
         const dbId = STREAMER_MAP[this.#streamerKey].dbId;
         this.#currentStreamerSongs = this.#allSongs.filter(s => s.streamers.includes(dbId));
         this.#buildStatsCache();
-        this.reshuffleStats();
+
+        // 스트리머를 바꿔도 기존 통계 랜덤 순서는 유지한다.
+        // 해당 스트리머의 랜덤 순서가 처음 등장한 경우에만 생성한다.
+        if (!this.#statsShuffleOrders.has(this.#streamerKey)) {
+          this.#statsShuffleOrders.set(
+            this.#streamerKey,
+            this.#createShuffleOrder(this.#cachedStats, item => item.songId)
+          );
+        }
       }
 
       #buildStatsCache() {
@@ -691,7 +699,10 @@
       }
 
       reshuffleStats() {
-        this.#statsShuffleOrder = this.#createShuffleOrder(this.#cachedStats, item => item.songId);
+        this.#statsShuffleOrders.set(
+          this.#streamerKey,
+          this.#createShuffleOrder(this.#cachedStats, item => item.songId)
+        );
       }
 
       #createShuffleOrder(items, getId) {
@@ -748,7 +759,10 @@
           return acc;
         }, []);
 
-        if (sort === 'SHUFFLE') return list.sort((a, b) => this.#statsShuffleOrder.get(a.songId) - this.#statsShuffleOrder.get(b.songId));
+        if (sort === 'SHUFFLE') {
+          const order = this.#statsShuffleOrders.get(this.#streamerKey);
+          if (order) return list.sort((a, b) => order.get(a.songId) - order.get(b.songId));
+        }
         
         return list.sort((a, b) => {
           if (sort === 'COUNT_DESC') return b.playCount - a.playCount || a.firstDate.localeCompare(b.firstDate) || a.firstId.localeCompare(b.firstId, undefined, {numeric:true}) || this.#sortByTitle(a, b);
