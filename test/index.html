@@ -1350,7 +1350,7 @@
         
         if (!this.npMetaCached) {
           this.els.npMeta.innerHTML = `
-            <span class="db-badge">가창 ID: <span id="npMetaLogId"></span></span>
+            <span class="db-badge">로그 ID: <span id="npMetaLogId"></span></span>
             <span class="db-badge">구간: <span id="npMetaDuration"></span></span>
             <span class="db-badge">곡 ID: <span id="npMetaSongId"></span></span>
           `;
@@ -1386,7 +1386,7 @@
       #createPlaylistCard(song, idx, context) {
         const { activeSongId, onPlay, showStreamer } = context;
         const isActive = song.id === activeSongId;
-        const streamerLabel = showStreamer && song.streamers?.length ? ` <span class="log-id-tag">[${Utils.escapeHtml(song.streamers.join(', '))}]</span>` : '';
+        const streamerLabel = showStreamer && song.streamers?.length ? ` <span class="log-id-tag">${Utils.escapeHtml(song.streamers.join(', '))}</span>` : '';
 
         const card = document.createElement('div');
         card.className = `song-card ${isActive ? 'active' : ''}${showStreamer ? ' song-card--scoped' : ''}`;
