@@ -137,7 +137,7 @@
     @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
     .song-info-sub { font-size: 0.8rem; color: var(--text-muted); }
     .song-badge { font-size: 0.7rem; font-weight: 600; padding: 4px 8px; border-radius: 6px; background-color: var(--accent-light); color: var(--accent-secondary); border: 1px solid rgba(0,0,0,0.05); white-space: nowrap; }
-    .song-card.song-card--scoped .song-badge { background-color: var(--song-light); color: var(--song-primary); border-color: var(--song-primary); }
+    .song-card.song-card--scoped .song-badge { background-color: var(--song-light); color: var(--song-secondary); border-color: rgba(0,0,0,0.05); }
     .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.95rem; background-color: var(--panel-bg); border-radius: 8px; border: 1px dashed var(--border); margin-top: 10px; width: 100%; }
     .skeleton-box { background: linear-gradient(90deg, var(--card-bg) 25%, var(--border) 50%, var(--card-bg) 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite linear; border-radius: 4px; }
     @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -1150,18 +1150,19 @@
 
       getSongContextColors(song) {
         const streamerColorMap = {
-          '키라': { primary: 'var(--kira-primary)', light: 'var(--kira-light)' },
-          '텐텐': { primary: 'var(--tenten-primary)', light: 'var(--tenten-light)' },
-          '나오': { primary: 'var(--nao-primary)', light: 'var(--nao-light)' },
-          '스야': { primary: 'var(--suya-primary)', light: 'var(--suya-light)' }
+          '키라': { primary: 'var(--kira-primary)', secondary: 'var(--kira-secondary)', light: 'var(--kira-light)' },
+          '텐텐': { primary: 'var(--tenten-primary)', secondary: 'var(--tenten-secondary)', light: 'var(--tenten-light)' },
+          '나오': { primary: 'var(--nao-primary)', secondary: 'var(--nao-secondary)', light: 'var(--nao-light)' },
+          '스야': { primary: 'var(--suya-primary)', secondary: 'var(--suya-secondary)', light: 'var(--suya-light)' }
         };
         const keys = Array.isArray(song?.streamers) ? song.streamers : [];
         if (keys.length === 1 && streamerColorMap[keys[0]]) {
           const c = streamerColorMap[keys[0]];
-          return { primary: c.primary, light: c.light, gradient: c.primary };
+          return { primary: c.primary, secondary: c.secondary, light: c.light, gradient: c.primary };
         }
         return {
           primary: 'var(--all-primary)',
+          secondary: 'var(--all-secondary)',
           light: 'var(--all-light)',
           gradient: 'linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%)'
         };
@@ -1219,7 +1220,7 @@
         let songStyle = '';
         if (showStreamer) {
           const colors = this.getSongContextColors(song);
-          songStyle = ` style="--song-primary:${colors.primary};--song-light:${colors.light};"`;
+          songStyle = ` style="--song-primary:${colors.primary};--song-secondary:${colors.secondary};--song-light:${colors.light};"`;
         }
 
         const card = document.createElement('div');
