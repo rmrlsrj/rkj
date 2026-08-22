@@ -45,21 +45,12 @@
     [data-streamer="suya"] { --accent-primary: var(--suya-primary); --accent-secondary: var(--suya-secondary); --accent-hover: var(--suya-hover); --accent-light: var(--suya-light); }
 
     [data-streamer="nao"] .streamer-btn.active,
+    [data-streamer="nao"] .tab-btn.active,
     [data-streamer="nao"] .filter-btn.active,
     [data-streamer="nao"] .filter-btn:hover,
     [data-streamer="nao"] .stats-item .date-link.active-date,
     [data-streamer="nao"] .stats-player-close-btn:hover,
     [data-streamer="nao"] .back-to-top { color: #2f2921 !important; }
-
-    /* 나오 탭의 가독성용 검정 글씨는 유지하되, 전체 범위와 상단 탭은 흰색으로 통일 */
-    [data-main-scope="ALL"] .main-lang-btn.active,
-    [data-main-scope="ALL"] .main-lang-btn:hover,
-    [data-main-scope="ALL"] .main-sort-btn.active,
-    [data-main-scope="ALL"] .main-sort-btn:hover,
-    [data-main-scope="ALL"] .streamer-btn[data-streamer-target="ALL"].active { color: #fff !important; }
-
-    [data-streamer="nao"] .tab-btn.active,
-    [data-streamer="nao"] .tab-btn:hover { color: #fff !important; }
 
     [data-streamer="nao"] .stats-summary strong,
     [data-streamer="nao"] .stats-item .date-link,
@@ -114,7 +105,7 @@
     .now-playing-artist { font-size: 0.9rem; color: var(--text-muted); }
     .now-playing-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 0.78rem; color: var(--text-muted); }
     .db-badge { background-color: var(--card-bg); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
-    .db-badge strong { color: var(--accent-secondary); }
+    .db-badge strong { color: var(--text-muted); }
     .log-id-tag { font-size: 0.75rem; color: var(--text-muted); margin-left: 6px; font-weight: 500; }
     .playlist-section { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; height: 600px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s ease, border-color 0.3s ease; min-width: 0; }
     .search-filter-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
