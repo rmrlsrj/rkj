@@ -33,6 +33,7 @@
       --tenten-primary: #e65c5c; --tenten-secondary: #2b2b2b; --tenten-hover: #d24a4a; --tenten-light: #fdf2f2;   
       --nao-primary: #fee0ae; --nao-secondary: #2f2921; --nao-hover: #facd94; --nao-light: #fff3de;
       --suya-primary: #bfb1a4; --suya-secondary: #554942; --suya-hover: #81736a; --suya-light: #f4f0ed;
+      --all-primary: #ff4b3e; --all-secondary: #ff8a1c; --all-hover: #ff682b; --all-light: #fff1e8;
       
       --accent-primary: var(--kira-primary); --accent-secondary: var(--kira-secondary);
       --accent-hover: var(--kira-hover); --accent-light: var(--kira-light);
@@ -73,6 +74,7 @@
       --tenten-primary: #fca5a5; --tenten-secondary: #fecaca; --tenten-hover: #b91c1c; --tenten-light: #3f2020;
       --nao-primary: #ffe1ae; --nao-secondary: #fff1dc; --nao-hover: #f8c78c; --nao-light: #443321;
       --suya-primary: #d3c5b9; --suya-secondary: #f0e7e1; --suya-hover: #81736a; --suya-light: #39322e;
+      --all-primary: #ff7a68; --all-secondary: #ffb36b; --all-hover: #ff7a2f; --all-light: #4a2d25;
     }
     
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -116,13 +118,16 @@
     .filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
     .filter-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background-color: var(--panel-bg); color: var(--text-muted); font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
     .filter-btn.active, .filter-btn:hover { background-color: var(--accent-hover); color: #fff; border-color: var(--accent-hover); }
+    [data-main-scope="ALL"] .main-lang-btn.active, [data-main-scope="ALL"] .main-lang-btn:hover, [data-main-scope="ALL"] .main-sort-btn.active, [data-main-scope="ALL"] .main-sort-btn:hover { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; border-color: transparent; }
     .playlist-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; position: relative; }
     .playlist-scroll::-webkit-scrollbar { width: 6px; }
     .playlist-scroll::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 3px; }
     .song-card { padding: 12px 14px; border-radius: 8px; background-color: var(--panel-bg); border: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
     .song-card.active { border-left: 4px solid var(--accent-primary); background-color: var(--accent-light); }
+    .song-card.song-card--scoped.active { border-left-color: var(--song-primary); background-color: var(--song-light); }
     @media (hover: hover) {
       .song-card:hover { border-color: var(--accent-primary); transform: translateY(-1px); }
+      .song-card.song-card--scoped:hover { border-color: var(--song-primary); }
       .stats-item .date-link:hover { color: #fff; background-color: var(--accent-hover); border-radius: 4px; text-decoration: none; }
     }
     .song-info-date { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px; }
@@ -1063,11 +1068,13 @@
         document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         document.documentElement.setAttribute('data-streamer', key);
+        document.documentElement.setAttribute('data-main-scope', key);
       }
 
       updateMainScopeNav(btn) {
         document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        document.documentElement.setAttribute('data-main-scope', 'ALL');
       }
 
       switchTab(tabId, btn) {
@@ -1184,9 +1191,26 @@
         const { activeSongId, onPlay, showStreamer } = context;
         const isActive = song.id === activeSongId;
         const streamerLabel = showStreamer && song.streamers?.length ? ` <span class="log-id-tag">[${Utils.escapeHtml(song.streamers.join(', '))}]</span>` : '';
+
+        let songStyle = '';
+        if (showStreamer) {
+          const streamerColorMap = {
+            '키라': ['var(--kira-primary)', 'var(--kira-light)'],
+            '텐텐': ['var(--tenten-primary)', 'var(--tenten-light)'],
+            '나오': ['var(--nao-primary)', 'var(--nao-light)'],
+            '스야': ['var(--suya-primary)', 'var(--suya-light)']
+          };
+          const keys = Array.isArray(song.streamers) ? song.streamers : [];
+          const selected = keys.length === 1 && streamerColorMap[keys[0]]
+            ? streamerColorMap[keys[0]]
+            : ['var(--all-primary)', 'var(--all-light)'];
+          songStyle = ` style="--song-primary:${selected[0]};--song-light:${selected[1]};"`;
+        }
+
         const card = document.createElement('div');
-        card.className = `song-card ${isActive ? 'active' : ''}`;
-        card.dataset.songId = song.id; 
+        card.className = `song-card ${isActive ? 'active' : ''}${showStreamer ? ' song-card--scoped' : ''}`;
+        card.dataset.songId = song.id;
+        if (songStyle) card.setAttribute('style', songStyle.slice(8, -1)); 
         card.tabIndex = 0;
         card.addEventListener('click', () => onPlay(idx));
         card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPlay(idx); } });
@@ -1330,6 +1354,7 @@
 
       async init() {
         this.ui.initTheme();
+        this.ui.els && document.documentElement.setAttribute('data-main-scope', this.data.mainScopeKey);
         this.ui.initScrollObserver();
         this.bindEvents(); 
         this.ui.renderSkeleton('playlist', CONFIG.SKELETON_COUNT_MAIN, false);
