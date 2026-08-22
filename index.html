@@ -710,7 +710,11 @@
       getStreamerSongs() { return this.#currentStreamerSongs; }
 
       getMainSongs() {
-        return this.#mainScopeKey === 'ALL' ? this.#allSongs : this.#currentStreamerSongs;
+        if (this.#mainScopeKey === 'ALL') {
+          const activeMembers = Object.values(STREAMER_MAP).map(s => s.dbId);
+          return this.#allSongs.filter(song => song.streamers.some(s => activeMembers.includes(s)));
+  }
+  return this.#currentStreamerSongs;
       }
 
       getUniqueVideos() {
