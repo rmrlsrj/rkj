@@ -1297,9 +1297,17 @@
         this.playlistRenderer.render(songs, { activeSongId, onPlay, showStreamer });
       }
 
+      showStatsStreamerSelectionPrompt() {
+        this.els.statsSummary.textContent = '';
+        this.els.statsSummary.style.display = 'none';
+        this.els.statsList.innerHTML = `<div class="empty-state">통계를 보고 싶은 스트리머를 선택해주세요</div>`;
+        requestAnimationFrame(() => { this.els.statsList.scrollTop = 0; });
+      }
+
       renderStatsList(items, onToggleStatsPlayer) {
         const container = this.els.statsList;
         container.innerHTML = '';
+        this.els.statsSummary.style.display = 'flex';
         requestAnimationFrame(() => { container.scrollTop = 0; });
 
         // ✨ 통계 요약 데이터 계산 및 UI 반영
@@ -1651,8 +1659,18 @@
 
       switchMainTab(tabId, btn) {
         this.ui.switchTab(tabId, btn);
-        if (tabId === 'stats') this.renderStatistics();
-        else { this.statsPlayer.close(); this.ui.removeStatsPlayerDOM(); }
+        if (tabId === 'stats') {
+          if (this.data.mainScopeKey === 'ALL') {
+            this.statsPlayer.close();
+            this.ui.removeStatsPlayerDOM();
+            this.ui.showStatsStreamerSelectionPrompt();
+          } else {
+            this.renderStatistics();
+          }
+        } else {
+          this.statsPlayer.close();
+          this.ui.removeStatsPlayerDOM();
+        }
       }
     }
 
