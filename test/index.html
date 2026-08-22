@@ -48,7 +48,7 @@
     [data-streamer="suya"] { --accent-primary: var(--suya-primary); --accent-secondary: var(--suya-secondary); --accent-hover: var(--suya-hover); --accent-light: var(--suya-light); }
 
     [data-streamer="nao"] .streamer-btn.active,
-    [data-streamer="nao"] .tab-btn.active,
+    
     [data-streamer="nao"] .filter-btn.active,
     [data-streamer="nao"] .filter-btn:hover,
     [data-streamer="nao"] .stats-item .date-link.active-date,
@@ -179,6 +179,10 @@
       font-size: 1.1rem;
     }
 
+    [data-streamer="tenten"] .stats-summary strong {
+      color: #D96B6A;
+    }
+
     .stats-list { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-height: 500px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s, border-color 0.3s; position: relative; }
     .stats-item { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; font-size: 0.9rem; line-height: 1.5; color: var(--text); word-break: break-all; scroll-margin-top: 24px; transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
     .stats-item .index-text { font-weight: 700; color: var(--text-muted); margin-right: 6px; }
@@ -245,7 +249,13 @@
     transform: rotate(360deg);
   }
 }
-  </style>
+  
+    /* 나오 탭에서도 우측 재생/통계는 흰색 유지 */
+    [data-streamer="nao"] .tab-btn,
+    [data-streamer="nao"] .tab-btn.active {
+      color: #fff !important;
+    }
+</style>
 </head>
 <body>
 
