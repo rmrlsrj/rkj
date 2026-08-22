@@ -119,6 +119,11 @@
     .theme-toggle-btn:hover { transform: scale(1.1); }
     .streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
     .streamer-btn { padding: 6px 14px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+     .streamer-short-name { display: none; }
+     @media (max-width: 767px) {
+       .streamer-full-name { display: none; }
+       .streamer-short-name { display: inline; }
+     }
     .streamer-btn.active { background-color: var(--accent-hover); color: #fff; }
     .streamer-btn[data-streamer-target="ALL"].active { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; }
     .streamer-btn[data-streamer-target="ALL"]:hover { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; }
@@ -290,10 +295,10 @@
       
       <div class="streamer-nav">
         <button class="streamer-btn" data-streamer-target="ALL">전체</button>
-        <button class="streamer-btn active" data-streamer-target="kira">세이로쿠 키라</button>
-        <button class="streamer-btn" data-streamer-target="tenten">텐플라스텐 텐텐</button>
-        <button class="streamer-btn" data-streamer-target="nao">아사미야 나오</button>
-        <button class="streamer-btn" data-streamer-target="suya">코네코토 스야</button>
+        <button class="streamer-btn active" data-streamer-target="kira"><span class="streamer-full-name">세이로쿠 키라</span><span class="streamer-short-name">키라</span></button>
+        <button class="streamer-btn" data-streamer-target="tenten"><span class="streamer-full-name">텐플라스텐 텐텐</span><span class="streamer-short-name">텐텐</span></button>
+        <button class="streamer-btn" data-streamer-target="nao"><span class="streamer-full-name">아사미야 나오</span><span class="streamer-short-name">나오</span></button>
+        <button class="streamer-btn" data-streamer-target="suya"><span class="streamer-full-name">코네코토 스야</span><span class="streamer-short-name">스야</span></button>
       </div>
       
       <div class="tab-nav">
