@@ -1503,14 +1503,14 @@
       #setupFilters(selector, filterKey, filterObj, renderFn, isSort = false, isMain = false) {
         document.querySelectorAll(selector).forEach(btn => {
           btn.addEventListener('click', (e) => {
-            const val = e.target.dataset[filterKey];
+            const val = e.currentTarget.dataset[filterKey];
             if (isSort) {
               if (val === 'SHUFFLE') isMain ? this.data.reshuffleMainSongs() : this.data.reshuffleStats();
               isMain ? this.data.setMainSort(val) : (filterObj.sort = val);
             } else {
               filterObj[filterKey] = val;
             }
-            this.ui.updateFilterBtns(e.target);
+            this.ui.updateFilterBtns(e.currentTarget);
             renderFn.call(this);
           });
         });
