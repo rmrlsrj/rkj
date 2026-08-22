@@ -117,7 +117,8 @@
     .header-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
     .theme-toggle-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px; border-radius: 50%; transition: transform 0.2s; }
     .theme-toggle-btn:hover { transform: scale(1.1); }
-    .streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
+    .streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: nowrap; }
+    .streamer-btn, .tab-btn { flex: 0 0 auto; white-space: nowrap; }
     @media (min-width: 768px) {
       header {
         position: relative;
