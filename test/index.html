@@ -45,12 +45,21 @@
     [data-streamer="suya"] { --accent-primary: var(--suya-primary); --accent-secondary: var(--suya-secondary); --accent-hover: var(--suya-hover); --accent-light: var(--suya-light); }
 
     [data-streamer="nao"] .streamer-btn.active,
-    [data-streamer="nao"] .tab-btn.active,
     [data-streamer="nao"] .filter-btn.active,
     [data-streamer="nao"] .filter-btn:hover,
     [data-streamer="nao"] .stats-item .date-link.active-date,
     [data-streamer="nao"] .stats-player-close-btn:hover,
     [data-streamer="nao"] .back-to-top { color: #2f2921 !important; }
+
+    /* 나오 탭의 가독성용 검정 글씨는 유지하되, 전체 범위와 상단 탭은 흰색으로 통일 */
+    [data-main-scope="ALL"] .main-lang-btn.active,
+    [data-main-scope="ALL"] .main-lang-btn:hover,
+    [data-main-scope="ALL"] .main-sort-btn.active,
+    [data-main-scope="ALL"] .main-sort-btn:hover,
+    [data-main-scope="ALL"] .streamer-btn[data-streamer-target="ALL"].active { color: #fff !important; }
+
+    [data-streamer="nao"] .tab-btn.active,
+    [data-streamer="nao"] .tab-btn:hover { color: #fff !important; }
 
     [data-streamer="nao"] .stats-summary strong,
     [data-streamer="nao"] .stats-item .date-link,
