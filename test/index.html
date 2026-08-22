@@ -435,8 +435,25 @@
       #statsShuffleOrders = new Map();
       #streamerKey = 'kira';
       #mainScopeKey = 'kira';
+      #mainSortStates = new Map();
 
       mainFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
+
+      getMainSort(scopeKey = this.#mainScopeKey) {
+        return this.#mainSortStates.get(scopeKey) || 'DATE_ASC';
+      }
+
+      setMainSort(sort, scopeKey = this.#mainScopeKey) {
+        this.#mainSortStates.set(scopeKey, sort);
+        this.mainFilters.sort = sort;
+      }
+
+      #initializeMainSortStates() {
+        this.#mainSortStates.clear();
+        const scopes = ['ALL', ...Object.keys(STREAMER_MAP)];
+        scopes.forEach(scopeKey => this.#mainSortStates.set(scopeKey, 'DATE_ASC'));
+        this.mainFilters.sort = this.getMainSort();
+      }
       statsFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
 
       get streamerKey() { return this.#streamerKey; }
@@ -451,6 +468,7 @@
       set mainScopeKey(key) {
         if (this.#mainScopeKey !== key) {
           this.#mainScopeKey = key;
+          this.mainFilters.sort = this.getMainSort(key);
         }
       }
 
@@ -516,6 +534,7 @@
 
         this.#allSongs.sort((a, b) => a.date.localeCompare(b.date) || a.logId.localeCompare(b.logId, undefined, {numeric:true}) || a.start - b.start);
         this.#initializeMainShuffleOrders();
+        this.#initializeMainSortStates();
         this.#updateCaches(); 
       }
 
