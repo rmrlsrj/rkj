@@ -233,6 +233,7 @@
     .now-playing-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; word-break: break-word; overflow-wrap: anywhere; }
     .now-playing-artist { font-size: 0.9rem; color: var(--text-muted); }
     .now-playing-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 0.78rem; color: var(--text-muted); }
+    @media (max-width: 900px) { .now-playing-meta { display: none !important; } }
     .db-badge { background-color: var(--card-bg); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
     
     .log-id-tag { font-size: 0.75rem; color: var(--text-muted); margin-left: 6px; font-weight: 500; }
@@ -1404,7 +1405,7 @@
         
         card.innerHTML = `
           <div>
-            <div class="song-info-date">${Utils.escapeHtml(song.date)}${streamerLabel} <span class="log-id-tag">[${Utils.escapeHtml(song.logId)} | ${Utils.escapeHtml(song.startTimeRaw)} ~ ${Utils.escapeHtml(song.endTimeRaw)}]</span></div>
+            <div class="song-info-date">${Utils.escapeHtml(song.date)}${streamerLabel}</div>
             <div class="song-info-main">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)}</div>
             <div class="song-info-sub">${Utils.escapeHtml(song.artist)}${song.work ? ' • ' + Utils.escapeHtml(song.work) : ''}</div>
           </div>
