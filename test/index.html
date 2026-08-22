@@ -85,6 +85,8 @@
     .streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
     .streamer-btn { padding: 6px 14px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
     .streamer-btn.active { background-color: var(--accent-hover); color: #fff; }
+    .streamer-btn[data-streamer-target="ALL"].active { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; }
+    .streamer-btn[data-streamer-target="ALL"]:hover { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; }
     .tab-btn { padding: 6px 16px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .tab-btn.active { background-color: var(--accent-hover); color: #fff; }
     .tab-content { display: none; width: 100%; flex: 1; }
