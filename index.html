@@ -5,24 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Unofficial</title>
 
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Unofficial">
-  <meta property="og:description" content="키라/텐텐/나오/스야">
-  <meta property="og:site_name" content="Unofficial">
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   
-<script>
-  try {
-    const savedTheme = localStorage.getItem('theme') || 'light';
+  <script>
+    const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', savedTheme);
-  } catch (e) {
-    document.documentElement.setAttribute('data-theme', 'light');
-  }
-</script>
+  </script>
 
   <style>
     :root {
@@ -126,8 +117,104 @@
     .header-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
     .theme-toggle-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px; border-radius: 50%; transition: transform 0.2s; }
     .theme-toggle-btn:hover { transform: scale(1.1); }
-    .streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
+    .streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: nowrap; }
+    .streamer-btn, .tab-btn { flex: 0 0 auto; white-space: nowrap; }
+    @media (min-width: 1201px) {
+      header {
+        position: relative;
+      }
+      header .header-controls {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: calc(100vw - 32px);
+        flex-wrap: nowrap;
+      }
+    }
+
+    @media (min-width: 901px) and (max-width: 1200px) {
+      header {
+        flex-wrap: wrap;
+      }
+      header .header-controls {
+        position: static;
+        transform: none;
+        width: 100%;
+        max-width: none;
+        justify-content: center;
+        order: 3;
+        flex-wrap: nowrap;
+        gap: 8px;
+      }
+      header .streamer-nav {
+        gap: 2px;
+      }
+      header .streamer-btn {
+        padding: 6px 10px;
+      }
+      header .tab-nav {
+        gap: 2px;
+      }
+      header .tab-btn {
+        padding: 6px 12px;
+      }
+    }
     .streamer-btn { padding: 6px 14px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    @media (max-width: 900px) {
+      header {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+          "title tabs"
+          "theme streamers";
+        align-items: center;
+        column-gap: 10px;
+        row-gap: 8px;
+      }
+
+      header h1 {
+        grid-area: title;
+      }
+
+      header .header-controls {
+        display: contents;
+      }
+
+      header .theme-toggle-btn {
+        grid-area: theme;
+        justify-self: start;
+        font-size: 1.2rem;
+        padding: 4px;
+      }
+
+      header .streamer-nav {
+        grid-area: streamers;
+        justify-self: end;
+        min-width: 0;
+      }
+
+      header .tab-nav {
+        grid-area: tabs;
+        justify-self: end;
+      }
+
+      .streamer-btn {
+        font-size: 0;
+        padding: 6px 10px;
+        flex: 0 0 auto;
+        white-space: nowrap;
+      }
+      .streamer-btn[data-streamer-target="ALL"]::after { content: "전체"; font-size: 0.85rem; }
+      .streamer-btn[data-streamer-target="kira"]::after { content: "키라"; font-size: 0.85rem; }
+      .streamer-btn[data-streamer-target="tenten"]::after { content: "텐텐"; font-size: 0.85rem; }
+      .streamer-btn[data-streamer-target="nao"]::after { content: "나오"; font-size: 0.85rem; }
+      .streamer-btn[data-streamer-target="suya"]::after { content: "스야"; font-size: 0.85rem; }
+
+      header .tab-btn {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+      }
+    }
     .streamer-btn.active { background-color: var(--accent-hover); color: #fff; }
     .streamer-btn[data-streamer-target="ALL"].active { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; }
     .streamer-btn[data-streamer-target="ALL"]:hover { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; }
@@ -481,13 +568,15 @@
       #allSongs = [];
       #currentStreamerSongs = [];
       #cachedStats = [];
-      #mainShuffleOrders = new Map();
-      #mainSortStates = new Map();
-      #statsShuffleOrders = new Map();
       #streamerKey = 'kira';
       #mainScopeKey = 'kira';
 
       mainFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
+      #mainSortStates = new Map();
+      #mainShuffleOrders = new Map();
+      
+      statsFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
+      #statsShuffleOrders = new Map();
 
       #initializeMainSortStates() {
         this.#mainSortStates.clear();
@@ -504,7 +593,6 @@
         this.#mainSortStates.set(this.#mainScopeKey, sort);
         this.mainFilters.sort = sort;
       }
-      statsFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
 
       get streamerKey() { return this.#streamerKey; }
       set streamerKey(key) {
@@ -583,7 +671,8 @@
 
         this.#allSongs.sort((a, b) => a.date.localeCompare(b.date) || a.logId.localeCompare(b.logId, undefined, {numeric:true}) || a.start - b.start);
         this.#initializeMainSortStates();
-        this.#updateCaches(); 
+        
+        this.#updateCaches();
       }
 
       #fetchTSV(url, requiredHeaders = [], dbName = 'unknown') {
@@ -707,14 +796,16 @@
         });
       }
 
-      getStreamerSongs() { return this.#currentStreamerSongs; }
+      getStreamerSongs() { 
+        return this.#currentStreamerSongs; 
+      }
 
       getMainSongs() {
         if (this.#mainScopeKey === 'ALL') {
           const activeMembers = Object.values(STREAMER_MAP).map(s => s.dbId);
           return this.#allSongs.filter(song => song.streamers.some(s => activeMembers.includes(s)));
-  }
-  return this.#currentStreamerSongs;
+        }
+        return this.#currentStreamerSongs;
       }
 
       getUniqueVideos() {
@@ -767,9 +858,8 @@
         });
 
         if (sort === 'DATE_DESC') list.sort((a, b) => b.date.localeCompare(a.date) || b.logId.localeCompare(a.logId, undefined, {numeric:true}) || b.start - a.start);
-        else if (sort === 'TITLE_ASC') list.sort((a, b) => this.#sortByTitle(a, b));
+        else if (sort === 'TITLE_ASC') list.sort((a, b) => this.#sortByTitle(a, b)); 
         else if (sort === 'SHUFFLE') {
-          // 지연 셔플 생성 (Lazy Initialization)
           if (!this.#mainShuffleOrders.has(this.#mainScopeKey)) {
             this.reshuffleMainSongs();
           }
@@ -779,7 +869,9 @@
         return list;
       }
 
-      #sortByTitle(a, b) { return a.title.localeCompare(b.title, 'ko'); }
+      #sortByTitle(a, b) { 
+        return a.title.localeCompare(b.title, 'ko'); 
+      }
 
       getFilteredStats() {
         const { search, lang, sort, videoId } = this.statsFilters;
@@ -805,7 +897,6 @@
         }, []);
 
         if (sort === 'SHUFFLE') {
-          // 지연 셔플 생성 (Lazy Initialization)
           if (!this.#statsShuffleOrders.has(this.#streamerKey)) {
             this.reshuffleStats();
           }
@@ -1124,7 +1215,9 @@
       }
 
       hideInitialLoading() {
-        this.els.initialLoadingScreen.style.display = 'none';
+        if(this.els.initialLoadingScreen) {
+          this.els.initialLoadingScreen.style.display = 'none';
+        }
       }
       
       initTheme() {
@@ -1232,13 +1325,11 @@
         const keys = Array.isArray(song?.streamers) ? song.streamers : [];
         const validKeys = keys.filter(k => streamerColorMap[k]);
         
-        // 부른 사람이 1명일 때만 그 사람의 테마 색상을 사용
         if (validKeys.length === 1) {
           const c = streamerColorMap[validKeys[0]];
           return { primary: c.primary, secondary: c.secondary, light: c.light, gradient: c.primary };
         }
         
-        // 듀엣 등 다수이거나 정보를 알 수 없을 때는 기존 'ALL' 리액트 테마 유지
         return {
           primary: 'var(--all-primary)',
           secondary: 'var(--all-secondary)',
@@ -1300,7 +1391,6 @@
         card.className = `song-card ${isActive ? 'active' : ''}${showStreamer ? ' song-card--scoped' : ''}`;
         card.dataset.songId = song.id;
         
-        // style 속성 주입을 setProperty로 안전하게 처리
         if (showStreamer) {
           const colors = this.getSongContextColors(song);
           card.style.setProperty('--song-primary', colors.primary);
@@ -1484,8 +1574,42 @@
         } catch (err) {
           console.error(err);
           this.ui.hideInitialLoading();
-          this.ui.showError('데이터를 불러오지 못했습니다. 새로고침 해 주세요.');
+          this.ui.showError('데이터베이스 연동 중 오류가 발생했습니다.');
         }
+      }
+
+      // 이벤트 중복을 제거하기 위한 헬퍼 함수 1: 검색창 
+      #setupSearch(inputEl, clearBtnEl, filterObj, renderFn, timerKey) {
+        inputEl.addEventListener('input', () => {
+          this.ui.toggleClearBtn(inputEl, clearBtnEl);
+          clearTimeout(this[timerKey]);
+          this[timerKey] = setTimeout(() => {
+            filterObj.search = inputEl.value;
+            renderFn.call(this);
+          }, CONFIG.DEBOUNCE_DELAY);
+        });
+        clearBtnEl.addEventListener('click', () => {
+          this.ui.clearInput(inputEl, clearBtnEl);
+          filterObj.search = '';
+          renderFn.call(this);
+        });
+      }
+
+      // 이벤트 중복을 제거하기 위한 헬퍼 함수 2: 필터 버튼
+      #setupFilters(selector, filterKey, filterObj, renderFn, isSort = false, isMain = false) {
+        document.querySelectorAll(selector).forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const val = e.currentTarget.dataset[filterKey];
+            if (isSort) {
+              if (val === 'SHUFFLE') isMain ? this.data.reshuffleMainSongs() : this.data.reshuffleStats();
+              isMain ? this.data.setMainSort(val) : (filterObj.sort = val);
+            } else {
+              filterObj[filterKey] = val;
+            }
+            this.ui.updateFilterBtns(e.currentTarget);
+            renderFn.call(this);
+          });
+        });
       }
 
       bindEvents() {
@@ -1503,81 +1627,17 @@
           btn.addEventListener('click', (e) => this.switchMainTab(e.target.dataset.tabTarget, e.target));
         });
 
-        // 메인 탭 이벤트
-        const searchInput = this.ui.els.searchInput;
-        const searchClearBtn = this.ui.els.searchClearBtn;
-        searchInput.addEventListener('input', () => {
-          this.ui.toggleClearBtn(searchInput, searchClearBtn);
-          clearTimeout(this.searchDebounceTimer);
-          this.searchDebounceTimer = setTimeout(() => {
-            this.data.mainFilters.search = searchInput.value;
-            this.renderPlaylist();
-          }, CONFIG.DEBOUNCE_DELAY);
-        });
-        searchClearBtn.addEventListener('click', () => {
-          this.ui.clearInput(searchInput, searchClearBtn);
-          this.data.mainFilters.search = '';
-          this.renderPlaylist();
-        });
+        // 4단계: 헬퍼 함수로 중복을 완전히 제거한 메인 탭 이벤트
+        this.#setupSearch(this.ui.els.searchInput, this.ui.els.searchClearBtn, this.data.mainFilters, this.renderPlaylist, 'searchDebounceTimer');
+        this.ui.els.videoSelect.addEventListener('change', (e) => { this.data.mainFilters.videoId = e.target.value; this.renderPlaylist(); });
+        this.#setupFilters('.main-lang-btn', 'lang', this.data.mainFilters, this.renderPlaylist);
+        this.#setupFilters('.main-sort-btn', 'sort', this.data.mainFilters, this.renderPlaylist, true, true);
 
-        this.ui.els.videoSelect.addEventListener('change', (e) => {
-          this.data.mainFilters.videoId = e.target.value;
-          this.renderPlaylist();
-        });
-        document.querySelectorAll('.main-lang-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            this.data.mainFilters.lang = e.target.dataset.lang;
-            this.ui.updateFilterBtns(e.target);
-            this.renderPlaylist();
-          });
-        });
-        document.querySelectorAll('.main-sort-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            const sort = e.target.dataset.sort;
-            if (sort === 'SHUFFLE') this.data.reshuffleMainSongs();
-            this.data.setMainSort(sort);
-            this.ui.updateFilterBtns(e.target);
-            this.renderPlaylist();
-          });
-        });
-
-        // 통계 탭 이벤트
-        const statsSearchInput = this.ui.els.statsSearchInput;
-        const statsClearBtn = this.ui.els.statsClearBtn;
-        statsSearchInput.addEventListener('input', () => {
-          this.ui.toggleClearBtn(statsSearchInput, statsClearBtn);
-          clearTimeout(this.statsSearchDebounceTimer);
-          this.statsSearchDebounceTimer = setTimeout(() => {
-            this.data.statsFilters.search = statsSearchInput.value;
-            this.renderStatistics();
-          }, CONFIG.DEBOUNCE_DELAY);
-        });
-        statsClearBtn.addEventListener('click', () => {
-          this.ui.clearInput(statsSearchInput, statsClearBtn);
-          this.data.statsFilters.search = '';
-          this.renderStatistics();
-        });
-
-        this.ui.els.statsVideoSelect.addEventListener('change', (e) => {
-          this.data.statsFilters.videoId = e.target.value;
-          this.renderStatistics();
-        });
-        document.querySelectorAll('.stats-lang-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            this.data.statsFilters.lang = e.target.dataset.lang;
-            this.ui.updateFilterBtns(e.target);
-            this.renderStatistics();
-          });
-        });
-        document.querySelectorAll('.stats-sort-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            const sort = e.target.dataset.sort;
-            if (sort === 'SHUFFLE') this.data.reshuffleStats();
-            this.data.statsFilters.sort = sort;
-            this.ui.updateFilterBtns(e.target);
-            this.renderStatistics();
-          });
-        });
+        // 4단계: 헬퍼 함수로 중복을 완전히 제거한 통계 탭 이벤트
+        this.#setupSearch(this.ui.els.statsSearchInput, this.ui.els.statsClearBtn, this.data.statsFilters, this.renderStatistics, 'statsSearchDebounceTimer');
+        this.ui.els.statsVideoSelect.addEventListener('change', (e) => { this.data.statsFilters.videoId = e.target.value; this.renderStatistics(); });
+        this.#setupFilters('.stats-lang-btn', 'lang', this.data.statsFilters, this.renderStatistics);
+        this.#setupFilters('.stats-sort-btn', 'sort', this.data.statsFilters, this.renderStatistics, true, false);
       }
 
       applyStreamerData() {
