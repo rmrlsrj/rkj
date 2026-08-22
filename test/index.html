@@ -41,38 +41,58 @@
     
     [data-streamer="kira"] { --accent-primary: var(--kira-primary); --accent-secondary: var(--kira-secondary); --accent-hover: var(--kira-hover); --accent-light: var(--kira-light); }
     [data-streamer="tenten"] { --accent-primary: var(--tenten-primary); --accent-secondary: var(--tenten-secondary); --accent-hover: var(--tenten-hover); --accent-light: var(--tenten-light); }
+    [data-streamer="suya"] { --accent-primary: var(--suya-primary); --accent-secondary: var(--suya-secondary); --accent-hover: var(--suya-hover); --accent-light: var(--suya-light); }
     
     /* 텐텐 라이트모드 통계 전용 색상 */
     [data-theme="light"][data-streamer="tenten"] .stats-item .date-link,
     [data-theme="light"][data-streamer="tenten"] .stats-item .count-text { color: #d96b6a; }
-    
+
+    /* ----------------------------------------------------
+       ✨ 아사미야 나오(Nao) 테마 가독성 패치 (라이트/다크 분리)
+       ---------------------------------------------------- */
     [data-streamer="nao"] { --accent-primary: var(--nao-primary); --accent-secondary: var(--nao-secondary); --accent-hover: var(--nao-hover); --accent-light: var(--nao-light); }
-    [data-streamer="suya"] { --accent-primary: var(--suya-primary); --accent-secondary: var(--suya-secondary); --accent-hover: var(--suya-hover); --accent-light: var(--suya-light); }
 
     [data-streamer="nao"] .streamer-btn.active,
-    [data-streamer="nao"] .filter-btn.active,
-    [data-streamer="nao"] .filter-btn:hover,
-    [data-streamer="nao"] .stats-item .date-link.active-date,
-    [data-streamer="nao"] .stats-player-close-btn:hover,
-    [data-streamer="nao"] .back-to-top { color: #2f2921 !important; }
+    [data-streamer="nao"] .stats-summary,
+    [data-streamer="nao"] .filter-btn.active {
+      background: var(--nao-light) !important;
+    }
 
-    /* 전체 범위 UI 색상 */
-    [data-main-scope="ALL"] .streamer-btn[data-streamer-target="ALL"].active,
-    [data-main-scope="ALL"] .main-lang-btn.active,
-    [data-main-scope="ALL"] .main-sort-btn.active { color: #fff !important; }
+    /* 라이트 모드 (연한 크림골드 배경 + 진한 초코 글씨) */
+    [data-theme="light"][data-streamer="nao"] .streamer-btn.active,
+    [data-theme="light"][data-streamer="nao"] .filter-btn.active,
+    [data-theme="light"][data-streamer="nao"] .filter-btn:hover,
+    [data-theme="light"][data-streamer="nao"] .stats-item .date-link.active-date,
+    [data-theme="light"][data-streamer="nao"] .stats-player-close-btn:hover,
+    [data-theme="light"][data-streamer="nao"] .back-to-top { 
+      color: #2f2921 !important; 
+    }
+    
+    [data-theme="light"][data-streamer="nao"] .stats-summary strong,
+    [data-theme="light"][data-streamer="nao"] .stats-item .date-link,
+    [data-theme="light"][data-streamer="nao"] .stats-item .count-text { color: #6a4a1e; }
 
-    [data-main-scope="ALL"] .streamer-btn[data-streamer-target="ALL"]:not(.active),
-    [data-main-scope="ALL"] .main-lang-btn:not(.active),
-    [data-main-scope="ALL"] .main-sort-btn:not(.active) { color: var(--text-muted) !important; }
+    /* 다크 모드 (다크초코 배경 + 밝은 골드 글씨) */
+    [data-theme="dark"][data-streamer="nao"] .streamer-btn.active,
+    [data-theme="dark"][data-streamer="nao"] .filter-btn.active,
+    [data-theme="dark"][data-streamer="nao"] .stats-summary { 
+      color: var(--nao-primary) !important; 
+    }
 
-    [data-streamer="nao"] .stats-summary strong,
-    [data-streamer="nao"] .stats-item .date-link,
-    [data-streamer="nao"] .stats-item .count-text { color: #6a4a1e; }
+    [data-theme="dark"][data-streamer="nao"] .filter-btn:hover,
+    [data-theme="dark"][data-streamer="nao"] .stats-player-close-btn:hover,
+    [data-theme="dark"][data-streamer="nao"] .stats-item .date-link.active-date,
+    [data-theme="dark"][data-streamer="nao"] .back-to-top {
+      background: var(--nao-primary) !important;
+      color: #2f2921 !important;
+    }
 
     [data-theme="dark"][data-streamer="nao"] .stats-summary strong,
     [data-theme="dark"][data-streamer="nao"] .stats-item .date-link,
     [data-theme="dark"][data-streamer="nao"] .stats-item .count-text { color: #ffd68e; }
+    /* ---------------------------------------------------- */
 
+    /* 스야 라이트/다크 색상 처리 */
     [data-streamer="suya"] .stats-summary strong,
     [data-streamer="suya"] .stats-item .date-link,
     [data-streamer="suya"] .stats-item .count-text { color: #63554d; }
@@ -80,6 +100,15 @@
     [data-theme="dark"][data-streamer="suya"] .stats-summary strong,
     [data-theme="dark"][data-streamer="suya"] .stats-item .date-link,
     [data-theme="dark"][data-streamer="suya"] .stats-item .count-text { color: #d9ccc2; }
+
+    /* 전체 범위(ALL) UI 색상 */
+    [data-main-scope="ALL"] .streamer-btn[data-streamer-target="ALL"].active,
+    [data-main-scope="ALL"] .main-lang-btn.active,
+    [data-main-scope="ALL"] .main-sort-btn.active { color: #fff !important; }
+
+    [data-main-scope="ALL"] .streamer-btn[data-streamer-target="ALL"]:not(.active),
+    [data-main-scope="ALL"] .main-lang-btn:not(.active),
+    [data-main-scope="ALL"] .main-sort-btn:not(.active) { color: var(--text-muted) !important; }
 
     [data-theme="dark"] {
       --bg-color: #0f172a; --panel-bg: #1e293b; --card-bg: #334155; --text: #f8fafc; --text-muted: #cbd5e1; --border: #334155;
@@ -251,13 +280,6 @@
     transform: rotate(360deg);
   }
 }
-
-    /* 나오: 크림 골드의 연한 버전을 상단 선택 버튼과 통계/필터 영역에 사용 */
-    [data-streamer="nao"] .streamer-btn.active,
-    [data-streamer="nao"] .stats-summary,
-    [data-streamer="nao"] .filter-btn.active {
-      background: var(--nao-light) !important;
-    }
 </style>
 </head>
 <body>
@@ -394,7 +416,7 @@
     const REGEX_SHORT_DATE = /^\d{2}(\d{2}\.\d{1,2}\.\d{1,2})$/;
 
     // =========================================================================
-    // 🛠️ 1. 유틸리티 (1단계 반영)
+    // 🛠️ 1. 유틸리티 
     // =========================================================================
     const Utils = {
       timeToSeconds: (timeStr) => {
@@ -453,7 +475,7 @@
     };
 
     // =========================================================================
-    // 💾 2. 데이터 매니저 (2단계 반영)
+    // 💾 2. 데이터 매니저 
     // =========================================================================
     class DataManager {
       #allSongs = [];
@@ -639,23 +661,12 @@
         };
 
         return (async () => {
-          // 최대 3회 시도
           for (let attempt = 1; attempt <= 3; attempt++) {
             try {
               return await fetchOnce();
-
             } catch (error) {
-              console.warn(
-                  `TSV 요청 실패 [${dbName}] ${attempt}/3.`,
-                  error
-              );
-
-              // 마지막 시도라면 더 이상 기다리지 않고 실패 처리
-              if (attempt === 3) {
-                throw error;
-              }
-
-              // 다음 요청 전에 0.5초 대기
+              console.warn(`TSV 요청 실패 [${dbName}] ${attempt}/3.`, error);
+              if (attempt === 3) throw error;
               await wait(500);
             }
           }
@@ -754,7 +765,7 @@
         if (sort === 'DATE_DESC') list.sort((a, b) => b.date.localeCompare(a.date) || b.logId.localeCompare(a.logId, undefined, {numeric:true}) || b.start - a.start);
         else if (sort === 'TITLE_ASC') list.sort((a, b) => this.#sortByTitle(a, b));
         else if (sort === 'SHUFFLE') {
-          // 셔플이 선택되었는데 생성된 리스트가 없다면 지연 생성(Lazy Initialization)
+          // 지연 셔플 생성 (Lazy Initialization)
           if (!this.#mainShuffleOrders.has(this.#mainScopeKey)) {
             this.reshuffleMainSongs();
           }
@@ -790,7 +801,7 @@
         }, []);
 
         if (sort === 'SHUFFLE') {
-          // 지연 생성(Lazy Initialization)
+          // 지연 셔플 생성 (Lazy Initialization)
           if (!this.#statsShuffleOrders.has(this.#streamerKey)) {
             this.reshuffleStats();
           }
@@ -1217,21 +1228,13 @@
         const keys = Array.isArray(song?.streamers) ? song.streamers : [];
         const validKeys = keys.filter(k => streamerColorMap[k]);
         
+        // 부른 사람이 1명일 때만 그 사람의 테마 색상을 사용
         if (validKeys.length === 1) {
           const c = streamerColorMap[validKeys[0]];
           return { primary: c.primary, secondary: c.secondary, light: c.light, gradient: c.primary };
-        } else if (validKeys.length === 2) {
-          const c1 = streamerColorMap[validKeys[0]];
-          const c2 = streamerColorMap[validKeys[1]];
-          // 듀엣곡: 첫 번째 스트리머와 두 번째 스트리머의 색상을 그라데이션으로 혼합
-          return {
-            primary: c1.primary,
-            secondary: c2.primary,
-            light: c1.light,
-            gradient: `linear-gradient(135deg, ${c1.primary} 0%, ${c2.primary} 100%)`
-          };
         }
         
+        // 듀엣 등 다수이거나 정보를 알 수 없을 때는 기존 'ALL' 리액트 테마 유지
         return {
           primary: 'var(--all-primary)',
           secondary: 'var(--all-secondary)',
@@ -1293,7 +1296,7 @@
         card.className = `song-card ${isActive ? 'active' : ''}${showStreamer ? ' song-card--scoped' : ''}`;
         card.dataset.songId = song.id;
         
-        // slice 방식 대신 setProperty를 이용해 동적 스타일 안전하게 주입
+        // style 속성 주입을 setProperty로 안전하게 처리
         if (showStreamer) {
           const colors = this.getSongContextColors(song);
           card.style.setProperty('--song-primary', colors.primary);
@@ -1464,7 +1467,6 @@
 
       async init() {
         this.ui.initTheme();
-        // 불필요한 조건 체크 제거
         document.documentElement.setAttribute('data-main-scope', this.data.mainScopeKey);
         this.ui.initScrollObserver();
         this.bindEvents(); 
