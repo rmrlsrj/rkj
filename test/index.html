@@ -432,27 +432,27 @@
       #currentStreamerSongs = [];
       #cachedStats = [];
       #mainShuffleOrders = new Map();
+      #mainSortStates = new Map();
       #statsShuffleOrders = new Map();
       #streamerKey = 'kira';
       #mainScopeKey = 'kira';
-      #mainSortStates = new Map();
 
       mainFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
 
-      getMainSort(scopeKey = this.#mainScopeKey) {
-        return this.#mainSortStates.get(scopeKey) || 'DATE_ASC';
-      }
-
-      setMainSort(sort, scopeKey = this.#mainScopeKey) {
-        this.#mainSortStates.set(scopeKey, sort);
-        this.mainFilters.sort = sort;
-      }
-
       #initializeMainSortStates() {
         this.#mainSortStates.clear();
-        const scopes = ['ALL', ...Object.keys(STREAMER_MAP)];
-        scopes.forEach(scopeKey => this.#mainSortStates.set(scopeKey, 'DATE_ASC'));
-        this.mainFilters.sort = this.getMainSort();
+        ['ALL', ...Object.keys(STREAMER_MAP)].forEach(scopeKey => {
+          this.#mainSortStates.set(scopeKey, 'DATE_ASC');
+        });
+      }
+
+      getMainSort() {
+        return this.#mainSortStates.get(this.#mainScopeKey) || 'DATE_ASC';
+      }
+
+      setMainSort(sort) {
+        this.#mainSortStates.set(this.#mainScopeKey, sort);
+        this.mainFilters.sort = sort;
       }
       statsFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
 
@@ -468,7 +468,6 @@
       set mainScopeKey(key) {
         if (this.#mainScopeKey !== key) {
           this.#mainScopeKey = key;
-          this.mainFilters.sort = this.getMainSort(key);
         }
       }
 
@@ -734,7 +733,8 @@
       }
 
       getFilteredMainSongs() {
-        const { search, lang, sort, videoId } = this.mainFilters;
+        const { search, lang, videoId } = this.mainFilters;
+        const sort = this.getMainSort();
         const queries = Utils.getSearchQueries(search);
         
         let list = this.getMainSongs().filter(song => {
@@ -1399,6 +1399,12 @@
         btn.classList.add('active');
       }
 
+      updateMainSortBtns(sort) {
+        document.querySelectorAll('.main-sort-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.sort === sort);
+        });
+      }
+
       initScrollObserver() {
         const toggleBtn = (scrollPos) => scrollPos > CONFIG.SCROLL_SHOW_POS ? this.els.backToTop.classList.add('show') : this.els.backToTop.classList.remove('show');
         
@@ -1492,7 +1498,7 @@
           btn.addEventListener('click', (e) => {
             const sort = e.target.dataset.sort;
             if (sort === 'SHUFFLE') this.data.reshuffleMainSongs();
-            this.data.mainFilters.sort = sort;
+            this.data.setMainSort(sort);
             this.ui.updateFilterBtns(e.target);
             this.renderPlaylist();
           });
@@ -1546,6 +1552,7 @@
           this.data.getUniqueVideos(), this.data.statsFilters.videoId
         );
         
+        this.ui.updateMainSortBtns(this.data.getMainSort());
         this.renderPlaylist();
         
         if (this.mainPlayer.playlist.length > 0) {
@@ -1655,6 +1662,7 @@
         this.mainPlayer.reset();
         
         this.ui.updateStreamerNav(btn, key);
+        this.ui.updateMainSortBtns(this.data.getMainSort());
         this.ui.renderSkeleton('playlist', CONFIG.SKELETON_COUNT_MAIN, false);
         this.ui.renderSkeleton('statsList', CONFIG.SKELETON_COUNT_STATS, true);
         this.ui.setLoadingNowPlaying(STREAMER_MAP[key].name);
@@ -1672,6 +1680,7 @@
         this.mainPlayer.reset();
 
         this.ui.updateMainScopeNav(btn);
+        this.ui.updateMainSortBtns(this.data.getMainSort());
         this.ui.renderSkeleton('playlist', CONFIG.SKELETON_COUNT_MAIN, false);
         this.ui.setLoadingNowPlaying('4명 전체');
 
