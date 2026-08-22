@@ -119,6 +119,16 @@
     .theme-toggle-btn:hover { transform: scale(1.1); }
     .streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
     .streamer-btn { padding: 6px 14px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    @media (max-width: 767px) {
+      .streamer-btn {
+        font-size: 0;
+      }
+      .streamer-btn[data-streamer-target="ALL"]::after { content: "전체"; font-size: 0.85rem; }
+      .streamer-btn[data-streamer-target="kira"]::after { content: "키라"; font-size: 0.85rem; }
+      .streamer-btn[data-streamer-target="tenten"]::after { content: "텐텐"; font-size: 0.85rem; }
+      .streamer-btn[data-streamer-target="nao"]::after { content: "나오"; font-size: 0.85rem; }
+      .streamer-btn[data-streamer-target="suya"]::after { content: "스야"; font-size: 0.85rem; }
+    }
     .streamer-btn.active { background-color: var(--accent-hover); color: #fff; }
     .streamer-btn[data-streamer-target="ALL"].active { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; }
     .streamer-btn[data-streamer-target="ALL"]:hover { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; }
