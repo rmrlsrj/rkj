@@ -477,6 +477,7 @@
 
       mainFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
       #mainSortStates = new Map();
+      #mainLangStates = new Map();
       #mainShuffleOrders = new Map();
       
       statsFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
@@ -484,8 +485,10 @@
 
       #initializeMainSortStates() {
         this.#mainSortStates.clear();
+        this.#mainLangStates.clear();
         ['ALL', ...Object.keys(STREAMER_MAP)].forEach(scopeKey => {
           this.#mainSortStates.set(scopeKey, 'DATE_ASC');
+          this.#mainLangStates.set(scopeKey, 'ALL');
         });
       }
 
@@ -496,6 +499,15 @@
       setMainSort(sort) {
         this.#mainSortStates.set(this.#mainScopeKey, sort);
         this.mainFilters.sort = sort;
+      }
+
+      getMainLang() {
+        return this.#mainLangStates.get(this.#mainScopeKey) || 'ALL';
+      }
+
+      setMainLang(lang) {
+        this.#mainLangStates.set(this.#mainScopeKey, lang);
+        this.mainFilters.lang = lang;
       }
 
       get streamerKey() { return this.#streamerKey; }
@@ -510,6 +522,7 @@
       set mainScopeKey(key) {
         if (this.#mainScopeKey !== key) {
           this.#mainScopeKey = key;
+          this.mainFilters.lang = this.getMainLang();
         }
       }
 
@@ -1436,6 +1449,12 @@
         });
       }
 
+      updateMainLangBtns(lang) {
+        document.querySelectorAll('.main-lang-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.lang === lang);
+        });
+      }
+
       initScrollObserver() {
         const toggleBtn = (scrollPos) => scrollPos > CONFIG.SCROLL_SHOW_POS ? this.els.backToTop.classList.add('show') : this.els.backToTop.classList.remove('show');
         
@@ -1508,7 +1527,7 @@
               if (val === 'SHUFFLE') isMain ? this.data.reshuffleMainSongs() : this.data.reshuffleStats();
               isMain ? this.data.setMainSort(val) : (filterObj.sort = val);
             } else {
-              filterObj[filterKey] = val;
+              isMain ? this.data.setMainLang(val) : (filterObj[filterKey] = val);
             }
             this.ui.updateFilterBtns(e.currentTarget);
             renderFn.call(this);
@@ -1534,7 +1553,7 @@
         // 4단계: 헬퍼 함수로 중복을 완전히 제거한 메인 탭 이벤트
         this.#setupSearch(this.ui.els.searchInput, this.ui.els.searchClearBtn, this.data.mainFilters, this.renderPlaylist, 'searchDebounceTimer');
         this.ui.els.videoSelect.addEventListener('change', (e) => { this.data.mainFilters.videoId = e.target.value; this.renderPlaylist(); });
-        this.#setupFilters('.main-lang-btn', 'lang', this.data.mainFilters, this.renderPlaylist);
+        this.#setupFilters('.main-lang-btn', 'lang', this.data.mainFilters, this.renderPlaylist, false, true);
         this.#setupFilters('.main-sort-btn', 'sort', this.data.mainFilters, this.renderPlaylist, true, true);
 
         // 4단계: 헬퍼 함수로 중복을 완전히 제거한 통계 탭 이벤트
@@ -1663,6 +1682,7 @@
         this.mainPlayer.reset();
         
         this.ui.updateStreamerNav(btn, key);
+        this.ui.updateMainLangBtns(this.data.getMainLang());
         this.ui.updateMainSortBtns(this.data.getMainSort());
         this.ui.renderSkeleton('playlist', CONFIG.SKELETON_COUNT_MAIN, false);
         this.ui.renderSkeleton('statsList', CONFIG.SKELETON_COUNT_STATS, true);
@@ -1681,6 +1701,7 @@
         this.mainPlayer.reset();
 
         this.ui.updateMainScopeNav(btn);
+        this.ui.updateMainLangBtns(this.data.getMainLang());
         this.ui.updateMainSortBtns(this.data.getMainSort());
         this.ui.renderSkeleton('playlist', CONFIG.SKELETON_COUNT_MAIN, false);
         this.ui.setLoadingNowPlaying('4명 전체');
