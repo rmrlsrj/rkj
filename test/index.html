@@ -240,7 +240,7 @@
   width: 28px;
   height: 28px;
   border: 3px solid var(--border);
-  border-top-color: var(--accent-primary);
+  border-top-color: var(--all-primary);
   border-radius: 50%;
   animation: initial-loading-spin 0.8s linear infinite;
 }
@@ -1346,7 +1346,7 @@
       showStatsStreamerSelectionPrompt() {
         this.els.statsSummary.textContent = '';
         this.els.statsSummary.style.display = 'none';
-        this.els.statsList.innerHTML = `<div class="empty-state">통계를 보고 싶은 스트리머를 선택해주세요</div>`;
+        this.els.statsList.innerHTML = `<div class="empty-state">통계를 보고 싶은 스트리머를 선택해주세요!</div>`;
         requestAnimationFrame(() => { this.els.statsList.scrollTop = 0; });
       }
 
