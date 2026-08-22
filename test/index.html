@@ -122,12 +122,38 @@
     @media (max-width: 767px) {
       .streamer-btn {
         font-size: 0;
+        padding: 6px 10px;
+        flex: 1 1 0;
       }
       .streamer-btn[data-streamer-target="ALL"]::after { content: "전체"; font-size: 0.85rem; }
       .streamer-btn[data-streamer-target="kira"]::after { content: "키라"; font-size: 0.85rem; }
       .streamer-btn[data-streamer-target="tenten"]::after { content: "텐텐"; font-size: 0.85rem; }
       .streamer-btn[data-streamer-target="nao"]::after { content: "나오"; font-size: 0.85rem; }
       .streamer-btn[data-streamer-target="suya"]::after { content: "스야"; font-size: 0.85rem; }
+
+      header .header-controls {
+        width: 100%;
+        flex-wrap: nowrap;
+        gap: 6px;
+      }
+      header .streamer-nav {
+        order: 1;
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+      header .tab-nav {
+        order: 2;
+        flex: 0 0 auto;
+      }
+      header .theme-toggle-btn {
+        order: 3;
+        flex: 0 0 auto;
+        margin-left: 0;
+      }
+      header .tab-btn {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+      }
     }
     .streamer-btn.active { background-color: var(--accent-hover); color: #fff; }
     .streamer-btn[data-streamer-target="ALL"].active { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; }
