@@ -1304,6 +1304,13 @@
         requestAnimationFrame(() => { this.els.statsList.scrollTop = 0; });
       }
 
+      showStatsUnavailablePrompt() {
+        this.els.statsSummary.textContent = '';
+        this.els.statsSummary.style.display = 'none';
+        this.els.statsList.innerHTML = `<div class="empty-state">전체 재생목록은 통계를 지원하지 않습니다.</div>`;
+        requestAnimationFrame(() => { this.els.statsList.scrollTop = 0; });
+      }
+
       renderStatsList(items, onToggleStatsPlayer) {
         const container = this.els.statsList;
         container.innerHTML = '';
@@ -1650,8 +1657,7 @@
         this.ui.setLoadingNowPlaying('4명 전체');
 
         if (this.ui.els.tabStats.classList.contains('active')) {
-          const playerBtn = document.querySelector('.tab-btn[data-tab-target="player"]');
-          if (playerBtn) this.ui.switchTab('player', playerBtn);
+          this.ui.showStatsUnavailablePrompt();
         }
 
         this.applyMainScopeData();
