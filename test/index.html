@@ -90,7 +90,7 @@
     .streamer-btn[data-streamer-target="ALL"].active { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; }
     .streamer-btn[data-streamer-target="ALL"]:hover { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; }
     .tab-btn { padding: 6px 16px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .tab-btn.active { background-color: var(--accent-hover); color: #fff; }
+    .tab-btn.active, .tab-btn:hover { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; border-color: transparent; }
     .tab-content { display: none; width: 100%; flex: 1; }
     .tab-content.active { display: block; }
     .main-container { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
@@ -98,7 +98,8 @@
     .player-section { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
     .player-container { position: relative; padding-bottom: 56.25%; height: 0; background-color: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
     .player-container iframe, .player-container div#player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-    .now-playing-card { background-color: var(--panel-bg); border: 1px solid var(--border); border-left: 4px solid var(--accent-primary); border-radius: 12px; padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s ease, border-color 0.3s ease; }
+    .now-playing-card { position: relative; background-color: var(--panel-bg); border: 1px solid var(--border); border-left: 0; border-radius: 12px; padding: 16px 20px 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s ease, border-color 0.3s ease; overflow: hidden; }
+    .now-playing-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--now-playing-color, var(--accent-primary)); }
     .now-playing-date { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2px; }
     .now-playing-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; word-break: break-word; overflow-wrap: anywhere; }
     .now-playing-artist { font-size: 0.9rem; color: var(--text-muted); }
@@ -136,6 +137,7 @@
     @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
     .song-info-sub { font-size: 0.8rem; color: var(--text-muted); }
     .song-badge { font-size: 0.7rem; font-weight: 600; padding: 4px 8px; border-radius: 6px; background-color: var(--accent-light); color: var(--accent-secondary); border: 1px solid rgba(0,0,0,0.05); white-space: nowrap; }
+    .song-card.song-card--scoped .song-badge { background-color: var(--song-light); color: var(--song-primary); border-color: var(--song-primary); }
     .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.95rem; background-color: var(--panel-bg); border-radius: 8px; border: 1px dashed var(--border); margin-top: 10px; width: 100%; }
     .skeleton-box { background: linear-gradient(90deg, var(--card-bg) 25%, var(--border) 50%, var(--card-bg) 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite linear; border-radius: 4px; }
     @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -1146,11 +1148,33 @@
         if (this.npMetaCached) this.els.npMeta.style.display = 'none';
       }
 
+      getSongContextColors(song) {
+        const streamerColorMap = {
+          '키라': { primary: 'var(--kira-primary)', light: 'var(--kira-light)' },
+          '텐텐': { primary: 'var(--tenten-primary)', light: 'var(--tenten-light)' },
+          '나오': { primary: 'var(--nao-primary)', light: 'var(--nao-light)' },
+          '스야': { primary: 'var(--suya-primary)', light: 'var(--suya-light)' }
+        };
+        const keys = Array.isArray(song?.streamers) ? song.streamers : [];
+        if (keys.length === 1 && streamerColorMap[keys[0]]) {
+          const c = streamerColorMap[keys[0]];
+          return { primary: c.primary, light: c.light, gradient: c.primary };
+        }
+        return {
+          primary: 'var(--all-primary)',
+          light: 'var(--all-light)',
+          gradient: 'linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%)'
+        };
+      }
+
       updateNowPlaying(song) {
         if (!song) return;
+        const contextColors = this.getSongContextColors(song);
+        this.els.npMeta.style.display = 'none';
         this.els.npDate.textContent = `${song.date}${song.videoTitle ? ' - ' + song.videoTitle : ''}`;
         this.els.npTitle.textContent = song.title;
         this.els.npArtist.textContent = `${song.artist}${song.work ? ' • ' + song.work : ''}`;
+        this.els.npTitle.closest('.now-playing-card').style.setProperty('--now-playing-color', contextColors.gradient);
         
         if (!this.npMetaCached) {
           this.els.npMeta.innerHTML = `
@@ -1194,17 +1218,8 @@
 
         let songStyle = '';
         if (showStreamer) {
-          const streamerColorMap = {
-            '키라': ['var(--kira-primary)', 'var(--kira-light)'],
-            '텐텐': ['var(--tenten-primary)', 'var(--tenten-light)'],
-            '나오': ['var(--nao-primary)', 'var(--nao-light)'],
-            '스야': ['var(--suya-primary)', 'var(--suya-light)']
-          };
-          const keys = Array.isArray(song.streamers) ? song.streamers : [];
-          const selected = keys.length === 1 && streamerColorMap[keys[0]]
-            ? streamerColorMap[keys[0]]
-            : ['var(--all-primary)', 'var(--all-light)'];
-          songStyle = ` style="--song-primary:${selected[0]};--song-light:${selected[1]};"`;
+          const colors = this.getSongContextColors(song);
+          songStyle = ` style="--song-primary:${colors.primary};--song-light:${colors.light};"`;
         }
 
         const card = document.createElement('div');
