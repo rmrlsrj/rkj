@@ -31,7 +31,7 @@
       
       --kira-primary: #9A8FD0; --kira-secondary: #654374; --kira-hover: #877ABD; --kira-light: #f4f2f9;     
       --tenten-primary: #ffa7a6; --tenten-secondary: #2b2b2b; --tenten-hover: #ff8f8e; --tenten-light: #fff0f0;   
-      --nao-primary: #F7D04A; --nao-secondary: #2f2921; --nao-hover: #E9BD2F; --nao-light: #fff3de;
+      --nao-primary: #F9E2CA; --nao-secondary: #2f2921; --nao-hover: #F9E2CA; --nao-light: #fff3de;
       --suya-primary: #B8AAA0; --suya-secondary: #554942; --suya-hover: #9F9085; --suya-light: #f4f0ed;
       --all-primary: #ff4b3e; --all-secondary: #ff8a1c; --all-hover: #ff682b; --all-light: #fff1e8;
       
@@ -48,7 +48,6 @@
     [data-streamer="suya"] { --accent-primary: var(--suya-primary); --accent-secondary: var(--suya-secondary); --accent-hover: var(--suya-hover); --accent-light: var(--suya-light); }
 
     [data-streamer="nao"] .streamer-btn.active,
-    
     [data-streamer="nao"] .filter-btn.active,
     [data-streamer="nao"] .filter-btn:hover,
     [data-streamer="nao"] .stats-item .date-link.active-date,
@@ -186,7 +185,7 @@
     .stats-item .index-text { font-weight: 700; color: var(--text-muted); margin-right: 6px; }
     .stats-item .title-text {
       font-weight: 700;
-      color: var(--tenten-secondary);
+      color: var(--text);
     }
     .stats-item .artist-text { color: var(--text-muted); }
     .stats-item .dates-text { color: var(--text-muted); font-size: 0.85rem; }
@@ -194,10 +193,6 @@
     .stats-item .date-link.active-date { color: #fff !important; background-color: var(--accent-hover); border-radius: 4px; text-decoration: none; font-weight: bold; }
     .stats-item .count-text { font-weight: 700; color: var(--accent-primary); margin-left: 4px; }
 
-    [data-streamer="kira"] .stats-item .date-link,
-    [data-streamer="kira"] .stats-item .count-text {
-      color: var(--kira-primary);
-    }
     .stats-player-box { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 8px; animation: fadeIn 0.25s ease-in-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
     .stats-player-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); }
