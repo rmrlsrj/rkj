@@ -240,6 +240,7 @@
       
       <div class="streamer-nav">
         <button class="streamer-btn active" data-streamer-target="kira">세이로쿠 키라</button>
+        <button class="streamer-btn" data-streamer-target="ALL">전체</button>
         <button class="streamer-btn" data-streamer-target="tenten">텐플라스텐 텐텐</button>
         <button class="streamer-btn" data-streamer-target="nao">아사미야 나오</button>
         <button class="streamer-btn" data-streamer-target="suya">코네코토 스야</button>
@@ -403,7 +404,7 @@
 
     const DB_URLS = {
       log: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTvxgmO1qyAwMITyp_J2-m53NOyA4AAlSzLBQPUHnHC5nAEv193nYMxoh2saWMEWxDw4Je0jw-Qz-Yw/pub?gid=0&single=true&output=tsv",
-      video: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRqlpmvGEeZ8ZJaC0d7XFdKTqTVznMVeCyXMmZ0rodugXh-nLHbuU5iheV9_CjpUAdx4BCK-sC_vISc/pub?gid=71898372&single=true&output=tsv",
+      video: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRqlpmvGEeZ8ZJaC0d7XFdKTqTVznMVeCyXMmZ0rodugXh-nLHbuU5iheV9_CjpUAdx4BCK-sC_vISc/pub?gid=0&single=true&output=tsv",
       song: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRVDkY7NKTc2mjrbWPMf9a8ygJqRlyqOX5GIqO-k1MBdQsdqCebq-Y7AvuXcxfzCs1s_-psrajLylUj/pub?gid=0&single=true&output=tsv"
     };
 
@@ -424,6 +425,7 @@
       #mainShuffleOrder = new Map();
       #statsShuffleOrder = new Map();
       #streamerKey = 'kira';
+      #mainScopeKey = 'kira';
 
       mainFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
       statsFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
@@ -433,6 +435,14 @@
         if (this.#streamerKey !== key) {
           this.#streamerKey = key;
           this.#updateCaches();
+        }
+      }
+
+      get mainScopeKey() { return this.#mainScopeKey; }
+      set mainScopeKey(key) {
+        if (this.#mainScopeKey !== key) {
+          this.#mainScopeKey = key;
+          this.reshuffleMainSongs();
         }
       }
 
@@ -635,6 +645,10 @@
 
       getStreamerSongs() { return this.#currentStreamerSongs; }
 
+      getMainSongs() {
+        return this.#mainScopeKey === 'ALL' ? this.#allSongs : this.#currentStreamerSongs;
+      }
+
       getUniqueVideos() {
         const map = new Map();
         this.#currentStreamerSongs.forEach(s => {
@@ -643,8 +657,16 @@
         return Array.from(map.values()).sort((a, b) => b.date.localeCompare(a.date));
       }
 
+      getUniqueMainVideos() {
+        const map = new Map();
+        this.getMainSongs().forEach(s => {
+          if (s.rawVideoId && !map.has(s.rawVideoId)) map.set(s.rawVideoId, { id: s.rawVideoId, date: s.date, title: s.videoTitle });
+        });
+        return Array.from(map.values()).sort((a, b) => b.date.localeCompare(a.date));
+      }
+
       reshuffleMainSongs() {
-        this.#mainShuffleOrder = this.#createShuffleOrder(this.#currentStreamerSongs, song => song.id);
+        this.#mainShuffleOrder = this.#createShuffleOrder(this.getMainSongs(), song => song.id);
       }
 
       reshuffleStats() {
@@ -669,7 +691,7 @@
         const { search, lang, sort, videoId } = this.mainFilters;
         const queries = Utils.getSearchQueries(search);
         
-        let list = this.#currentStreamerSongs.filter(song => {
+        let list = this.getMainSongs().filter(song => {
           if (videoId !== 'ALL' && song.rawVideoId !== videoId) return false;
           if (lang !== 'ALL' && !Utils.matchCategoryFilter(song, lang)) return false;
           if (queries.length > 0 && !Utils.matchesSearch(song.searchText, queries)) return false;
@@ -1041,6 +1063,11 @@
         document.documentElement.setAttribute('data-streamer', key);
       }
 
+      updateMainScopeNav(btn) {
+        document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+
       switchTab(tabId, btn) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         this.els.tabPlayer.classList.remove('active');
@@ -1080,15 +1107,20 @@
         this.els[containerKey].replaceChildren(frag);
       }
 
-      populateVideoDropdowns(videoList, currMainId, currStatsId) {
+      #populateVideoOptions(selectEl, videoList, currentId) {
         let html = `<option value="ALL">📺 전체 방송 보기 (${videoList.length}개 방송)</option>`;
         videoList.forEach(v => html += `<option value="${Utils.escapeHtml(v.id)}">${Utils.escapeHtml(v.title ? `${v.date} - ${v.title}` : v.date)}</option>`);
-        
-        this.els.videoSelect.innerHTML = html;
-        this.els.videoSelect.value = currMainId || 'ALL';
-        
-        this.els.statsVideoSelect.innerHTML = html;
-        this.els.statsVideoSelect.value = currStatsId || 'ALL';
+        selectEl.innerHTML = html;
+        selectEl.value = currentId || 'ALL';
+      }
+
+      populateVideoDropdowns(mainVideoList, currMainId, statsVideoList, currStatsId) {
+        this.#populateVideoOptions(this.els.videoSelect, mainVideoList, currMainId);
+        this.#populateVideoOptions(this.els.statsVideoSelect, statsVideoList, currStatsId);
+      }
+
+      populateMainVideoDropdown(videoList, currentId) {
+        this.#populateVideoOptions(this.els.videoSelect, videoList, currentId);
       }
 
       setLoadingNowPlaying(name) {
@@ -1147,8 +1179,9 @@
       }
 
       #createPlaylistCard(song, idx, context) {
-        const { activeSongId, onPlay } = context;
+        const { activeSongId, onPlay, showStreamer } = context;
         const isActive = song.id === activeSongId;
+        const streamerLabel = showStreamer && song.streamers?.length ? ` <span class="log-id-tag">[${Utils.escapeHtml(song.streamers.join(', '))}]</span>` : '';
         const card = document.createElement('div');
         card.className = `song-card ${isActive ? 'active' : ''}`;
         card.dataset.songId = song.id; 
@@ -1158,7 +1191,7 @@
         
         card.innerHTML = `
           <div>
-            <div class="song-info-date">${Utils.escapeHtml(song.date)} <span class="log-id-tag">[${Utils.escapeHtml(song.logId)} | ${Utils.escapeHtml(song.startTimeRaw)} ~ ${Utils.escapeHtml(song.endTimeRaw)}]</span></div>
+            <div class="song-info-date">${Utils.escapeHtml(song.date)}${streamerLabel} <span class="log-id-tag">[${Utils.escapeHtml(song.logId)} | ${Utils.escapeHtml(song.startTimeRaw)} ~ ${Utils.escapeHtml(song.endTimeRaw)}]</span></div>
             <div class="song-info-main">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)}</div>
             <div class="song-info-sub">${Utils.escapeHtml(song.artist)}${song.work ? ' • ' + Utils.escapeHtml(song.work) : ''}</div>
           </div>
@@ -1194,8 +1227,8 @@
         return div;
       }
 
-      renderPlaylist(songs, activeSongId, onPlay) {
-        this.playlistRenderer.render(songs, { activeSongId, onPlay });
+      renderPlaylist(songs, activeSongId, onPlay, showStreamer = false) {
+        this.playlistRenderer.render(songs, { activeSongId, onPlay, showStreamer });
       }
 
       renderStatsList(items, onToggleStatsPlayer) {
@@ -1316,7 +1349,11 @@
         this.ui.els.backToTop.addEventListener('click', () => this.ui.scrollToTop());
 
         document.querySelectorAll('.streamer-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => this.switchStreamer(e.target.dataset.streamerTarget, e.target));
+          btn.addEventListener('click', (e) => {
+            const target = e.target.dataset.streamerTarget;
+            if (target === 'ALL') this.switchMainScope(e.target);
+            else this.switchStreamer(target, e.target);
+          });
         });
         document.querySelectorAll('.tab-btn').forEach(btn => {
           btn.addEventListener('click', (e) => this.switchMainTab(e.target.dataset.tabTarget, e.target));
@@ -1403,7 +1440,10 @@
         const songs = this.data.getStreamerSongs();
         if (songs.length === 0) { this.ui.showError(`${STREAMER_MAP[this.data.streamerKey].name} 님의 기록이 아직 없습니다.`); return; }
 
-        this.ui.populateVideoDropdowns(this.data.getUniqueVideos(), this.data.mainFilters.videoId, this.data.statsFilters.videoId);
+        this.ui.populateVideoDropdowns(
+          this.data.getUniqueMainVideos(), this.data.mainFilters.videoId,
+          this.data.getUniqueVideos(), this.data.statsFilters.videoId
+        );
         
         this.renderPlaylist();
         
@@ -1418,10 +1458,27 @@
         this.loadYouTubeAPI();
       }
 
+      applyMainScopeData() {
+        const songs = this.data.getMainSongs();
+        if (songs.length === 0) { this.ui.showError('재생할 노래가 없습니다.'); return; }
+
+        this.ui.populateMainVideoDropdown(this.data.getUniqueMainVideos(), this.data.mainFilters.videoId);
+        this.renderPlaylist();
+
+        if (this.mainPlayer.playlist.length > 0) {
+          this.mainPlayer.cue(0);
+          this.ui.updateNowPlaying(this.mainPlayer.playlist[0]);
+        } else {
+          this.ui.setEmptyNowPlaying();
+        }
+
+        this.loadYouTubeAPI();
+      }
+
       renderPlaylist() {
         const list = this.data.getFilteredMainSongs();
         this.mainPlayer.updatePlaylist(list);
-        this.ui.renderPlaylist(list, this.mainPlayer.currentSongId, (idx) => this.playSong(idx));
+        this.ui.renderPlaylist(list, this.mainPlayer.currentSongId, (idx) => this.playSong(idx), this.data.mainScopeKey === 'ALL');
       }
 
       renderStatistics() {
@@ -1487,10 +1544,11 @@
       }
 
       switchStreamer(key, btn) {
-        if (this.data.streamerKey === key && this.data.getStreamerSongs().length > 0) return;
+        if (this.data.streamerKey === key && this.data.mainScopeKey === key && this.data.getStreamerSongs().length > 0) return;
         this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
         
         this.data.streamerKey = key;
+        this.data.mainScopeKey = key;
         
         this.data.mainFilters.videoId = 'ALL'; this.data.statsFilters.videoId = 'ALL';
         this.mainPlayer.reset();
@@ -1501,6 +1559,27 @@
         this.ui.setLoadingNowPlaying(STREAMER_MAP[key].name);
         
         this.applyStreamerData();
+      }
+
+      switchMainScope(btn) {
+        if (this.data.mainScopeKey === 'ALL' && this.data.getMainSongs().length > 0) return;
+
+        this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
+
+        this.data.mainScopeKey = 'ALL';
+        this.data.mainFilters.videoId = 'ALL';
+        this.mainPlayer.reset();
+
+        this.ui.updateMainScopeNav(btn);
+        this.ui.renderSkeleton('playlist', CONFIG.SKELETON_COUNT_MAIN, false);
+        this.ui.setLoadingNowPlaying('4명 전체');
+
+        if (this.ui.els.tabStats.classList.contains('active')) {
+          const playerBtn = document.querySelector('.tab-btn[data-tab-target="player"]');
+          if (playerBtn) this.ui.switchTab('player', playerBtn);
+        }
+
+        this.applyMainScopeData();
       }
 
       switchMainTab(tabId, btn) {
