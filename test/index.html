@@ -42,8 +42,8 @@
     [data-streamer="kira"] { --accent-primary: var(--kira-primary); --accent-secondary: var(--kira-secondary); --accent-hover: var(--kira-hover); --accent-light: var(--kira-light); }
     [data-streamer="tenten"] { --accent-primary: var(--tenten-primary); --accent-secondary: var(--tenten-secondary); --accent-hover: var(--tenten-hover); --accent-light: var(--tenten-light); }
     /* 텐텐 라이트모드 통계 전용 색상: 공식 핑크는 유지하고 날짜/횟수만 가독성 보정 */
-    [data-streamer="tenten"] .stats-item .date-link,
-    [data-streamer="tenten"] .stats-item .count-text { color: #d96b6a; }
+    [data-theme="light"][data-streamer="tenten"] .stats-item .date-link,
+    [data-theme="light"][data-streamer="tenten"] .stats-item .count-text { color: #d96b6a; }
     [data-streamer="nao"] { --accent-primary: var(--nao-primary); --accent-secondary: var(--nao-secondary); --accent-hover: var(--nao-hover); --accent-light: var(--nao-light); }
     [data-streamer="suya"] { --accent-primary: var(--suya-primary); --accent-secondary: var(--suya-secondary); --accent-hover: var(--suya-hover); --accent-light: var(--suya-light); }
 
@@ -57,13 +57,11 @@
 
     /* 전체 범위에서는 나오의 검정색 예외보다 전체용 UI 색상을 우선 적용 */
     [data-main-scope="ALL"] .streamer-btn[data-streamer-target="ALL"].active,
-    [data-main-scope="ALL"] .tab-btn.active,
     [data-main-scope="ALL"] .main-lang-btn.active,
     [data-main-scope="ALL"] .main-sort-btn.active { color: #fff !important; }
 
     /* 전체 범위의 비활성 버튼은 원래의 흐린 글씨색을 유지 */
     [data-main-scope="ALL"] .streamer-btn[data-streamer-target="ALL"]:not(.active),
-    [data-main-scope="ALL"] .tab-btn:not(.active),
     [data-main-scope="ALL"] .main-lang-btn:not(.active),
     [data-main-scope="ALL"] .main-sort-btn:not(.active) { color: var(--text-muted) !important; }
 
@@ -179,7 +177,7 @@
       font-size: 1.1rem;
     }
 
-    [data-streamer="tenten"] .stats-summary strong {
+    [data-theme="light"][data-streamer="tenten"] .stats-summary strong {
       color: #D96B6A;
     }
 
@@ -249,12 +247,6 @@
     transform: rotate(360deg);
   }
 }
-  
-    /* 나오 탭에서도 우측 재생/통계는 흰색 유지 */
-    [data-streamer="nao"] .tab-btn,
-    [data-streamer="nao"] .tab-btn.active {
-      color: #fff !important;
-    }
 </style>
 </head>
 <body>
