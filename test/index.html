@@ -460,37 +460,36 @@
           <button id="statsClearBtn" class="search-clear-btn">✕</button>
         </div>
 
-        <select id="statsVideoSelect" class="video-select">
-          <option value="ALL">📺 전체 방송 보기</option>
-        </select>
-        
-        <div id="statsSummary" class="stats-summary">집계 중...</div>
+       <select id="statsVideoSelect" class="video-select">
+         <option value="ALL">📺 전체 방송 보기</option>
+       </select>
+       
+       <div class="stats-header-controls">
+         <div class="filter-group">
+           <button class="filter-btn stats-lang-btn active" data-lang="ALL">전체</button>
+           <button class="filter-btn stats-lang-btn" data-lang="KO">한식</button>
+           <button class="filter-btn stats-lang-btn" data-lang="JA">일식</button>
+           <button class="filter-btn stats-lang-btn" data-lang="EN">양식</button>
+           <button class="filter-btn stats-lang-btn" data-lang="BUNSIK">분식</button>
+         </div>
+         <div class="filter-group">
+           <button class="filter-btn stats-sort-btn active" data-sort="DATE_ASC">처음 부른 날짜순</button>
+           <button class="filter-btn stats-sort-btn" data-sort="RECENT_DESC">최근에 부른 날짜순</button>
+           <button class="filter-btn stats-sort-btn" data-sort="COUNT_DESC">많이 부른 순</button>
+           <button class="filter-btn stats-sort-btn" data-sort="TITLE_LANG">원제목순 (한/일/영)</button>
+           <button class="filter-btn stats-sort-btn" data-sort="OLD_ASC">오래 묵은 곡 순</button>
+           <button class="filter-btn stats-sort-btn" data-sort="SHUFFLE">🎲 랜덤</button>
+         </div>
+       </div>
 
-        <div class="stats-header-controls">
-          <div class="filter-group">
-            <button class="filter-btn stats-lang-btn active" data-lang="ALL">전체</button>
-            <button class="filter-btn stats-lang-btn" data-lang="KO">한식</button>
-            <button class="filter-btn stats-lang-btn" data-lang="JA">일식</button>
-            <button class="filter-btn stats-lang-btn" data-lang="EN">양식</button>
-            <button class="filter-btn stats-lang-btn" data-lang="BUNSIK">분식</button>
-          </div>
-          <div class="filter-group">
-            <button class="filter-btn stats-sort-btn active" data-sort="DATE_ASC">처음 부른 날짜순</button>
-            <button class="filter-btn stats-sort-btn" data-sort="RECENT_DESC">최근에 부른 날짜순</button>
-            <button class="filter-btn stats-sort-btn" data-sort="COUNT_DESC">많이 부른 순</button>
-            <button class="filter-btn stats-sort-btn" data-sort="TITLE_LANG">원제목순 (한/일/영)</button>
-            <button class="filter-btn stats-sort-btn" data-sort="OLD_ASC">오래 묵은 곡 순</button>
-            <button class="filter-btn stats-sort-btn" data-sort="SHUFFLE">🎲 랜덤</button>
-          </div>
-        </div>
-      </div>
-      <div class="stats-list" id="statsList"></div>
-    </div>
-  </div>
+       <div id="statsSummary" class="stats-summary">집계 중...</div>
 
-  <footer> Unofficial </footer>
-  <button id="backToTop" class="back-to-top" title="맨 위로 가기">↑</button>
+       <div class="stats-list" id="statsList"></div>
+     </div>
+   </div>
 
+   <footer> Unofficial </footer>
+   <button id="backToTop" class="back-to-top" title="맨 위로 가기">↑</button>
   <script>
     // =========================================================================
     // ⚙️ 0. 전역 설정
