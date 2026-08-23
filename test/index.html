@@ -1260,8 +1260,9 @@
       updateMainScopeNav(btn) {
         document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        document.documentElement.setAttribute('data-streamer', 'ALL');
         document.documentElement.setAttribute('data-main-scope', 'ALL');
-      }
+       }
 
       switchTab(tabId, btn) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
