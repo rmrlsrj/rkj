@@ -1438,7 +1438,7 @@
         div.className = 'stats-item';
 
         const addText = (cls, txt) => { const s = document.createElement('span'); s.className = cls; s.textContent = txt; div.appendChild(s); };
-        addText('index-text', `${idx + 1}.`); addText('title-text', item.title); div.append(' / '); addText('artist-text', item.artist); div.append(' / ');
+        addText('index-text', `${idx + 1}.`); addText('title-text', item.title); div.append(' / '); addText('artist-text', item.artist); div.append(document.createElement('br'));
 
         const datesSpan = document.createElement('span');
         datesSpan.className = 'dates-text';
