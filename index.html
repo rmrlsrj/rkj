@@ -24,6 +24,7 @@
       --tenten-primary: #ffa7a6; --tenten-secondary: #2b2b2b; --tenten-hover: #ff8f8e; --tenten-light: #fff0f0;   
       --nao-primary: #F9E2CA; --nao-secondary: #2f2921; --nao-hover: #F9E2CA; --nao-light: #fff3de;
       --suya-primary: #B8AAA0; --suya-secondary: #554942; --suya-hover: #9F9085; --suya-light: #f4f0ed;
+      --choke-primary: #B9E0F4; --choke-secondary: #26343A; --choke-hover: #91CBE5; --choke-light: #EAF7FC;
       --all-primary: #ff4b3e; --all-secondary: #ff8a1c; --all-hover: #ff682b; --all-light: #fff1e8;
       
       --accent-primary: var(--kira-primary); --accent-secondary: var(--kira-secondary);
@@ -33,6 +34,7 @@
     [data-streamer="kira"] { --accent-primary: var(--kira-primary); --accent-secondary: var(--kira-secondary); --accent-hover: var(--kira-hover); --accent-light: var(--kira-light); }
     [data-streamer="tenten"] { --accent-primary: var(--tenten-primary); --accent-secondary: var(--tenten-secondary); --accent-hover: var(--tenten-hover); --accent-light: var(--tenten-light); }
     [data-streamer="suya"] { --accent-primary: var(--suya-primary); --accent-secondary: var(--suya-secondary); --accent-hover: var(--suya-hover); --accent-light: var(--suya-light); }
+    [data-streamer="choke"] { --accent-primary: var(--choke-primary); --accent-secondary: var(--choke-secondary); --accent-hover: var(--choke-hover); --accent-light: var(--choke-light); }
     
     /* 텐텐 라이트모드 통계 전용 색상 */
     [data-theme="light"][data-streamer="tenten"] .stats-item .date-link,
@@ -83,6 +85,46 @@
     [data-theme="dark"][data-streamer="nao"] .stats-item .count-text { color: #ffd68e; }
     /* ---------------------------------------------------- */
 
+    /* 치카치카 쵸케(Choke) 테마 가독성 패치 */
+    [data-streamer="choke"] .streamer-btn.active,
+    [data-streamer="choke"] .stats-summary,
+    [data-streamer="choke"] .filter-btn.active {
+      background: var(--choke-light) !important;
+    }
+
+    /* 라이트 모드: 공식 시간표처럼 밝은 하늘색 배경 + 진한 청회색 글씨 */
+    [data-theme="light"][data-streamer="choke"] .streamer-btn.active,
+    [data-theme="light"][data-streamer="choke"] .filter-btn.active,
+    [data-theme="light"][data-streamer="choke"] .filter-btn:hover,
+    [data-theme="light"][data-streamer="choke"] .stats-item .date-link.active-date,
+    [data-theme="light"][data-streamer="choke"] .stats-player-close-btn:hover,
+    [data-theme="light"][data-streamer="choke"] .back-to-top {
+      color: #26343A !important;
+    }
+
+    [data-theme="light"][data-streamer="choke"] .stats-summary strong,
+    [data-theme="light"][data-streamer="choke"] .stats-item .date-link,
+    [data-theme="light"][data-streamer="choke"] .stats-item .count-text { color: #3E6170; }
+
+    /* 다크 모드 */
+    [data-theme="dark"][data-streamer="choke"] .streamer-btn.active,
+    [data-theme="dark"][data-streamer="choke"] .filter-btn.active,
+    [data-theme="dark"][data-streamer="choke"] .stats-summary {
+      color: var(--choke-primary) !important;
+    }
+
+    [data-theme="dark"][data-streamer="choke"] .filter-btn:hover,
+    [data-theme="dark"][data-streamer="choke"] .stats-player-close-btn:hover,
+    [data-theme="dark"][data-streamer="choke"] .stats-item .date-link.active-date,
+    [data-theme="dark"][data-streamer="choke"] .back-to-top {
+      background: var(--choke-primary) !important;
+      color: #26343A !important;
+    }
+
+    [data-theme="dark"][data-streamer="choke"] .stats-summary strong,
+    [data-theme="dark"][data-streamer="choke"] .stats-item .date-link,
+    [data-theme="dark"][data-streamer="choke"] .stats-item .count-text { color: #D7F1FA; }
+
     /* 스야 라이트/다크 색상 처리 */
     [data-streamer="suya"] .stats-summary strong,
     [data-streamer="suya"] .stats-item .date-link,
@@ -107,6 +149,7 @@
       --tenten-primary: #ffa7a6; --tenten-secondary: #fecaca; --tenten-hover: #ff8f8e; --tenten-light: #4a2d2d;
       --nao-primary: #ffe1ae; --nao-secondary: #fff1dc; --nao-hover: #f8c78c; --nao-light: #443321;
       --suya-primary: #d3c5b9; --suya-secondary: #f0e7e1; --suya-hover: #81736a; --suya-light: #39322e;
+      --choke-primary: #BFE7F7; --choke-secondary: #E7F7FC; --choke-hover: #78BFD9; --choke-light: #203743;
       --all-primary: #ff7a68; --all-secondary: #ffb36b; --all-hover: #ff7a2f; --all-light: #4a2d25;
     }
     
@@ -209,6 +252,7 @@
       .streamer-btn[data-streamer-target="tenten"]::after { content: "텐텐"; font-size: 0.85rem; }
       .streamer-btn[data-streamer-target="nao"]::after { content: "나오"; font-size: 0.85rem; }
       .streamer-btn[data-streamer-target="suya"]::after { content: "스야"; font-size: 0.85rem; }
+      .streamer-btn[data-streamer-target="choke"]::after { content: "쵸케"; font-size: 0.85rem; }
 
       header .tab-btn {
         padding: 6px 10px;
@@ -399,6 +443,7 @@
         <button class="streamer-btn" data-streamer-target="tenten">텐플라스텐 텐텐</button>
         <button class="streamer-btn" data-streamer-target="nao">아사미야 나오</button>
         <button class="streamer-btn" data-streamer-target="suya">코네코토 스야</button>
+        <button class="streamer-btn" data-streamer-target="choke">치카치카 쵸케</button>
       </div>
       
       <div class="tab-nav">
@@ -566,7 +611,8 @@
       kira: { name: '세이로쿠 키라', dbId: '키라' },
       tenten: { name: '텐플라스텐 텐텐', dbId: '텐텐' },
       nao: { name: '아사미야 나오', dbId: '나오' },
-      suya: { name: '코네코토 스야', dbId: '스야' }
+      suya: { name: '코네코토 스야', dbId: '스야' },
+      choke: { name: '치카치카 쵸케', dbId: '쵸케' }
     };
 
     // =========================================================================
@@ -1338,7 +1384,8 @@
           '키라': { primary: 'var(--kira-primary)', secondary: 'var(--kira-secondary)', light: 'var(--kira-light)' },
           '텐텐': { primary: 'var(--tenten-primary)', secondary: 'var(--tenten-secondary)', light: 'var(--tenten-light)' },
           '나오': { primary: 'var(--nao-primary)', secondary: 'var(--nao-secondary)', light: 'var(--nao-light)' },
-          '스야': { primary: 'var(--suya-primary)', secondary: 'var(--suya-secondary)', light: 'var(--suya-light)' }
+          '스야': { primary: 'var(--suya-primary)', secondary: 'var(--suya-secondary)', light: 'var(--suya-light)' },
+          '쵸케': { primary: 'var(--choke-primary)', secondary: 'var(--choke-secondary)', light: 'var(--choke-light)' }
         };
         
         const keys = Array.isArray(song?.streamers) ? song.streamers : [];
@@ -1815,7 +1862,7 @@
         this.ui.updateMainLangBtns(this.data.getMainLang());
         this.ui.updateMainSortBtns(this.data.getMainSort());
         this.ui.renderSkeleton('playlist', CONFIG.SKELETON_COUNT_MAIN, false);
-        this.ui.setLoadingNowPlaying('4명 전체');
+        this.ui.setLoadingNowPlaying('5명 전체');
 
         if (this.ui.els.tabStats.classList.contains('active')) {
           this.ui.showStatsUnavailablePrompt();
