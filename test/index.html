@@ -680,6 +680,11 @@
         align-items: baseline;
         flex-wrap: nowrap;
         gap: 6px;
+        white-space: nowrap;
+      }
+      .song-title-viewport {
+        flex: 1 1 auto;
+        min-width: 0;
         overflow: hidden;
         white-space: nowrap;
       }
@@ -689,7 +694,6 @@
       }
       .song-info-main-track {
         display: inline-block;
-        flex: 0 0 auto;
         width: max-content;
         min-width: max-content;
         max-width: none;
@@ -706,6 +710,9 @@
         margin: 0;
         min-width: 0;
         font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        flex-wrap: nowrap;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1725,10 +1732,10 @@
 
       #attachTitleMarquee(card) {
         card.addEventListener('mouseenter', () => {
+          const wrap = card.querySelector('.song-title-viewport');
           const track = card.querySelector('.song-info-main-track');
-          if (!track) return;
-          const availableWidth = wrap.clientWidth - (track.offsetLeft - wrap.offsetLeft);
-          const overflow = track.scrollWidth - availableWidth;
+          if (!wrap || !track) return;
+          const overflow = track.scrollWidth - wrap.clientWidth;
           if (overflow <= 0) return;
           const duration = Math.min(8, Math.max(1.8, overflow / 45));
           track.style.transition = `transform ${duration}s linear`;
@@ -1865,7 +1872,7 @@
         
         card.innerHTML = `
           <div>
-            <div class="song-info-main"><span class="song-order">${idx + 1}.</span><span class="song-info-main-track">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)}</span>${streamerLabel}</div>
+            <div class="song-info-main"><span class="song-order">${idx + 1}.</span><span class="song-title-viewport"><span class="song-info-main-track">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)}</span></span>${streamerLabel}</div>
             <div class="song-info-sub"><span class="song-info-sub-text">${Utils.escapeHtml(song.artist)}${song.work ? ' - ' + Utils.escapeHtml(song.work) : ''}</span><span class="song-date">${Utils.escapeHtml(song.date)}</span></div>
           </div>
           <span class="song-badge">${Utils.escapeHtml(song.lang)}</span>
