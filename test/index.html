@@ -319,7 +319,8 @@
       .stats-item .date-link:hover { color: #fff; background-color: var(--accent-hover); border-radius: 4px; text-decoration: none; }
     }
     /* 1줄: 곡 순번 + 곡 제목 + [전체탭] 스트리머 */
-    .song-info-main { font-size: 0.85rem; color: var(--text); margin-bottom: 4px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px; word-break: break-word; overflow-wrap: anywhere; }
+    .song-info-main { font-size: 0.85rem; color: var(--text); margin-bottom: 4px; display: flex; align-items: baseline; flex-wrap: nowrap; gap: 4px; min-width: 0; }
+    .song-title-viewport { flex: 1 1 auto; min-width: 0; word-break: break-word; overflow-wrap: anywhere; }
     .song-order { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); flex-shrink: 0; }
     .song-info-main-track { font-size: 0.98rem; font-weight: 700; color: var(--text); }
     .playing-icon { display: inline-block; margin-right: 6px; font-size: 0.85rem; animation: pulse 1.5s infinite; }
