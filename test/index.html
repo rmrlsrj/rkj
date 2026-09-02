@@ -420,6 +420,79 @@
     transform: rotate(360deg);
   }
 }
+
+    /* 재생 탭 데스크톱 밀도 개선: 동작 구조는 유지하고 화면 구성만 조정 */
+    @media (min-width: 901px) {
+      .main-container {
+        max-width: 1480px;
+        grid-template-columns: minmax(0, 1.18fr) minmax(500px, 0.82fr);
+        gap: 24px;
+        padding: 24px;
+      }
+
+      .player-section { gap: 12px; }
+
+      .playlist-section {
+        height: min(720px, calc(100vh - 92px));
+        padding: 14px;
+      }
+
+      .search-filter-box { gap: 8px; margin-bottom: 10px; }
+      .search-input { padding-top: 9px; padding-bottom: 9px; }
+      .video-select { padding-top: 7px; padding-bottom: 7px; }
+      .filter-group { gap: 5px; }
+      .filter-btn { padding: 5px 10px; }
+
+      .playlist-scroll { gap: 6px; }
+      .song-card { padding: 9px 12px; min-height: 66px; }
+      .song-info-date { font-size: 0.76rem; margin-bottom: 1px; }
+      .song-info-main { font-size: 0.9rem; margin-bottom: 2px; }
+      .song-info-sub { font-size: 0.76rem; }
+      .song-badge { padding: 3px 7px; }
+    }
+
+    @media (min-width: 1200px) {
+      .filter-group { display: inline-flex; vertical-align: top; }
+      .search-filter-box { display: block; }
+      .search-filter-box > .search-wrapper,
+      .search-filter-box > .video-select { margin-bottom: 8px; }
+      .search-filter-box > .filter-group + .filter-group { margin-left: 5px; }
+    }
+
+    /* 재생 탭: 영상 · 현재 곡 · 곡 목록을 한 화면에서 읽기 쉬운 라이브러리형 구성으로 정리 */
+    .now-playing-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .now-playing-stat { padding: 5px 8px; border-radius: 6px; background: var(--card-bg); color: var(--text-muted); font-size: 0.75rem; }
+    .now-playing-stat strong { color: var(--accent-secondary); font-size: 0.9rem; }
+    .now-playing-controls { display: flex; gap: 8px; margin-top: 14px; }
+    .song-nav-btn { flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px; background: var(--panel-bg); color: var(--text); font: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .song-nav-btn:hover:not(:disabled) { border-color: var(--accent-primary); color: var(--accent-secondary); background: var(--accent-light); }
+    .song-nav-btn:disabled { cursor: not-allowed; opacity: 0.45; }
+
+    @media (min-width: 901px) {
+      .main-container { max-width: 1480px; grid-template-columns: minmax(0, 1.55fr) minmax(330px, 0.85fr); gap: 16px; padding: 24px; }
+      .player-section { display: contents; }
+      .player-container { grid-column: 1; min-height: 0; }
+      .now-playing-card { grid-column: 2; align-self: stretch; border-left: 1px solid var(--border); padding: 22px; display: flex; flex-direction: column; justify-content: center; }
+      .playlist-section { grid-column: 1 / -1; height: min(600px, calc(100vh - 510px)); min-height: 420px; padding: 14px 16px; }
+      .search-filter-box { display: grid; grid-template-columns: minmax(260px, 1fr) 260px auto auto; align-items: center; gap: 8px; margin-bottom: 12px; }
+      .search-filter-box > .search-wrapper, .search-filter-box > .video-select { margin: 0; }
+      .search-filter-box > .filter-group, .search-filter-box > .filter-group + .filter-group { display: flex; margin: 0; }
+      .filter-group { flex-wrap: nowrap; gap: 4px; }
+      .filter-btn { padding: 6px 9px; white-space: nowrap; }
+      .playlist-scroll { gap: 4px; }
+      .song-card { min-height: 48px; padding: 8px 12px; display: grid; grid-template-columns: 105px minmax(220px, 1.15fr) minmax(180px, 0.85fr) 42px; gap: 12px; align-items: center; }
+      .song-card > div:first-child { display: contents; }
+      .song-info-date, .song-info-main, .song-info-sub { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .song-info-date { font-size: 0.76rem; }
+      .song-info-main { font-size: 0.9rem; }
+      .song-info-sub { font-size: 0.76rem; }
+      .song-badge { justify-self: end; padding: 3px 6px; }
+    }
+
+    @media (max-width: 1200px) and (min-width: 901px) {
+      .search-filter-box { grid-template-columns: minmax(240px, 1fr) 220px; }
+      .search-filter-box > .filter-group { grid-column: span 1; }
+    }
 </style>
 </head>
 <body>
@@ -463,7 +536,13 @@
           <div class="now-playing-date" id="npDate">데이터 로딩 중...</div>
           <div class="now-playing-title" id="npTitle">노래목록 불러오는 중...</div>
           <div class="now-playing-artist" id="npArtist">로딩 대기 중...</div>
+          <div class="now-playing-stats" id="npStats" aria-live="polite"></div>
           <div class="now-playing-meta" id="npMeta" style="display: none;"></div>
+        </div>
+        <div class="adjacent-song-card is-empty" id="nextSongCard" tabindex="0" aria-label="다음곡">
+          <div class="adjacent-song-label">다음곡</div>
+          <div class="adjacent-song-main" id="nextSongMain">다음 곡이 없습니다.</div>
+          <div class="adjacent-song-date" id="nextSongDate"></div>
         </div>
       </div>
 
@@ -1269,7 +1348,13 @@
           statsSearchInput: document.getElementById('statsSearchInput'),
           statsClearBtn: document.getElementById('statsClearBtn'),
           statsSummary: document.getElementById('statsSummary'),
-          initialLoadingScreen: document.getElementById('initialLoadingScreen')
+          initialLoadingScreen: document.getElementById('initialLoadingScreen'),
+          prevSongCard: document.getElementById('prevSongCard'),
+          prevSongMain: document.getElementById('prevSongMain'),
+          prevSongDate: document.getElementById('prevSongDate'),
+          nextSongCard: document.getElementById('nextSongCard'),
+          nextSongMain: document.getElementById('nextSongMain'),
+          nextSongDate: document.getElementById('nextSongDate')
         };
         
         this.npMetaCached = false;
@@ -1433,6 +1518,20 @@
         this.npMetaEls.songId.textContent = song.songId;
       }
 
+      updateAdjacentSongs(prevSong, nextSong, onPrev, onNext) {
+        const updateCard = (card, main, date, song, label, onClick) => {
+          if (!card) return;
+          const empty = !song;
+          card.classList.toggle('is-empty', empty);
+          main.textContent = empty ? `${label} 곡이 없습니다.` : `${song.title} - ${song.artist}`;
+          date.textContent = empty ? '' : song.date;
+          card.onclick = empty ? null : onClick;
+          card.onkeydown = empty ? null : (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } };
+        };
+        updateCard(this.els.prevSongCard, this.els.prevSongMain, this.els.prevSongDate, prevSong, '이전', onPrev);
+        updateCard(this.els.nextSongCard, this.els.nextSongMain, this.els.nextSongDate, nextSong, '다음', onNext);
+      }
+
       highlightActiveSong(songId) {
         this.els.playlist.querySelectorAll('.song-card.active').forEach(card => card.classList.remove('active'));
         this.els.playlist.querySelectorAll('.playing-icon').forEach(icon => icon.remove());
@@ -1471,8 +1570,8 @@
         card.innerHTML = `
           <div>
             <div class="song-info-date">${Utils.escapeHtml(song.date)}${streamerLabel}</div>
-            <div class="song-info-main">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)}</div>
-            <div class="song-info-sub">${Utils.escapeHtml(song.artist)}${song.work ? ' • ' + Utils.escapeHtml(song.work) : ''}</div>
+            <div class="song-info-main">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)} - ${Utils.escapeHtml(song.artist)}${song.work ? ' • ' + Utils.escapeHtml(song.work) : ''}</div>
+            <div class="song-info-sub" aria-hidden="true"></div>
           </div>
           <span class="song-badge">${Utils.escapeHtml(song.lang)}</span>
         `;
@@ -1734,8 +1833,10 @@
         if (this.mainPlayer.playlist.length > 0) {
           this.mainPlayer.cue(0);
           this.ui.updateNowPlaying(this.mainPlayer.playlist[0]);
+          this.updatePlaybackFlow();
         } else {
           this.ui.setEmptyNowPlaying();
+          this.updatePlaybackFlow();
         }
 
         if (this.ui.els.tabStats.classList.contains('active')) this.renderStatistics();
@@ -1752,16 +1853,31 @@
         if (this.mainPlayer.playlist.length > 0) {
           this.mainPlayer.cue(0);
           this.ui.updateNowPlaying(this.mainPlayer.playlist[0]);
+          this.updatePlaybackFlow();
         } else {
           this.ui.setEmptyNowPlaying();
+          this.updatePlaybackFlow();
         }
 
         this.loadYouTubeAPI();
       }
 
+      updatePlaybackFlow() {
+        const index = this.mainPlayer.currentIndex;
+        const list = this.mainPlayer.playlist;
+        const prevSong = index > 0 ? list[index - 1] : null;
+        const nextSong = index >= 0 && index + 1 < list.length ? list[index + 1] : null;
+        this.ui.updateAdjacentSongs(
+          prevSong, nextSong,
+          () => this.playSong(index - 1),
+          () => this.playSong(index + 1)
+        );
+      }
+
       renderPlaylist() {
         const list = this.data.getFilteredMainSongs();
         this.mainPlayer.updatePlaylist(list);
+        this.updatePlaybackFlow();
         this.ui.renderPlaylist(list, this.mainPlayer.currentSongId, (idx) => this.playSong(idx), this.data.mainScopeKey === 'ALL');
       }
 
@@ -1781,6 +1897,7 @@
         this.mainPlayer.play(index, cueOnly);
         this.ui.highlightActiveSong(song.id); 
         this.ui.updateNowPlaying(song);
+        this.updatePlaybackFlow();
       }
 
       playNextSong() {
