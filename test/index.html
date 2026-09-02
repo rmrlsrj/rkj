@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Unofficial</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -14,7 +13,6 @@
     const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', savedTheme);
   </script>
-
   <style>
     :root {
       --bg-color: #f8fafc; --panel-bg: #ffffff; --card-bg: #f1f5f9;
@@ -39,18 +37,15 @@
     /* 텐텐 라이트모드 통계 전용 색상 */
     [data-theme="light"][data-streamer="tenten"] .stats-item .date-link,
     [data-theme="light"][data-streamer="tenten"] .stats-item .count-text { color: #d96b6a; }
-
     /* ----------------------------------------------------
        ✨ 아사미야 나오(Nao) 테마 가독성 패치 (라이트/다크 분리)
        ---------------------------------------------------- */
     [data-streamer="nao"] { --accent-primary: var(--nao-primary); --accent-secondary: var(--nao-secondary); --accent-hover: var(--nao-hover); --accent-light: var(--nao-light); }
-
     [data-streamer="nao"] .streamer-btn.active,
     [data-streamer="nao"] .stats-summary,
     [data-streamer="nao"] .filter-btn.active {
       background: var(--nao-light) !important;
     }
-
     /* 라이트 모드 (연한 크림골드 배경 + 진한 초코 글씨) */
     [data-theme="light"][data-streamer="nao"] .streamer-btn.active,
     [data-theme="light"][data-streamer="nao"] .filter-btn.active,
@@ -64,14 +59,12 @@
     [data-theme="light"][data-streamer="nao"] .stats-summary strong,
     [data-theme="light"][data-streamer="nao"] .stats-item .date-link,
     [data-theme="light"][data-streamer="nao"] .stats-item .count-text { color: #6a4a1e; }
-
     /* 다크 모드 (다크초코 배경 + 밝은 골드 글씨) */
     [data-theme="dark"][data-streamer="nao"] .streamer-btn.active,
     [data-theme="dark"][data-streamer="nao"] .filter-btn.active,
     [data-theme="dark"][data-streamer="nao"] .stats-summary { 
       color: var(--nao-primary) !important; 
     }
-
     [data-theme="dark"][data-streamer="nao"] .filter-btn:hover,
     [data-theme="dark"][data-streamer="nao"] .stats-player-close-btn:hover,
     [data-theme="dark"][data-streamer="nao"] .stats-item .date-link.active-date,
@@ -79,19 +72,16 @@
       background: var(--nao-primary) !important;
       color: #2f2921 !important;
     }
-
     [data-theme="dark"][data-streamer="nao"] .stats-summary strong,
     [data-theme="dark"][data-streamer="nao"] .stats-item .date-link,
     [data-theme="dark"][data-streamer="nao"] .stats-item .count-text { color: #ffd68e; }
     /* ---------------------------------------------------- */
-
     /* 치카치카 쵸케(Choke) 테마 가독성 패치 */
     [data-streamer="choke"] .streamer-btn.active,
     [data-streamer="choke"] .stats-summary,
     [data-streamer="choke"] .filter-btn.active {
       background: var(--choke-light) !important;
     }
-
     /* 라이트 모드: 공식 시간표처럼 밝은 하늘색 배경 + 진한 청회색 글씨 */
     [data-theme="light"][data-streamer="choke"] .streamer-btn.active,
     [data-theme="light"][data-streamer="choke"] .filter-btn.active,
@@ -101,18 +91,15 @@
     [data-theme="light"][data-streamer="choke"] .back-to-top {
       color: #26343A !important;
     }
-
     [data-theme="light"][data-streamer="choke"] .stats-summary strong,
     [data-theme="light"][data-streamer="choke"] .stats-item .date-link,
     [data-theme="light"][data-streamer="choke"] .stats-item .count-text { color: #3E6170; }
-
     /* 다크 모드 */
     [data-theme="dark"][data-streamer="choke"] .streamer-btn.active,
     [data-theme="dark"][data-streamer="choke"] .filter-btn.active,
     [data-theme="dark"][data-streamer="choke"] .stats-summary {
       color: var(--choke-primary) !important;
     }
-
     [data-theme="dark"][data-streamer="choke"] .filter-btn:hover,
     [data-theme="dark"][data-streamer="choke"] .stats-player-close-btn:hover,
     [data-theme="dark"][data-streamer="choke"] .stats-item .date-link.active-date,
@@ -120,29 +107,23 @@
       background: var(--choke-primary) !important;
       color: #26343A !important;
     }
-
     [data-theme="dark"][data-streamer="choke"] .stats-summary strong,
     [data-theme="dark"][data-streamer="choke"] .stats-item .date-link,
     [data-theme="dark"][data-streamer="choke"] .stats-item .count-text { color: #D7F1FA; }
-
     /* 스야 라이트/다크 색상 처리 */
     [data-streamer="suya"] .stats-summary strong,
     [data-streamer="suya"] .stats-item .date-link,
     [data-streamer="suya"] .stats-item .count-text { color: #63554d; }
-
     [data-theme="dark"][data-streamer="suya"] .stats-summary strong,
     [data-theme="dark"][data-streamer="suya"] .stats-item .date-link,
     [data-theme="dark"][data-streamer="suya"] .stats-item .count-text { color: #d9ccc2; }
-
     /* 전체 범위(ALL) UI 색상 */
     [data-main-scope="ALL"] .streamer-btn[data-streamer-target="ALL"].active,
     [data-main-scope="ALL"] .main-lang-btn.active,
     [data-main-scope="ALL"] .main-sort-btn.active { color: #fff !important; }
-
     [data-main-scope="ALL"] .streamer-btn[data-streamer-target="ALL"]:not(.active),
     [data-main-scope="ALL"] .main-lang-btn:not(.active),
     [data-main-scope="ALL"] .main-sort-btn:not(.active) { color: var(--text-muted) !important; }
-
     [data-theme="dark"] {
       --bg-color: #0f172a; --panel-bg: #1e293b; --card-bg: #334155; --text: #f8fafc; --text-muted: #cbd5e1; --border: #334155;
       --kira-primary: #c4b5fd; --kira-secondary: #e9d5ff; --kira-hover: #6d28d9; --kira-light: #2c2541; 
@@ -187,7 +168,6 @@
         flex-wrap: nowrap;
       }
     }
-
     /* 901~1200px 구간은 폭이 좁으므로, 줄바꿈 대신 여백만 줄여서
        한 줄을 최대한 오래 유지할 수 있는 여유 공간을 확보한다. */
     @media (min-width: 901px) and (max-width: 1200px) {
@@ -219,33 +199,27 @@
         column-gap: 10px;
         row-gap: 8px;
       }
-
       header h1 {
         grid-area: title;
       }
-
       header .header-controls {
         display: contents;
       }
-
       header .theme-toggle-btn {
         grid-area: theme;
         justify-self: start;
         font-size: 1.2rem;
         padding: 4px;
       }
-
       header .streamer-nav {
         grid-area: streamers;
         justify-self: end;
         min-width: 0;
       }
-
       header .tab-nav {
         grid-area: tabs;
         justify-self: end;
       }
-
       .streamer-btn {
         font-size: 0;
         padding: 6px 10px;
@@ -258,7 +232,6 @@
       .streamer-btn[data-streamer-target="nao"]::after { content: "나오"; font-size: 0.85rem; }
       .streamer-btn[data-streamer-target="suya"]::after { content: "스야"; font-size: 0.85rem; }
       .streamer-btn[data-streamer-target="choke"]::after { content: "쵸케"; font-size: 0.85rem; }
-
       header .tab-btn {
         padding: 6px 10px;
         font-size: 0.85rem;
@@ -311,7 +284,6 @@
     .stats-sort-btn {
       font-weight: 700;
 }
-
     .filter-btn.active, .filter-btn:hover { background-color: var(--accent-hover); color: #fff; border-color: var(--accent-hover); }
     [data-main-scope="ALL"] .main-lang-btn.active, [data-main-scope="ALL"] .main-lang-btn:hover, [data-main-scope="ALL"] .main-sort-btn.active, [data-main-scope="ALL"] .main-sort-btn:hover { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; border-color: transparent; }
     .playlist-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; position: relative; }
@@ -361,11 +333,9 @@
       color: var(--accent-primary);
       font-size: 1.1rem;
     }
-
     [data-theme="light"][data-streamer="tenten"] .stats-summary strong {
       color: #D96B6A;
     }
-
     .stats-list { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-height: 500px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s, border-color 0.3s; position: relative; }
     .stats-item { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; font-size: 0.9rem; line-height: 1.5; color: var(--text); word-break: break-all; scroll-margin-top: 24px; transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
     .stats-item .index-text { font-weight: 700; color: var(--text-muted); margin-right: 6px; }
@@ -378,7 +348,6 @@
     .stats-item .date-link { color: var(--accent-primary); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; transition: all 0.2s; padding: 2px 4px; white-space: nowrap; }
     .stats-item .date-link.active-date { color: #fff !important; background-color: var(--accent-hover); border-radius: 4px; text-decoration: none; font-weight: bold; }
     .stats-item .count-text { font-weight: 700; color: var(--accent-primary); margin-left: 4px; white-space: nowrap; }
-
     .stats-player-box { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 8px; animation: fadeIn 0.25s ease-in-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
     .stats-player-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); }
@@ -391,7 +360,6 @@
     .back-to-top { position: fixed; bottom: 30px; right: 30px; background-color: var(--accent-primary); color: #fff; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.2s, background-color 0.3s; z-index: 1000; }
     .back-to-top.show { opacity: 1; pointer-events: auto; }
     .back-to-top:hover { transform: translateY(-3px); background-color: var(--accent-hover); }
-
     .initial-loading-screen {
   position: fixed;
   inset: 0;
@@ -401,7 +369,6 @@
   justify-content: center;
   background-color: var(--bg-color);
 }
-
 .initial-loading-content {
   display: flex;
   flex-direction: column;
@@ -410,18 +377,15 @@
   text-align: center;
   padding: 24px;
 }
-
 .initial-loading-title {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--text);
 }
-
 .initial-loading-text {
   font-size: 0.85rem;
   color: var(--text-muted);
 }
-
 .initial-loading-spinner {
   width: 28px;
   height: 28px;
@@ -430,83 +394,15 @@
   border-radius: 50%;
   animation: initial-loading-spin 0.8s linear infinite;
 }
-
 @keyframes initial-loading-spin {
   to {
     transform: rotate(360deg);
   }
 }
-
-    /* 재생 탭 데스크톱 밀도 개선: 동작 구조는 유지하고 화면 구성만 조정 */
-    @media (min-width: 901px) {
-      .main-container {
-        max-width: 1480px;
-        grid-template-columns: minmax(0, 1.18fr) minmax(500px, 0.82fr);
-        gap: 24px;
-        padding: 24px;
-      }
-
-      .player-section { gap: 12px; }
-
-      .playlist-section {
-        height: min(720px, calc(100vh - 92px));
-        padding: 14px;
-      }
-
-      .search-filter-box { gap: 8px; margin-bottom: 10px; }
-      .search-input { padding-top: 9px; padding-bottom: 9px; }
-      .video-select { padding-top: 7px; padding-bottom: 7px; }
-      .filter-group { gap: 5px; }
-      .filter-btn { padding: 5px 10px; }
-
-      .playlist-scroll { gap: 6px; }
-      .song-card { padding: 9px 12px; min-height: 66px; }
-      .song-info-main { font-size: 0.8rem; margin-bottom: 3px; }
-      .song-info-main-track { font-size: 1rem; }
-      .song-info-sub { font-size: 0.76rem; }
-      .song-date { font-size: 0.76rem; }
-      .song-badge { padding: 3px 7px; }
-    }
-
-    @media (min-width: 1200px) {
-      .filter-group { display: inline-flex; vertical-align: top; }
-      .search-filter-box { display: block; }
-      .search-filter-box > .search-wrapper,
-      .search-filter-box > .video-select { margin-bottom: 8px; }
-      .search-filter-box > .filter-group + .filter-group { margin-left: 5px; }
-    }
-
-    /* 재생 탭: 영상 · 현재 곡 · 곡 목록을 한 화면에서 읽기 쉬운 라이브러리형 구성으로 정리 */
+    /* 재생 탭 보조 정보 */
     .now-playing-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
     .now-playing-stat { padding: 5px 8px; border-radius: 6px; background: var(--card-bg); color: var(--text-muted); font-size: 0.75rem; }
     .now-playing-stat strong { color: var(--accent-secondary); font-size: 0.9rem; }
-
-    @media (min-width: 901px) {
-      .main-container { max-width: 1480px; grid-template-columns: minmax(0, 1.55fr) minmax(330px, 0.85fr); gap: 16px; padding: 24px; }
-      .player-section { display: contents; }
-      .player-container { grid-column: 1; min-height: 0; }
-      .now-playing-card { grid-column: 2; align-self: stretch; border-left: 1px solid var(--border); padding: 22px; display: flex; flex-direction: column; justify-content: center; }
-      .playlist-section { grid-column: 1 / -1; height: min(600px, calc(100vh - 510px)); min-height: 420px; padding: 14px 16px; }
-      .search-filter-box { display: grid; grid-template-columns: minmax(260px, 1fr) 260px auto auto; align-items: center; gap: 8px; margin-bottom: 12px; }
-      .search-filter-box > .search-wrapper, .search-filter-box > .video-select { margin: 0; }
-      .search-filter-box > .filter-group, .search-filter-box > .filter-group + .filter-group { display: flex; margin: 0; }
-      .filter-group { flex-wrap: nowrap; gap: 4px; }
-      .filter-btn { padding: 6px 9px; white-space: nowrap; }
-      .playlist-scroll { gap: 4px; }
-      .song-card { min-height: 48px; padding: 8px 12px; display: grid; grid-template-columns: 105px minmax(220px, 1.15fr) minmax(180px, 0.85fr) 42px; gap: 12px; align-items: center; }
-      .song-card > div:first-child { display: contents; }
-      .song-info-main, .song-info-sub { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .song-info-main { font-size: 0.9rem; }
-      .song-info-sub { font-size: 0.76rem; }
-      .song-badge { justify-self: end; padding: 3px 6px; }
-    }
-
-    @media (max-width: 1200px) and (min-width: 901px) {
-      .search-filter-box { grid-template-columns: minmax(240px, 1fr) 220px; }
-      .search-filter-box > .filter-group { grid-column: span 1; }
-    }
-
-
     /* ================================================================
        재생 탭 데스크톱 개선 (901px 이상만 적용)
        - 모바일은 기존 표시 그대로 유지
@@ -514,7 +410,6 @@
        - 기존 LazyListRenderer / 순차 로딩 JS는 수정하지 않음
        ================================================================ */
     .desktop-song-flow { display: none; }
-
     @media (min-width: 901px) {
       /* 재생 탭이 열린 동안 모니터 한 화면 안에서만 구성 */
       body:has(#tab-player.active) {
@@ -522,14 +417,12 @@
         min-height: 0;
         overflow: hidden;
       }
-
       #tab-player.active {
         display: flex;
         flex: 1 1 auto;
         min-height: 0;
         overflow: hidden;
       }
-
       /* 좌우 패널이 화면의 남은 높이를 모두 사용 */
       .main-container {
         flex: 1 1 auto;
@@ -543,7 +436,6 @@
         align-items: stretch;
         overflow: hidden;
       }
-
       /* 좌측: 재생 흐름을 담는 바깥 영역 (카드 스타일 없음, 페이지 배경만 표시) */
       .player-section {
         grid-column: 1;
@@ -560,7 +452,6 @@
         overflow-y: auto;
         overflow-x: hidden;
       }
-
       /* 실제 카드 스타일(테두리/모서리/그림자/배경)은 내용물 높이만큼만 감싸는
          내부 래퍼가 담당한다. 다음곡에서 카드가 끝나고, 그 아래 남는 공간은
          .player-section의 페이지 배경이 그대로 보여 카드와 확실히 구분된다. */
@@ -574,7 +465,6 @@
         overflow: hidden;
         box-shadow: 0 2px 8px rgba(0,0,0,0.03);
       }
-
       /* 지난곡 / 다음곡: 현재곡보다 낮은 위계 */
       .desktop-song-flow {
         display: block;
@@ -603,7 +493,6 @@
         text-overflow: ellipsis;
       }
       .desktop-song-flow-main strong { color: var(--text); font-weight: 600; }
-
       /* 플레이어는 좌측 패널의 남는 높이를 채우지 않고,
          너비 기준 16:9 비율만큼만 높이를 갖는다.
          (남는 세로 공간은 늘리지 않고 .player-section 하단에 그대로 비워둔다 → 레터박스 방지) */
@@ -616,7 +505,6 @@
         border-radius: 0;
         box-shadow: none;
       }
-
       /* 현재곡은 기존 강조 톤 유지 */
       .now-playing-card {
         flex: 0 0 auto;
@@ -627,7 +515,6 @@
         border-top: 1px solid var(--border);
         box-shadow: none;
       }
-
       /* 우측 패널도 좌측과 같은 화면 높이를 사용 */
       .playlist-section {
         grid-column: 2;
@@ -639,7 +526,6 @@
         flex-direction: column;
         overflow: hidden;
       }
-
       .search-filter-box {
         flex: 0 0 auto;
         display: flex;
@@ -648,7 +534,6 @@
         margin-bottom: 10px;
       }
       .filter-group { flex-wrap: wrap; gap: 5px; }
-
       /* 핵심: 스크롤과 기존 IntersectionObserver 순차 로딩은 이 영역에서만 작동 */
       .playlist-scroll {
         flex: 1 1 auto;
@@ -657,7 +542,6 @@
         overflow-x: hidden;
         gap: 10px;
       }
-
       /* 데스크톱 곡 목록: 윗줄(순번 · 제목[가장 크게] · [전체탭]스트리머) / 아랫줄(아티스트-작품명 · 날짜) */
       .song-card {
         min-height: 58px;
@@ -711,7 +595,6 @@
         padding: 3px 6px;
       }
     }
-
     /* 중간 폭 데스크톱 보정 */
     @media (min-width: 901px) and (max-width: 1200px) {
       .main-container {
@@ -720,7 +603,6 @@
         padding: 16px 20px;
       }
     }
-
     /* ================================================================
        작은/저해상도 모니터 보정 (예: 10인치 모니터 + 150% 배율)
        - 실제 표시 영역의 세로 높이가 낮아, 플레이어(16:9)가 넓게 잡히면
@@ -740,7 +622,6 @@
       .main-container {
         grid-template-columns: clamp(380px, calc(0.87 * 100vh - 140px), 640px) minmax(560px, 1fr);
       }
-
       /* 플레이어 하단 정보 영역의 위아래 여백을 살짝 줄여
          세로 공간을 추가로 확보 (정보 자체는 그대로 유지) */
       .now-playing-card { padding: 10px 18px; }
@@ -749,7 +630,6 @@
 </style>
 </head>
 <body>
-
 <div id="initialLoadingScreen" class="initial-loading-screen">
   <div class="initial-loading-content">
     <div class="initial-loading-title">데이터를 불러오는 중...</div>
@@ -778,7 +658,6 @@
       </div>
     </div>
   </header>
-
   <div id="tab-player" class="tab-content active">
     <div class="main-container">
       <div class="player-section">
@@ -798,14 +677,12 @@
           <div id="nextSongFlow" class="desktop-song-flow is-empty" aria-label="다음곡"></div>
         </div>
       </div>
-
       <div class="playlist-section">
         <div class="search-filter-box">
           <div class="search-wrapper">
             <input type="text" id="searchInput" class="search-input" placeholder="곡명 · 가수 · 별칭 · 년월일 검색">
             <button id="searchClearBtn" class="search-clear-btn">✕</button>
           </div>
-
           <select id="videoSelect" class="video-select">
             <option value="ALL">📺 전체 방송 보기</option>
           </select>
@@ -830,7 +707,6 @@
       </div>
     </div>
   </div>
-
   <div id="tab-stats" class="tab-content">
     <div class="stats-container">
       <div class="stats-header-box">
@@ -838,7 +714,6 @@
           <input type="text" id="statsSearchInput" class="search-input" placeholder="곡명 · 가수 · 별칭 · 년월일 검색">
           <button id="statsClearBtn" class="search-clear-btn">✕</button>
         </div>
-
        <select id="statsVideoSelect" class="video-select">
          <option value="ALL">📺 전체 방송 보기</option>
        </select>
@@ -860,13 +735,10 @@
            <button class="filter-btn stats-sort-btn" data-sort="SHUFFLE">🎲 랜덤</button>
          </div>
        </div>
-
        <div id="statsSummary" class="stats-summary">집계 중...</div>
-
        <div class="stats-list" id="statsList"></div>
      </div>
    </div>
-
    <footer> Unofficial </footer>
    <button id="backToTop" class="back-to-top" title="맨 위로 가기">↑</button>
   <script>
@@ -883,12 +755,10 @@
       SKELETON_COUNT_STATS: 6,
       CHUNK_SIZE: 50            
     };
-
     const REGEX_LANG_KO = /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/;
     const REGEX_LANG_JA = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
     const REGEX_LANG_EN = /[A-Za-z]/;
     const REGEX_SHORT_DATE = /^\d{2}(\d{2}\.\d{1,2}\.\d{1,2})$/;
-
     // =========================================================================
     // 🛠️ 1. 유틸리티 
     // =========================================================================
@@ -934,13 +804,11 @@
         return false;
       }
     };
-
     const DB_URLS = {
       log: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTvxgmO1qyAwMITyp_J2-m53NOyA4AAlSzLBQPUHnHC5nAEv193nYMxoh2saWMEWxDw4Je0jw-Qz-Yw/pub?gid=0&single=true&output=tsv",
       video: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRqlpmvGEeZ8ZJaC0d7XFdKTqTVznMVeCyXMmZ0rodugXh-nLHbuU5iheV9_CjpUAdx4BCK-sC_vISc/pub?gid=0&single=true&output=tsv",
       song: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRVDkY7NKTc2mjrbWPMf9a8ygJqRlyqOX5GIqO-k1MBdQsdqCebq-Y7AvuXcxfzCs1s_-psrajLylUj/pub?gid=0&single=true&output=tsv"
     };
-
     const STREAMER_MAP = {
       kira: { name: '세이로쿠 키라', dbId: '키라' },
       tenten: { name: '텐플라스텐 텐텐', dbId: '텐텐' },
@@ -948,7 +816,6 @@
       suya: { name: '코네코토 스야', dbId: '스야' },
       choke: { name: '치카치카 쵸케', dbId: '쵸케' }
     };
-
     // =========================================================================
     // 💾 2. 데이터 매니저 
     // =========================================================================
@@ -958,7 +825,6 @@
       #cachedStats = [];
       #streamerKey = 'kira';
       #mainScopeKey = 'kira';
-
       mainFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
       #mainSortStates = new Map();
       #mainLangStates = new Map();
@@ -966,32 +832,26 @@
       
       statsFilters = { search: '', lang: 'ALL', sort: 'DATE_ASC', videoId: 'ALL' };
       #statsShuffleOrders = new Map();
-
       #initializeMainSortStates() {
         this.#mainSortStates.clear();
         ['ALL', ...Object.keys(STREAMER_MAP)].forEach(scopeKey => {
           this.#mainSortStates.set(scopeKey, 'DATE_ASC');
         });
       }
-
       getMainSort() {
         return this.#mainSortStates.get(this.#mainScopeKey) || 'DATE_ASC';
       }
-
       setMainSort(sort) {
         this.#mainSortStates.set(this.#mainScopeKey, sort);
         this.mainFilters.sort = sort;
       }
-
       getMainLang() {
         return this.#mainLangStates.get(this.#mainScopeKey) || 'ALL';
       }
-
       setMainLang(lang) {
         this.#mainLangStates.set(this.#mainScopeKey, lang);
         this.mainFilters.lang = lang;
       }
-
       get streamerKey() { return this.#streamerKey; }
       set streamerKey(key) {
         if (this.#streamerKey !== key) {
@@ -999,14 +859,12 @@
           this.#updateCaches();
         }
       }
-
       get mainScopeKey() { return this.#mainScopeKey; }
       set mainScopeKey(key) {
         if (this.#mainScopeKey !== key) {
           this.#mainScopeKey = key;
         }
       }
-
       async loadAllData() {
         const [logRes, videoRes, songRes] = await Promise.all([
           this.#fetchTSV(
@@ -1025,40 +883,30 @@
               'song'
           )
         ]);
-
         const videoMap = {}; videoRes.forEach(v => videoMap[v.video_id] = v);
         const songMap = {}; songRes.forEach(s => songMap[s.song_id] = s);
-
         this.#allSongs = logRes.map((log, idx) => {
           const video = videoMap[log.video_id];
           const song = songMap[log.song_id];
           if (!video || !song) return null;
-
           const lang = (song.lang || 'JA').toUpperCase();
           let title = song.title_primary || song.title_original || '';
           let artist = song.artist_primary || song.artist_original || '';
-
           if (song.title_ko_translation && song.title_ko_translation.trim() !== '') title = `${title} (${song.title_ko_translation})`;
           else if (song.title_ko_reading && song.title_ko_reading.trim() !== '') title = `${title} (${song.title_ko_reading})`;
-
           if (lang === 'JA' && song.artist_ko && song.artist_ko !== artist) artist = `${artist} (${song.artist_ko})`;
-
           const start = Utils.timeToSeconds(log.start_time || '0:00') || 0;
           let end = Utils.timeToSeconds(log.end_time || '') || 0;
           let endTimeRaw = log.end_time || '';
-
           if (end === 0 && song.duration) {
             const dur = Utils.timeToSeconds(song.duration) || 0;
             if (dur > 0) { end = start + dur + 5; endTimeRaw = Utils.secondsToTimeStr(end) + ' (자동)'; }
           }
           if (!endTimeRaw || endTimeRaw === '0:00') endTimeRaw = '0:00 (정보 없음)';
-
           const date = Utils.formatDate(video.stream_date);
           const videoTitle = video.video_title || '';
           const searchText = Utils.createSearchText([title, song.title_original, song.title_ko_reading, song.title_ko_translation, artist, song.artist_original, song.artist_ko, song.search_keywords, song.source_work, date, videoTitle, log.perf_note, log.log_id, log.song_id]);
-
           let actualStreamers = (log.singer_id || video.streamer_id || '').split(',').map(s => s.trim());
-
           return {
             id: log.log_id || `L-temp-${idx}`, logId: log.log_id, songId: log.song_id,
             title, artist, work: song.source_work || '', sourceType: song.source_type || '', lang,
@@ -1066,79 +914,61 @@
             rawVideoId: log.video_id, videoTitle, videoId: video.youtube_video_id, streamers: actualStreamers, searchText
           };
         }).filter(Boolean);
-
         this.#allSongs.sort((a, b) => a.date.localeCompare(b.date) || a.logId.localeCompare(b.logId, undefined, {numeric:true}) || a.start - b.start);
         this.#initializeMainSortStates();
         
         this.#updateCaches();
       }
-
       #fetchTSV(url, requiredHeaders = [], dbName = 'unknown') {
         const wait = (ms) =>
           new Promise(resolve => setTimeout(resolve, ms));
-
         const fetchOnce = () => {
           return new Promise((resolve, reject) => {
             let settled = false;
-
             const fail = (err) => {
               if (settled) return;
               settled = true;
               reject(err);
             };
-
             const xhr = new XMLHttpRequest();
-
             // 5.5초 안에 완료되지 않으면 이번 요청을 중단
             xhr.timeout = 5500;
-
             xhr.open('GET', url, true);
             xhr.responseType = 'text';
-
             xhr.onload = () => {
               if (settled) return;
-
               if (xhr.status >= 200 && xhr.status < 300) {
                 Papa.parse(xhr.responseText, {
                   header: true,
                   skipEmptyLines: 'greedy',
                   delimiter: '\t',
-
                   transformHeader: h =>
                     h.replace(/^\ufeff/, '').trim().split(' ')[0],
-
                   complete: res => {
                     if (settled) return;
                     settled = true;
-
                     const data = (res.data || []).filter(row =>
                       Object.values(row).some(
                         v => String(v ?? '').trim() !== ''
                       )
                     );
-
                     resolve(data);
                   },
-
                   error: err => fail(err)
                 });
               } else {
                 fail(new Error(`HTTP error! status: ${xhr.status}`));
               }
             };
-
             xhr.onerror = () => {
               fail(new Error('TSV 네트워크 요청에 실패했습니다.'));
             };
-
             xhr.ontimeout = () => {
               fail(new Error('TSV 요청이 5.5초 동안 완료되지 않았습니다.'));
             };
-
             xhr.onabort = () => {
               fail(new Error('TSV 요청이 중단되었습니다.'));
             };
-
             try {
               xhr.send();
             } catch (err) {
@@ -1146,7 +976,6 @@
             }
           });
         };
-
         return (async () => {
           for (let attempt = 1; attempt <= 3; attempt++) {
             try {
@@ -1159,13 +988,11 @@
           }
         })();
       }
-
       #updateCaches() {
         const dbId = STREAMER_MAP[this.#streamerKey].dbId;
         this.#currentStreamerSongs = this.#allSongs.filter(s => s.streamers.includes(dbId));
         this.#buildStatsCache();
       }
-
       #buildStatsCache() {
         const songMap = new Map();
         this.#currentStreamerSongs.forEach(song => {
@@ -1183,7 +1010,6 @@
             rawVideoId: song.rawVideoId, videoTitle: song.videoTitle 
           });
         });
-
         this.#cachedStats = Array.from(songMap.values()).map(item => {
           item.playEvents.sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id, undefined, {numeric:true}) || a.start - b.start);
           return { 
@@ -1193,11 +1019,9 @@
           };
         });
       }
-
       getStreamerSongs() { 
         return this.#currentStreamerSongs; 
       }
-
       getMainSongs() {
         if (this.#mainScopeKey === 'ALL') {
           const activeMembers = Object.values(STREAMER_MAP).map(s => s.dbId);
@@ -1205,7 +1029,6 @@
         }
         return this.#currentStreamerSongs;
       }
-
       getUniqueVideos() {
         const map = new Map();
         this.#currentStreamerSongs.forEach(s => {
@@ -1213,7 +1036,6 @@
         });
         return Array.from(map.values()).sort((a, b) => b.date.localeCompare(a.date));
       }
-
       getUniqueMainVideos() {
         const map = new Map();
         this.getMainSongs().forEach(s => {
@@ -1221,19 +1043,16 @@
         });
         return Array.from(map.values()).sort((a, b) => b.date.localeCompare(a.date));
       }
-
       reshuffleMainSongs() {
         const scopeKey = this.#mainScopeKey;
         this.#mainShuffleOrders.set(scopeKey, this.#createShuffleOrder(this.getMainSongs(), song => song.id));
       }
-
       reshuffleStats() {
         this.#statsShuffleOrders.set(
           this.#streamerKey,
           this.#createShuffleOrder(this.#cachedStats, item => item.songId)
         );
       }
-
       #createShuffleOrder(items, getId) {
         const shuffled = [...items];
         for (let i = shuffled.length - 1; i > 0; i--) {
@@ -1242,7 +1061,6 @@
         }
         return new Map(shuffled.map((item, index) => [getId(item), index]));
       }
-
       getFilteredMainSongs() {
         const { search, lang, videoId } = this.mainFilters;
         const sort = this.getMainSort();
@@ -1254,7 +1072,6 @@
           if (queries.length > 0 && !Utils.matchesSearch(song.searchText, queries)) return false;
           return true;
         });
-
         if (sort === 'DATE_DESC') list.sort((a, b) => b.date.localeCompare(a.date) || b.logId.localeCompare(a.logId, undefined, {numeric:true}) || b.start - a.start);
         else if (sort === 'TITLE_ASC') list.sort((a, b) => this.#sortByTitle(a, b)); 
         else if (sort === 'SHUFFLE') {
@@ -1266,15 +1083,12 @@
         }
         return list;
       }
-
       #sortByTitle(a, b) { 
         return a.title.localeCompare(b.title, 'ko'); 
       }
-
       getFilteredStats() {
         const { search, lang, sort, videoId } = this.statsFilters;
         const queries = Utils.getSearchQueries(search);
-
         let list = this.#cachedStats.reduce((acc, item) => {
           if (lang !== 'ALL' && !Utils.matchCategoryFilter(item, lang)) return acc;
           let events = item.playEvents;
@@ -1293,7 +1107,6 @@
           });
           return acc;
         }, []);
-
         if (sort === 'SHUFFLE') {
           if (!this.#statsShuffleOrders.has(this.#streamerKey)) {
             this.reshuffleStats();
@@ -1311,7 +1124,6 @@
         });
       }
     }
-
     // =========================================================================
     // 📺 3. 메인 플레이어 매니저 
     // =========================================================================
@@ -1326,16 +1138,13 @@
       #isSeekingForced = false;
       #currentVideoId = null;
       #onNextCallback = null;
-
       constructor(onNextCallback) {
         this.#onNextCallback = onNextCallback;
       }
-
       get isReady() { return this.#isReady; }
       get playlist() { return this.#playlist; }
       get currentSongId() { return this.#currentSongId; }
       get currentIndex() { return this.#currentIndex; }
-
       updatePlaylist(newSongs) {
         this.#playlist = newSongs;
         if (this.#currentSongId) {
@@ -1345,7 +1154,6 @@
         }
         this.#isSeekingForced = false;
       }
-
       init(firstSong) {
         if (this.#player || !firstSong) return;
         this.#currentVideoId = firstSong.videoId;
@@ -1355,7 +1163,6 @@
           events: { 'onReady': () => { this.#isReady = true; }, 'onStateChange': (e) => this.#onStateChange(e) }
         });
       }
-
       #onStateChange(event) {
         if (event.data === YT.PlayerState.ENDED) {
           this.#clearMonitor();
@@ -1371,7 +1178,6 @@
           }
         }
       }
-
       cue(index) {
         if (index < 0 || index >= this.#playlist.length) return;
         this.#clearMonitor();
@@ -1384,7 +1190,6 @@
           this.#player.cueVideoById({ videoId: song.videoId, startSeconds: Math.max(0, song.start || 0) });
         }
       }
-
       play(index, cueOnly = false) {
         if (index < 0 || index >= this.#playlist.length) return;
         this.#clearMonitor();
@@ -1394,9 +1199,7 @@
         this.#currentSongId = song.id;
         
         if (this.#retryTimeout) { clearTimeout(this.#retryTimeout); this.#retryTimeout = null; }
-
         const targetStart = Math.max(0, song.start || 0);
-
         if (this.#isReady && this.#player) {
           if (this.#currentVideoId === song.videoId && typeof this.#player.seekTo === 'function') {
             this.#player.seekTo(targetStart, true);
@@ -1413,7 +1216,6 @@
         }
         this.#startMonitor(song);
       }
-
       pause() { if (this.#player && typeof this.#player.pauseVideo === 'function') this.#player.pauseVideo(); }
       
       stop() {
@@ -1421,11 +1223,9 @@
         if (this.#retryTimeout) { clearTimeout(this.#retryTimeout); this.#retryTimeout = null; }
         if (this.#player && typeof this.#player.stopVideo === 'function') this.#player.stopVideo();
       }
-
       #clearMonitor() {
         if (this.#timerCheck) { clearInterval(this.#timerCheck); this.#timerCheck = null; }
       }
-
       #startMonitor(song) {
         this.#clearMonitor();
         this.#timerCheck = setInterval(() => {
@@ -1437,7 +1237,6 @@
           }
         }, CONFIG.TIMER_INTERVAL);
       }
-
       reset() {
         this.stop();
         this.#playlist = []; 
@@ -1447,7 +1246,6 @@
         this.#currentVideoId = null;
       }
     }
-
     // =========================================================================
     // 📊 4. 통계 플레이어 매니저 
     // =========================================================================
@@ -1456,14 +1254,11 @@
       #activeEventId = null;
       #timerCheck = null;
       #isSeekingForced = false;
-
       get activeEventId() { return this.#activeEventId; }
-
       init(videoId, start, end, eventId) {
         this.close();
         this.#activeEventId = eventId;
         this.#isSeekingForced = false;
-
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         this.#player = new YT.Player('statsPlayerTarget', {
           height: '100%', width: '100%', videoId: videoId,
@@ -1474,7 +1269,6 @@
           }
         });
       }
-
       #onStateChange(event, start, end) {
         if (event.data === YT.PlayerState.PLAYING) {
           if (this.#player && start > 0 && !this.#isSeekingForced) {
@@ -1497,11 +1291,9 @@
           this.#clearMonitor();
         }
       }
-
       #clearMonitor() {
         if (this.#timerCheck) { clearInterval(this.#timerCheck); this.#timerCheck = null; }
       }
-
       close() {
         this.#clearMonitor();
         if (this.#player) { try { if (typeof this.#player.destroy === 'function') this.#player.destroy(); } catch (e) {} this.#player = null; }
@@ -1509,7 +1301,6 @@
         this.#isSeekingForced = false;
       }
     }
-
     // =========================================================================
     // ⚙️ 5. 지연 렌더링 매니저 
     // =========================================================================
@@ -1521,21 +1312,18 @@
       #dataList = [];
       #currentIndex = 0;
       context = {};
-
       constructor(containerEl, createCardFn) {
         this.#containerEl = containerEl;
         this.#createCardFn = createCardFn;
         
         this.#sentinel = document.createElement('div');
         this.#sentinel.style.height = '1px';
-
         this.#observer = new IntersectionObserver((entries) => {
           if (entries[0].isIntersecting) {
             this.#renderNextChunk();
           }
         }, { root: this.#containerEl, rootMargin: '300px' });
       }
-
       render(newData, context = {}) {
         this.#dataList = newData;
         this.#currentIndex = 0;
@@ -1545,7 +1333,6 @@
         requestAnimationFrame(() => {
           this.#containerEl.scrollTop = 0;
         });
-
         if (this.#dataList.length === 0) {
           const empty = document.createElement('div');
           empty.className = 'empty-state';
@@ -1553,33 +1340,26 @@
           this.#containerEl.appendChild(empty);
           return;
         }
-
         this.#containerEl.appendChild(this.#sentinel);
         this.#observer.observe(this.#sentinel);
         
         this.#renderNextChunk(); 
       }
-
       #renderNextChunk() {
         if (this.#currentIndex >= this.#dataList.length) return;
-
         const fragment = document.createDocumentFragment();
         const end = Math.min(this.#currentIndex + CONFIG.CHUNK_SIZE, this.#dataList.length);
-
         for (let i = this.#currentIndex; i < end; i++) {
           fragment.appendChild(this.#createCardFn(this.#dataList[i], i, this.context));
         }
-
         this.#currentIndex = end;
         this.#containerEl.insertBefore(fragment, this.#sentinel);
-
         if (this.#currentIndex >= this.#dataList.length) {
           this.#observer.unobserve(this.#sentinel);
           this.#sentinel.remove();
         }
       }
     }
-
     // =========================================================================
     // 🎨 6. UI 제어자 
     // =========================================================================
@@ -1611,10 +1391,8 @@
         
         this.npMetaCached = false;
         this.npMetaEls = {};
-
         this.playlistRenderer = new LazyListRenderer(this.els.playlist, this.#createPlaylistCard.bind(this));
       }
-
       hideInitialLoading() {
         if(this.els.initialLoadingScreen) {
           this.els.initialLoadingScreen.style.display = 'none';
@@ -1624,7 +1402,6 @@
       initTheme() {
         this.els.themeToggleBtn.innerText = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
       }
-
       toggleTheme() {
         const body = document.documentElement;
         const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
@@ -1632,21 +1409,18 @@
         localStorage.setItem('theme', newTheme);
         this.els.themeToggleBtn.innerText = newTheme === 'dark' ? '☀️' : '🌙';
       }
-
       updateStreamerNav(btn, key) {
         document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         document.documentElement.setAttribute('data-streamer', key);
         document.documentElement.setAttribute('data-main-scope', key);
       }
-
       updateMainScopeNav(btn) {
         document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         document.documentElement.setAttribute('data-streamer', 'ALL');
         document.documentElement.setAttribute('data-main-scope', 'ALL');
        }
-
       switchTab(tabId, btn) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         this.els.tabPlayer.classList.remove('active');
@@ -1654,24 +1428,20 @@
         btn.classList.add('active');
         (tabId === 'player' ? this.els.tabPlayer : this.els.tabStats).classList.add('active');
       }
-
       toggleClearBtn(inputEl, btnEl) {
         btnEl.style.display = inputEl.value.trim().length > 0 ? 'block' : 'none';
       }
-
       clearInput(inputEl, btnEl) {
         inputEl.value = '';
         this.toggleClearBtn(inputEl, btnEl);
         inputEl.focus();
       }
-
       showError(msg) {
         const emptyState = `<div class="empty-state" style="color: #e65c5c;">${Utils.escapeHtml(msg)}</div>`;
         this.els.playlist.innerHTML = emptyState;
         this.els.statsList.innerHTML = emptyState;
         this.setEmptyNowPlaying();
       }
-
       renderSkeleton(containerKey, count, isStats = false) {
         const frag = document.createDocumentFragment();
         for(let i=0; i<count; i++) {
@@ -1685,23 +1455,19 @@
         }
         this.els[containerKey].replaceChildren(frag);
       }
-
       #populateVideoOptions(selectEl, videoList, currentId) {
         let html = `<option value="ALL">📺 전체 방송 보기 (${videoList.length}개 방송)</option>`;
         videoList.forEach(v => html += `<option value="${Utils.escapeHtml(v.id)}">${Utils.escapeHtml(v.title ? `${v.date} - ${v.title}` : v.date)}</option>`);
         selectEl.innerHTML = html;
         selectEl.value = currentId || 'ALL';
       }
-
       populateVideoDropdowns(mainVideoList, currMainId, statsVideoList, currStatsId) {
         this.#populateVideoOptions(this.els.videoSelect, mainVideoList, currMainId);
         this.#populateVideoOptions(this.els.statsVideoSelect, statsVideoList, currStatsId);
       }
-
       populateMainVideoDropdown(videoList, currentId) {
         this.#populateVideoOptions(this.els.videoSelect, videoList, currentId);
       }
-
       setLoadingNowPlaying(name) {
         this.els.npTitle.textContent = '노래목록 불러오는 중...';
         this.els.npDate.textContent = '';
@@ -1709,7 +1475,6 @@
         this.els.npStreamer.style.display = 'none';
         if (this.npMetaCached) this.els.npMeta.style.display = 'none';
       }
-
       setEmptyNowPlaying() {
         this.els.npTitle.textContent = '조건에 맞는 곡 없음';
         this.els.npDate.textContent = '';
@@ -1717,7 +1482,6 @@
         this.els.npStreamer.style.display = 'none';
         if (this.npMetaCached) this.els.npMeta.style.display = 'none';
       }
-
       #attachTitleMarquee(card) {
         card.addEventListener('mouseenter', () => {
           const track = card.querySelector('.song-info-main-track');
@@ -1735,7 +1499,6 @@
           track.style.transform = 'translateX(0)';
         });
       }
-
       getSongContextColors(song) {
         const streamerColorMap = {
           '키라': { primary: 'var(--kira-primary)', secondary: 'var(--kira-secondary)', light: 'var(--kira-light)' },
@@ -1760,7 +1523,6 @@
           gradient: 'linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%)'
         };
       }
-
       updateNowPlaying(song) {
         if (!song) return;
         const contextColors = this.getSongContextColors(song);
@@ -1769,7 +1531,6 @@
         this.els.npTitle.textContent = song.title;
         this.els.npArtist.textContent = `${song.artist}${song.work ? ' • ' + song.work : ''}`;
         this.els.npTitle.closest('.now-playing-card').style.setProperty('--now-playing-color', contextColors.gradient);
-
         const isAllScope = document.documentElement.getAttribute('data-main-scope') === 'ALL';
         const streamers = Array.isArray(song.streamers) ? song.streamers : [];
         if (isAllScope && streamers.length) {
@@ -1800,7 +1561,6 @@
         this.npMetaEls.duration.textContent = `${song.startTimeRaw} ~ ${song.endTimeRaw}`;
         this.npMetaEls.songId.textContent = song.songId;
       }
-
       updateDesktopSongFlow(prevSong, nextSong, onPrev, onNext) {
         const renderFlow = (el, label, song, onClick) => {
           if (!el) return;
@@ -1820,7 +1580,6 @@
         renderFlow(this.els.prevSongFlow, '지난곡', prevSong, onPrev);
         renderFlow(this.els.nextSongFlow, '다음곡', nextSong, onNext);
       }
-
       highlightActiveSong(songId) {
         this.els.playlist.querySelectorAll('.song-card.active').forEach(card => card.classList.remove('active'));
         this.els.playlist.querySelectorAll('.playing-icon').forEach(icon => icon.remove());
@@ -1835,12 +1594,10 @@
           }
         }
       }
-
       #createPlaylistCard(song, idx, context) {
         const { activeSongId, onPlay, showStreamer } = context;
         const isActive = song.id === activeSongId;
         const streamerLabel = showStreamer && song.streamers?.length ? `<span class="song-info-streamers">${Utils.escapeHtml(song.streamers.join(', '))}</span>` : '';
-
         const card = document.createElement('div');
         card.className = `song-card ${isActive ? 'active' : ''}${showStreamer ? ' song-card--scoped' : ''}`;
         card.dataset.songId = song.id;
@@ -1866,15 +1623,12 @@
         `;
         return card;
       }
-
       #createStatsCard(item, idx, context) {
         const { onToggleStatsPlayer } = context;
         const div = document.createElement('div');
         div.className = 'stats-item';
-
         const addText = (cls, txt) => { const s = document.createElement('span'); s.className = cls; s.textContent = txt; div.appendChild(s); };
         addText('index-text', `${idx + 1}.`); addText('title-text', item.title); div.append(' / '); addText('artist-text', item.artist); div.append(document.createElement('br'));
-
         const datesSpan = document.createElement('span');
         datesSpan.className = 'dates-text';
         
@@ -1893,40 +1647,33 @@
         addText('count-text', `(${item.playCount}회)`);
         return div;
       }
-
       renderPlaylist(songs, activeSongId, onPlay, showStreamer = false) {
         this.playlistRenderer.render(songs, { activeSongId, onPlay, showStreamer });
       }
-
       showStatsStreamerSelectionPrompt() {
         this.els.statsSummary.textContent = '';
         this.els.statsSummary.style.display = 'none';
         this.els.statsList.innerHTML = `<div class="empty-state">통계를 보고 싶은 스트리머를 선택해주세요!</div>`;
         requestAnimationFrame(() => { this.els.statsList.scrollTop = 0; });
       }
-
       showStatsUnavailablePrompt() {
         this.els.statsSummary.textContent = '';
         this.els.statsSummary.style.display = 'none';
         this.els.statsList.innerHTML = `<div class="empty-state">전체 재생목록은 통계를 지원하지 않습니다.</div>`;
         requestAnimationFrame(() => { this.els.statsList.scrollTop = 0; });
       }
-
       renderStatsList(items, onToggleStatsPlayer) {
         const container = this.els.statsList;
         container.innerHTML = '';
         this.els.statsSummary.style.display = 'flex';
         requestAnimationFrame(() => { container.scrollTop = 0; });
-
         const totalSongs = items.length;
         const totalPlays = items.reduce((sum, item) => sum + item.playCount, 0);
-
         if (totalSongs === 0) {
           this.els.statsSummary.innerHTML = '조건에 맞는 기록이 없습니다.';
         } else {
           this.els.statsSummary.innerHTML = `총 <strong>${totalSongs}</strong>곡 / 누적 <strong>${totalPlays}</strong>회`;
         }
-
         if (items.length === 0) {
           const empty = document.createElement('div');
           empty.className = 'empty-state';
@@ -1934,22 +1681,17 @@
           container.appendChild(empty);
           return;
         }
-
         const fragment = document.createDocumentFragment();
         const context = { onToggleStatsPlayer };
-
         items.forEach((item, idx) => {
           fragment.appendChild(this.#createStatsCard(item, idx, context));
         });
-
         container.appendChild(fragment);
       }
-
       removeStatsPlayerDOM() {
         this.els.statsList.querySelectorAll('.stats-player-box').forEach(el => el.remove());
         this.els.statsList.querySelectorAll('.date-link.active-date').forEach(el => el.classList.remove('active-date'));
       }
-
       renderStatsPlayerDOM(ev, itemDiv, dateAnchor, onClose) {
         if (dateAnchor) dateAnchor.classList.add('active-date');
         const box = document.createElement('div');
@@ -1964,7 +1706,6 @@
         closeBtn.textContent = '✕ 닫기';
         closeBtn.onclick = onClose;
         header.appendChild(closeBtn);
-
         const wrapper = document.createElement('div');
         wrapper.className = 'stats-player-wrapper';
         wrapper.innerHTML = `<div id="statsPlayerTarget"></div>`;
@@ -1974,37 +1715,31 @@
         
         setTimeout(() => itemDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }), CONFIG.SCROLL_DELAY);
       }
-
       updateFilterBtns(btn) {
         btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
       }
-
       updateMainSortBtns(sort) {
         document.querySelectorAll('.main-sort-btn').forEach(b => {
           b.classList.toggle('active', b.dataset.sort === sort);
         });
       }
-
       updateMainLangBtns(lang) {
         document.querySelectorAll('.main-lang-btn').forEach(b => {
           b.classList.toggle('active', b.dataset.lang === lang);
         });
       }
-
       initScrollObserver() {
         const toggleBtn = (scrollPos) => scrollPos > CONFIG.SCROLL_SHOW_POS ? this.els.backToTop.classList.add('show') : this.els.backToTop.classList.remove('show');
         
         window.addEventListener('scroll', () => { if (this.els.tabStats.classList.contains('active')) toggleBtn(window.scrollY); });
         this.els.playlist.addEventListener('scroll', () => { if (this.els.tabPlayer.classList.contains('active')) toggleBtn(this.els.playlist.scrollTop); });
       }
-
       scrollToTop() {
         if (this.els.tabStats.classList.contains('active')) window.scrollTo({ top: 0, behavior: 'smooth' });
         else this.els.playlist.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
-
     // =========================================================================
     // 🚀 7. 앱 오케스트레이터 및 이벤트 바인더
     // =========================================================================
@@ -2018,7 +1753,6 @@
         this.searchDebounceTimer = null;
         this.statsSearchDebounceTimer = null;
       }
-
       async init() {
         this.ui.initTheme();
         document.documentElement.setAttribute('data-main-scope', this.data.mainScopeKey);
@@ -2037,7 +1771,6 @@
           this.ui.showError('데이터베이스 연동 중 오류가 발생했습니다.');
         }
       }
-
       // 이벤트 중복을 제거하기 위한 헬퍼 함수 1: 검색창 
       #setupSearch(inputEl, clearBtnEl, filterObj, renderFn, timerKey) {
         inputEl.addEventListener('input', () => {
@@ -2054,7 +1787,6 @@
           renderFn.call(this);
         });
       }
-
       // 이벤트 중복을 제거하기 위한 헬퍼 함수 2: 필터 버튼
       #setupFilters(selector, filterKey, filterObj, renderFn, isSort = false, isMain = false) {
         document.querySelectorAll(selector).forEach(btn => {
@@ -2071,11 +1803,9 @@
           });
         });
       }
-
       bindEvents() {
         this.ui.els.themeToggleBtn.addEventListener('click', () => this.ui.toggleTheme());
         this.ui.els.backToTop.addEventListener('click', () => this.ui.scrollToTop());
-
         document.querySelectorAll('.streamer-btn').forEach(btn => {
           btn.addEventListener('click', (e) => {
             const target = e.target.dataset.streamerTarget;
@@ -2086,7 +1816,6 @@
         document.querySelectorAll('.tab-btn').forEach(btn => {
           btn.addEventListener('click', (e) => this.switchMainTab(e.target.dataset.tabTarget, e.target));
         });
-
         // 4단계: 헬퍼 함수로 중복을 완전히 제거한 메인 탭 이벤트
         this.#setupSearch(this.ui.els.searchInput, this.ui.els.searchClearBtn, this.data.mainFilters, this.renderPlaylist, 'searchDebounceTimer');
         this.ui.els.videoSelect.addEventListener('change', (e) => { this.data.mainFilters.videoId = e.target.value; this.renderPlaylist(); });
@@ -2099,18 +1828,15 @@
           });
         });
         this.#setupFilters('.main-sort-btn', 'sort', this.data.mainFilters, this.renderPlaylist, true, true);
-
         // 4단계: 헬퍼 함수로 중복을 완전히 제거한 통계 탭 이벤트
         this.#setupSearch(this.ui.els.statsSearchInput, this.ui.els.statsClearBtn, this.data.statsFilters, this.renderStatistics, 'statsSearchDebounceTimer');
         this.ui.els.statsVideoSelect.addEventListener('change', (e) => { this.data.statsFilters.videoId = e.target.value; this.renderStatistics(); });
         this.#setupFilters('.stats-lang-btn', 'lang', this.data.statsFilters, this.renderStatistics);
         this.#setupFilters('.stats-sort-btn', 'sort', this.data.statsFilters, this.renderStatistics, true, false);
       }
-
       applyStreamerData() {
         const songs = this.data.getStreamerSongs();
         if (songs.length === 0) { this.ui.showError(`${STREAMER_MAP[this.data.streamerKey].name} 님의 기록이 아직 없습니다.`); return; }
-
         this.ui.populateVideoDropdowns(
           this.data.getUniqueMainVideos(), this.data.mainFilters.videoId,
           this.data.getUniqueVideos(), this.data.statsFilters.videoId
@@ -2127,18 +1853,14 @@
           this.ui.setEmptyNowPlaying();
           this.updateDesktopSongFlow();
         }
-
         if (this.ui.els.tabStats.classList.contains('active')) this.renderStatistics();
         this.loadYouTubeAPI();
       }
-
       applyMainScopeData() {
         const songs = this.data.getMainSongs();
         if (songs.length === 0) { this.ui.showError('재생할 노래가 없습니다.'); return; }
-
         this.ui.populateMainVideoDropdown(this.data.getUniqueMainVideos(), this.data.mainFilters.videoId);
         this.renderPlaylist();
-
         if (this.mainPlayer.playlist.length > 0) {
           this.mainPlayer.cue(0);
           this.ui.updateNowPlaying(this.mainPlayer.playlist[0]);
@@ -2147,10 +1869,8 @@
           this.ui.setEmptyNowPlaying();
           this.updateDesktopSongFlow();
         }
-
         this.loadYouTubeAPI();
       }
-
       updateDesktopSongFlow() {
         const index = this.mainPlayer.currentIndex;
         const playlist = this.mainPlayer.playlist;
@@ -2163,20 +1883,17 @@
           nextSong ? () => this.playSong(index + 1) : null
         );
       }
-
       renderPlaylist() {
         const list = this.data.getFilteredMainSongs();
         this.mainPlayer.updatePlaylist(list);
         this.ui.renderPlaylist(list, this.mainPlayer.currentSongId, (idx) => this.playSong(idx), this.data.mainScopeKey === 'ALL');
       }
-
       renderStatistics() {
         if (this.data.getStreamerSongs().length === 0) { this.ui.showError('집계할 데이터가 없습니다.'); return; }
         const list = this.data.getFilteredStats();
         this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
         this.ui.renderStatsList(list, (ev, e, div, anchor) => this.toggleStatsPlayer(ev, e, div, anchor));
       }
-
       playSong(index, cueOnly = false) {
         this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
         
@@ -2188,7 +1905,6 @@
         this.ui.updateNowPlaying(song);
         this.updateDesktopSongFlow();
       }
-
       playNextSong() {
         if (this.mainPlayer.currentIndex !== -1 && this.mainPlayer.currentIndex + 1 < this.mainPlayer.playlist.length) {
           this.playSong(this.mainPlayer.currentIndex + 1);
@@ -2196,18 +1912,15 @@
           this.mainPlayer.stop();
         }
       }
-
       toggleStatsPlayer(ev, event, itemDiv, dateAnchor) {
         if (event) event.preventDefault();
         
         this.mainPlayer.pause(); 
-
         if (this.statsPlayer.activeEventId === ev.id) {
           this.statsPlayer.close();
           this.ui.removeStatsPlayerDOM();
           return;
         }
-
         this.statsPlayer.close();
         this.ui.removeStatsPlayerDOM();
         
@@ -2218,7 +1931,6 @@
         
         this.statsPlayer.init(ev.videoId, ev.start, ev.end, ev.id);
       }
-
       loadYouTubeAPI() {
         if (window.YT && window.YT.Player) {
           this.mainPlayer.init(this.mainPlayer.playlist[0]);
@@ -2232,7 +1944,6 @@
           document.getElementsByTagName('script')[0].parentNode.insertBefore(tag, document.getElementsByTagName('script')[0]);
         }
       }
-
       switchStreamer(key, btn) {
         if (this.data.streamerKey === key && this.data.mainScopeKey === key && this.data.getStreamerSongs().length > 0) return;
         this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
@@ -2253,30 +1964,23 @@
         
         this.applyStreamerData();
       }
-
       switchMainScope(btn) {
         if (this.data.mainScopeKey === 'ALL' && this.data.getMainSongs().length > 0) return;
-
         this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
-
         this.data.mainScopeKey = 'ALL';
         this.data.mainFilters.videoId = 'ALL';
         this.data.mainFilters.lang = this.data.getMainLang();
         this.mainPlayer.reset();
-
         this.ui.updateMainScopeNav(btn);
         this.ui.updateMainLangBtns(this.data.getMainLang());
         this.ui.updateMainSortBtns(this.data.getMainSort());
         this.ui.renderSkeleton('playlist', CONFIG.SKELETON_COUNT_MAIN, false);
         this.ui.setLoadingNowPlaying('5명 전체');
-
         if (this.ui.els.tabStats.classList.contains('active')) {
           this.ui.showStatsUnavailablePrompt();
         }
-
         this.applyMainScopeData();
       }
-
       switchMainTab(tabId, btn) {
         this.ui.switchTab(tabId, btn);
         if (tabId === 'stats') {
@@ -2293,7 +1997,6 @@
         }
       }
     }
-
     // =========================================================================
     // 🌐 8. 앱 실행
     // =========================================================================
