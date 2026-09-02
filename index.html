@@ -162,31 +162,36 @@
     .theme-toggle-btn:hover { transform: scale(1.1); }
     .streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: nowrap; }
     .streamer-btn, .tab-btn { flex: 0 0 auto; white-space: nowrap; }
-    @media (min-width: 1201px) {
+    /* 901px 이상에서는 폭에 관계없이 항상 한 줄을 유지한다.
+       Grid로 [제목 칸 | 버튼 그룹 칸 | 빈 칸] 3단 구조를 만들어서,
+       제목 칸은 제목에 필요한 만큼의 폭을 최소 보장받도록(minmax(max-content, 1fr)) 한다.
+       그래서 화면이 좁아져도 버튼 그룹이 제목 영역을 침범하지 못하고,
+       대신 자연스럽게 오른쪽으로 밀려나게 된다.
+       공간이 넉넉할 때는 좌우 빈 칸이 똑같이(1fr) 늘어나서 버튼 그룹이 중앙에 위치한다. */
+    @media (min-width: 901px) {
       header {
-        position: relative;
+        display: grid;
+        grid-template-columns: minmax(max-content, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        column-gap: 12px;
+        flex-wrap: nowrap;
+      }
+      header h1 {
+        grid-column: 1;
+        justify-self: start;
       }
       header .header-controls {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
+        grid-column: 2;
+        justify-self: center;
         max-width: calc(100vw - 32px);
         flex-wrap: nowrap;
       }
     }
 
+    /* 901~1200px 구간은 폭이 좁으므로, 줄바꿈 대신 여백만 줄여서
+       한 줄을 최대한 오래 유지할 수 있는 여유 공간을 확보한다. */
     @media (min-width: 901px) and (max-width: 1200px) {
-      header {
-        flex-wrap: wrap;
-      }
       header .header-controls {
-        position: static;
-        transform: none;
-        width: 100%;
-        max-width: none;
-        justify-content: center;
-        order: 3;
-        flex-wrap: nowrap;
         gap: 8px;
       }
       header .streamer-nav {
@@ -537,7 +542,7 @@
         overflow: hidden;
       }
 
-      /* 좌측: 하나의 재생 흐름 패널 */
+      /* 좌측: 재생 흐름을 담는 바깥 영역 (카드 스타일 없음, 페이지 배경만 표시) */
       .player-section {
         grid-column: 1;
         min-width: 0;
@@ -546,6 +551,17 @@
         display: flex !important;
         flex-direction: column;
         gap: 0;
+        background: var(--bg-color);
+        overflow: hidden;
+      }
+
+      /* 실제 카드 스타일(테두리/모서리/그림자/배경)은 내용물 높이만큼만 감싸는
+         내부 래퍼가 담당한다. 다음곡에서 카드가 끝나고, 그 아래 남는 공간은
+         .player-section의 페이지 배경이 그대로 보여 카드와 확실히 구분된다. */
+      .player-section-card {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: column;
         background: var(--panel-bg);
         border: 1px solid var(--border);
         border-radius: 12px;
@@ -582,10 +598,11 @@
       }
       .desktop-song-flow-main strong { color: var(--text); font-weight: 600; }
 
-      /* 플레이어는 좌측 패널의 남는 높이를 사용하되 16:9 비율 유지 */
+      /* 플레이어는 좌측 패널의 남는 높이를 채우지 않고,
+         너비 기준 16:9 비율만큼만 높이를 갖는다.
+         (남는 세로 공간은 늘리지 않고 .player-section 하단에 그대로 비워둔다 → 레터박스 방지) */
       .player-container {
-        flex: 1 1 auto;
-        min-height: 0;
+        flex: 0 0 auto;
         width: 100%;
         height: auto;
         padding-bottom: 0;
@@ -724,18 +741,20 @@
   <div id="tab-player" class="tab-content active">
     <div class="main-container">
       <div class="player-section">
-        <div id="prevSongFlow" class="desktop-song-flow is-empty" aria-label="지난곡"></div>
-        <div class="player-container">
-          <div id="player"></div>
+        <div class="player-section-card">
+          <div id="prevSongFlow" class="desktop-song-flow is-empty" aria-label="지난곡"></div>
+          <div class="player-container">
+            <div id="player"></div>
+          </div>
+          <div class="now-playing-card">
+            <div class="now-playing-date" id="npDate">데이터 로딩 중...</div>
+            <div class="now-playing-title" id="npTitle">노래목록 불러오는 중...</div>
+            <div class="now-playing-artist" id="npArtist">로딩 대기 중...</div>
+            <div class="now-playing-stats" id="npStats" aria-live="polite"></div>
+            <div class="now-playing-meta" id="npMeta" style="display: none;"></div>
+          </div>
+          <div id="nextSongFlow" class="desktop-song-flow is-empty" aria-label="다음곡"></div>
         </div>
-        <div class="now-playing-card">
-          <div class="now-playing-date" id="npDate">데이터 로딩 중...</div>
-          <div class="now-playing-title" id="npTitle">노래목록 불러오는 중...</div>
-          <div class="now-playing-artist" id="npArtist">로딩 대기 중...</div>
-          <div class="now-playing-stats" id="npStats" aria-live="polite"></div>
-          <div class="now-playing-meta" id="npMeta" style="display: none;"></div>
-        </div>
-        <div id="nextSongFlow" class="desktop-song-flow is-empty" aria-label="다음곡"></div>
       </div>
 
       <div class="playlist-section">
