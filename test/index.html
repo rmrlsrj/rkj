@@ -542,7 +542,7 @@
         overflow: hidden;
       }
 
-      /* 좌측: 하나의 재생 흐름 패널 */
+      /* 좌측: 재생 흐름을 담는 바깥 영역 (카드 스타일 없음, 페이지 배경만 표시) */
       .player-section {
         grid-column: 1;
         min-width: 0;
@@ -551,6 +551,17 @@
         display: flex !important;
         flex-direction: column;
         gap: 0;
+        background: var(--bg-color);
+        overflow: hidden;
+      }
+
+      /* 실제 카드 스타일(테두리/모서리/그림자/배경)은 내용물 높이만큼만 감싸는
+         내부 래퍼가 담당한다. 다음곡에서 카드가 끝나고, 그 아래 남는 공간은
+         .player-section의 페이지 배경이 그대로 보여 카드와 확실히 구분된다. */
+      .player-section-card {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: column;
         background: var(--panel-bg);
         border: 1px solid var(--border);
         border-radius: 12px;
@@ -730,18 +741,20 @@
   <div id="tab-player" class="tab-content active">
     <div class="main-container">
       <div class="player-section">
-        <div id="prevSongFlow" class="desktop-song-flow is-empty" aria-label="지난곡"></div>
-        <div class="player-container">
-          <div id="player"></div>
+        <div class="player-section-card">
+          <div id="prevSongFlow" class="desktop-song-flow is-empty" aria-label="지난곡"></div>
+          <div class="player-container">
+            <div id="player"></div>
+          </div>
+          <div class="now-playing-card">
+            <div class="now-playing-date" id="npDate">데이터 로딩 중...</div>
+            <div class="now-playing-title" id="npTitle">노래목록 불러오는 중...</div>
+            <div class="now-playing-artist" id="npArtist">로딩 대기 중...</div>
+            <div class="now-playing-stats" id="npStats" aria-live="polite"></div>
+            <div class="now-playing-meta" id="npMeta" style="display: none;"></div>
+          </div>
+          <div id="nextSongFlow" class="desktop-song-flow is-empty" aria-label="다음곡"></div>
         </div>
-        <div class="now-playing-card">
-          <div class="now-playing-date" id="npDate">데이터 로딩 중...</div>
-          <div class="now-playing-title" id="npTitle">노래목록 불러오는 중...</div>
-          <div class="now-playing-artist" id="npArtist">로딩 대기 중...</div>
-          <div class="now-playing-stats" id="npStats" aria-live="polite"></div>
-          <div class="now-playing-meta" id="npMeta" style="display: none;"></div>
-        </div>
-        <div id="nextSongFlow" class="desktop-song-flow is-empty" aria-label="다음곡"></div>
       </div>
 
       <div class="playlist-section">
