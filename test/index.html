@@ -162,19 +162,27 @@
     .theme-toggle-btn:hover { transform: scale(1.1); }
     .streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: nowrap; }
     .streamer-btn, .tab-btn { flex: 0 0 auto; white-space: nowrap; }
-    /* 901px 이상에서는 폭에 관계없이 항상 한 줄(가운데 정렬 + nowrap)을 유지한다.
-       예전에는 901~1200px 구간에서 공간이 남아도 무조건 2번째 줄로 강제 이동시켰는데,
-       그 규칙(order/width:100%)을 없애고 1201px 이상과 동일한 레이아웃으로 통합했다. */
+    /* 901px 이상에서는 폭에 관계없이 항상 한 줄을 유지한다.
+       Grid로 [제목 칸 | 버튼 그룹 칸 | 빈 칸] 3단 구조를 만들어서,
+       제목 칸은 제목에 필요한 만큼의 폭을 최소 보장받도록(minmax(max-content, 1fr)) 한다.
+       그래서 화면이 좁아져도 버튼 그룹이 제목 영역을 침범하지 못하고,
+       대신 자연스럽게 오른쪽으로 밀려나게 된다.
+       공간이 넉넉할 때는 좌우 빈 칸이 똑같이(1fr) 늘어나서 버튼 그룹이 중앙에 위치한다. */
     @media (min-width: 901px) {
       header {
-        position: relative;
+        display: grid;
+        grid-template-columns: minmax(max-content, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        column-gap: 12px;
         flex-wrap: nowrap;
       }
+      header h1 {
+        grid-column: 1;
+        justify-self: start;
+      }
       header .header-controls {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        grid-column: 2;
+        justify-self: center;
         max-width: calc(100vw - 32px);
         flex-wrap: nowrap;
       }
