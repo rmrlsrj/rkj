@@ -281,6 +281,7 @@
     .now-playing-date { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2px; }
     .now-playing-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; word-break: break-word; overflow-wrap: anywhere; }
     .now-playing-artist { font-size: 0.9rem; color: var(--text-muted); }
+    .now-playing-streamer { display: inline-flex; align-items: center; gap: 4px; margin: 2px 0 8px; font-size: 0.75rem; font-weight: 600; padding: 3px 8px; border-radius: 6px; background-color: var(--now-playing-streamer-bg, var(--card-bg)); color: var(--now-playing-streamer-color, var(--text-muted)); }
     .now-playing-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 0.78rem; color: var(--text-muted); }
     @media (max-width: 900px) { .now-playing-meta { display: none !important; } }
     .db-badge { background-color: var(--card-bg); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
@@ -653,13 +654,13 @@
         min-height: 0;
         overflow-y: auto;
         overflow-x: hidden;
-        gap: 4px;
+        gap: 10px;
       }
 
       /* 데스크톱 곡 목록: 윗줄(번호·날짜·[전체탭]스트리머) / 아랫줄(제목 - 가수명) */
       .song-card {
-        min-height: 42px;
-        padding: 7px 10px;
+        min-height: 54px;
+        padding: 10px 12px;
         display: flex;
         align-items: center;
         gap: 10px;
@@ -667,7 +668,7 @@
       .song-card > div:first-child {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 5px;
         min-width: 0;
         flex: 1 1 auto;
       }
@@ -687,7 +688,7 @@
       .song-info-main {
         margin: 0;
         min-width: 0;
-        font-size: 0.86rem;
+        font-size: 0.94rem;
         display: block;
         overflow: hidden;
         white-space: nowrap;
@@ -702,6 +703,7 @@
         display: inline;
         color: var(--text-muted);
         font-weight: 400;
+        font-size: 0.86rem;
       }
       .song-badge {
         flex-shrink: 0;
@@ -787,6 +789,7 @@
           </div>
           <div class="now-playing-card">
             <div class="now-playing-date" id="npDate">데이터 로딩 중...</div>
+            <div class="now-playing-streamer" id="npStreamer" style="display: none;"></div>
             <div class="now-playing-title" id="npTitle">노래목록 불러오는 중...</div>
             <div class="now-playing-artist" id="npArtist">로딩 대기 중...</div>
             <div class="now-playing-stats" id="npStats" aria-live="polite"></div>
@@ -1589,6 +1592,7 @@
           npDate: document.getElementById('npDate'),
           npTitle: document.getElementById('npTitle'),
           npArtist: document.getElementById('npArtist'),
+          npStreamer: document.getElementById('npStreamer'),
           npMeta: document.getElementById('npMeta'),
           prevSongFlow: document.getElementById('prevSongFlow'),
           nextSongFlow: document.getElementById('nextSongFlow'),
@@ -1702,6 +1706,7 @@
         this.els.npTitle.textContent = '노래목록 불러오는 중...';
         this.els.npDate.textContent = '';
         this.els.npArtist.textContent = name;
+        this.els.npStreamer.style.display = 'none';
         if (this.npMetaCached) this.els.npMeta.style.display = 'none';
       }
 
@@ -1709,6 +1714,7 @@
         this.els.npTitle.textContent = '조건에 맞는 곡 없음';
         this.els.npDate.textContent = '';
         this.els.npArtist.textContent = '-';
+        this.els.npStreamer.style.display = 'none';
         if (this.npMetaCached) this.els.npMeta.style.display = 'none';
       }
 
@@ -1764,6 +1770,17 @@
         this.els.npTitle.textContent = song.title;
         this.els.npArtist.textContent = `${song.artist}${song.work ? ' • ' + song.work : ''}`;
         this.els.npTitle.closest('.now-playing-card').style.setProperty('--now-playing-color', contextColors.gradient);
+
+        const isAllScope = document.documentElement.getAttribute('data-main-scope') === 'ALL';
+        const streamers = Array.isArray(song.streamers) ? song.streamers : [];
+        if (isAllScope && streamers.length) {
+          this.els.npStreamer.textContent = streamers.join(', ');
+          this.els.npStreamer.style.setProperty('--now-playing-streamer-bg', contextColors.light);
+          this.els.npStreamer.style.setProperty('--now-playing-streamer-color', contextColors.secondary);
+          this.els.npStreamer.style.display = 'inline-flex';
+        } else {
+          this.els.npStreamer.style.display = 'none';
+        }
         
         if (!this.npMetaCached) {
           this.els.npMeta.innerHTML = `
