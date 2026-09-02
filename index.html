@@ -472,10 +472,6 @@
     .now-playing-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
     .now-playing-stat { padding: 5px 8px; border-radius: 6px; background: var(--card-bg); color: var(--text-muted); font-size: 0.75rem; }
     .now-playing-stat strong { color: var(--accent-secondary); font-size: 0.9rem; }
-    .now-playing-controls { display: flex; gap: 8px; margin-top: 14px; }
-    .song-nav-btn { flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px; background: var(--panel-bg); color: var(--text); font: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-    .song-nav-btn:hover:not(:disabled) { border-color: var(--accent-primary); color: var(--accent-secondary); background: var(--accent-light); }
-    .song-nav-btn:disabled { cursor: not-allowed; opacity: 0.45; }
 
     @media (min-width: 901px) {
       .main-container { max-width: 1480px; grid-template-columns: minmax(0, 1.55fr) minmax(330px, 0.85fr); gap: 16px; padding: 24px; }
@@ -608,7 +604,6 @@
         border-top: 1px solid var(--border);
         box-shadow: none;
       }
-      .now-playing-controls { display: none; }
 
       /* 우측 패널도 좌측과 같은 화면 높이를 사용 */
       .playlist-section {
@@ -739,10 +734,6 @@
           <div class="now-playing-artist" id="npArtist">로딩 대기 중...</div>
           <div class="now-playing-stats" id="npStats" aria-live="polite"></div>
           <div class="now-playing-meta" id="npMeta" style="display: none;"></div>
-          <div class="now-playing-controls" aria-label="곡 이동">
-            <button type="button" class="song-nav-btn" id="npPrevBtn">◀ 이전곡</button>
-            <button type="button" class="song-nav-btn" id="npNextBtn">다음곡 ▶</button>
-          </div>
         </div>
         <div id="nextSongFlow" class="desktop-song-flow is-empty" aria-label="다음곡"></div>
       </div>
