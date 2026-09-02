@@ -2107,6 +2107,7 @@
         const list = this.data.getFilteredMainSongs();
         this.mainPlayer.updatePlaylist(list);
         this.ui.renderPlaylist(list, this.mainPlayer.currentSongId, (idx) => this.playSong(idx), this.data.mainScopeKey === 'ALL');
+        this.updateDesktopSongFlow();
       }
 
       renderStatistics() {
