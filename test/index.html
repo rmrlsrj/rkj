@@ -503,22 +503,34 @@
     .desktop-song-flow { display: none; }
 
     @media (min-width: 901px) {
-      /* 지난곡 → 플레이어(현재곡) → 현재곡 정보 → 다음곡 흐름 */
-      .player-section {
-        display: grid !important;
-        grid-column: 1 / -1;
+      /* 기존처럼 좌측은 플레이어 흐름, 우측은 검색/곡 목록으로 유지 */
+      .main-container {
+        max-width: 1480px;
         grid-template-columns: minmax(0, 1.55fr) minmax(330px, 0.85fr);
-        gap: 12px 16px;
-        align-items: stretch;
+        gap: 16px;
+        padding: 24px;
+        align-items: start;
       }
-      .desktop-song-flow:first-child { grid-column: 1; grid-row: 1; }
-      .player-container { grid-column: 1; grid-row: 2; }
-      .now-playing-card { grid-column: 2; grid-row: 2; }
-      #nextSongFlow { grid-column: 1 / -1; grid-row: 3; }
 
+      .player-section {
+        grid-column: 1;
+        display: flex !important;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .playlist-section {
+        grid-column: 2;
+        height: min(720px, calc(100vh - 120px));
+        min-height: 520px;
+        padding: 14px 16px;
+      }
+
+      /* 지난곡 → 플레이어 → 현재곡 정보 → 다음곡 */
       .desktop-song-flow {
         display: block;
-        padding: 10px 4px;
+        padding: 9px 4px;
         border-bottom: 1px dashed var(--border);
         cursor: pointer;
         opacity: 0.62;
@@ -531,34 +543,61 @@
       .desktop-song-flow-main { font-size: 0.9rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .desktop-song-flow-main strong { color: var(--text); font-weight: 600; }
 
-      .now-playing-card { margin-top: 0; }
+      .player-container { width: 100%; }
+      .now-playing-card { margin-top: 0; padding: 18px 20px; }
       .now-playing-controls { display: none; }
 
+      /* 우측 검색/필터 영역은 기존 구성 유지 */
+      .search-filter-box {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .filter-group { flex-wrap: wrap; gap: 5px; }
+
       /* 데스크톱 곡 목록: 날짜 | 곡명 - 가수명 | 언어 */
+      .playlist-scroll { gap: 4px; }
       .song-card {
-        grid-template-columns: 105px minmax(0, 1fr) 42px;
         min-height: 42px;
-        padding: 7px 12px;
+        padding: 7px 10px;
+        display: grid;
+        grid-template-columns: 88px minmax(0, 1fr) 38px;
+        gap: 8px;
+        align-items: center;
       }
       .song-card > div:first-child { display: contents; }
-      .song-info-date { grid-column: 1; }
+      .song-info-date,
+      .song-info-main,
+      .song-info-sub { margin: 0; }
+      .song-info-date {
+        grid-column: 1;
+        grid-row: 1;
+        font-size: 0.72rem;
+        white-space: nowrap;
+      }
       .song-info-main {
         grid-column: 2;
+        grid-row: 1;
         display: block;
+        min-width: 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        font-size: 0.86rem;
       }
-      .song-info-sub {
-        grid-column: 2;
-        grid-row: 1;
-        justify-self: start;
-        margin-left: min(100%, 0px);
-      }
-      /* 곡명과 가수명을 한 줄로 합치기 위해 데스크톱에서는 가수만 main에 붙이고 sub는 숨김 */
       .song-card .song-info-sub { display: none; }
-      .song-card .song-info-main .desktop-artist-inline { display: inline; color: var(--text-muted); font-weight: 400; }
-      .song-badge { grid-column: 3; grid-row: 1; }
+      .song-card .song-info-main .desktop-artist-inline {
+        display: inline;
+        color: var(--text-muted);
+        font-weight: 400;
+      }
+      .song-badge {
+        grid-column: 3;
+        grid-row: 1;
+        justify-self: end;
+        padding: 3px 6px;
+      }
     }
 </style>
 </head>
