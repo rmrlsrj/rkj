@@ -587,10 +587,11 @@
       }
       .desktop-song-flow-main strong { color: var(--text); font-weight: 600; }
 
-      /* 플레이어는 좌측 패널의 남는 높이를 사용하되 16:9 비율 유지 */
+      /* 플레이어는 좌측 패널의 남는 높이를 채우지 않고,
+         너비 기준 16:9 비율만큼만 높이를 갖는다.
+         (남는 세로 공간은 늘리지 않고 .player-section 하단에 그대로 비워둔다 → 레터박스 방지) */
       .player-container {
-        flex: 1 1 auto;
-        min-height: 0;
+        flex: 0 0 auto;
         width: 100%;
         height: auto;
         padding-bottom: 0;
