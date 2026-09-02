@@ -1171,7 +1171,8 @@
       }
 
       getFilteredMainSongs() {
-        const { search, lang, videoId } = this.mainFilters;
+        const { search, videoId } = this.mainFilters;
+        const lang = this.getMainLang();
         const sort = this.getMainSort();
         const queries = Utils.getSearchQueries(search);
         
