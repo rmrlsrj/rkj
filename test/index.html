@@ -552,7 +552,11 @@
         flex-direction: column;
         gap: 0;
         background: var(--bg-color);
-        overflow: hidden;
+        /* 화면(모니터/배율)이 작아 내용 전체 높이가 영역보다 커지는 경우에도
+           내용이 잘려서 아예 안 보이는 일이 없도록, 넘치는 만큼만 세로 스크롤 허용.
+           평소(공간이 충분할 때)는 스크롤이 생기지 않아 기존 모습 그대로 유지된다. */
+        overflow-y: auto;
+        overflow-x: hidden;
       }
 
       /* 실제 카드 스타일(테두리/모서리/그림자/배경)은 내용물 높이만큼만 감싸는
@@ -704,6 +708,37 @@
         gap: 14px;
         padding: 16px 20px;
       }
+    }
+
+    /* ================================================================
+       작은/저해상도 모니터 보정 (예: 10인치 모니터 + 150% 배율)
+       - 실제 표시 영역의 세로 높이가 낮아, 플레이어(16:9)가 넓게 잡히면
+         그 아래 현재곡/다음곡 정보가 화면 밖으로 밀려 잘리는 문제를 방지.
+       - 플레이어 "폭"을 줄여 비율에 따라 "높이"도 함께 줄임으로써
+         하단 정보가 표시될 세로 공간을 확보하고,
+       - 플레이어가 줄어든 만큼 우측 곡 리스트 영역을 넓혀
+         목록에서 곡 정보가 더 여유 있게(덜 잘려서) 보이도록 한다.
+       - 기존 레이아웃 구조/기능은 그대로 두고 폭 배분(비율)만 조정한다.
+       ================================================================ */
+    @media (min-width: 901px) and (max-height: 760px) {
+      .main-container {
+        grid-template-columns: minmax(0, 0.72fr) minmax(560px, 1.28fr) !important;
+      }
+
+      /* 플레이어 하단 정보 영역의 위아래 여백을 살짝 줄여
+         세로 공간을 추가로 확보 (정보 자체는 그대로 유지) */
+      .now-playing-card { padding: 10px 18px; }
+      .desktop-song-flow { padding: 7px 16px; }
+    }
+
+    /* 세로 공간이 더 부족한 경우(초저해상도/고배율) 추가 보정 */
+    @media (min-width: 901px) and (max-height: 620px) {
+      .main-container {
+        grid-template-columns: minmax(0, 0.6fr) minmax(560px, 1.4fr) !important;
+      }
+      .now-playing-card { padding: 8px 16px; }
+      .now-playing-stats { margin-top: 6px; }
+      .desktop-song-flow { padding: 5px 16px; }
     }
 </style>
 </head>
