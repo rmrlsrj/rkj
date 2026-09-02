@@ -430,11 +430,6 @@
       }
     }
 
-    /* 현재곡 통계 UI */
-    .now-playing-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-    .now-playing-stat { padding: 5px 8px; border-radius: 6px; background: var(--card-bg); color: var(--text-muted); font-size: 0.75rem; }
-    .now-playing-stat strong { color: var(--accent-secondary); font-size: 0.9rem; }
-
     /* ================================================================
        재생 탭 데스크톱 개선 (901px 이상만 적용)
        - 모바일은 기존 표시 그대로 유지
@@ -1798,15 +1793,15 @@
         card.tabIndex = 0;
         card.addEventListener('click', () => onPlay(idx));
         card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPlay(idx); } });
-        this.#attachTitleMarquee(card);
         
         card.innerHTML = `
           <div>
             <div class="song-info-main"><span class="song-order">${idx + 1}.</span><span class="song-title-viewport"><span class="song-info-main-track">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)}</span></span>${streamerLabel}</div>
-            <div class="song-info-sub"><span class="song-info-sub-viewport"><span class="song-info-sub-track"><span class="song-info-sub-text">${Utils.escapeHtml(song.artist)}${song.work ? ' - ' + Utils.escapeHtml(song.work) : ''}</span></span></span><span class="song-date">${Utils.escapeHtml(song.date)}</span></div>
+            <div class="song-info-sub"><span class="song-info-sub-viewport"><span class="song-info-sub-track">${Utils.escapeHtml(song.artist)}${song.work ? ' - ' + Utils.escapeHtml(song.work) : ''}</span></span><span class="song-date">${Utils.escapeHtml(song.date)}</span></div>
           </div>
           <span class="song-badge">${Utils.escapeHtml(song.lang)}</span>
         `;
+        this.#attachTitleMarquee(card);
         return card;
       }
 
