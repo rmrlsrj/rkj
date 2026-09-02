@@ -314,7 +314,9 @@
       .song-card.song-card--scoped:hover { border-color: var(--song-primary); }
       .stats-item .date-link:hover { color: #fff; background-color: var(--accent-hover); border-radius: 4px; text-decoration: none; }
     }
-    .song-info-date { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px; }
+    .song-info-date { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px; display: flex; align-items: center; gap: 6px; }
+    .song-order { font-weight: 700; color: var(--accent-secondary); flex-shrink: 0; }
+    .song-date { white-space: nowrap; padding-left: 6px; border-left: 1px solid var(--border); }
     .song-info-main { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 3px; display: flex; align-items: center; word-break: break-word; overflow-wrap: anywhere; }
     .playing-icon { display: inline-block; margin-right: 6px; font-size: 0.85rem; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
@@ -632,13 +634,13 @@
         gap: 4px;
       }
 
-      /* 데스크톱 곡 목록: 날짜 | 곡명 - 가수명 | 언어 */
+      /* 데스크톱 곡 목록: 번호·날짜 | 곡명 - 가수명 | 언어 */
       .song-card {
         min-height: 42px;
         padding: 7px 10px;
         display: grid;
-        grid-template-columns: 88px minmax(0, 1fr) 38px;
-        gap: 8px;
+        grid-template-columns: 94px minmax(0, 1fr) 38px;
+        gap: 6px;
         align-items: center;
       }
       .song-card > div:first-child { display: contents; }
@@ -650,6 +652,8 @@
         grid-row: 1;
         font-size: 0.72rem;
         white-space: nowrap;
+        padding-right: 8px;
+        border-right: 1px solid var(--border);
       }
       .song-info-main {
         grid-column: 2;
@@ -1762,7 +1766,7 @@
         
         card.innerHTML = `
           <div>
-            <div class="song-info-date">${Utils.escapeHtml(song.date)}${streamerLabel}</div>
+            <div class="song-info-date"><span class="song-order">${idx + 1}</span><span class="song-date">${Utils.escapeHtml(song.date)}</span>${streamerLabel}</div>
             <div class="song-info-main">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)}<span class="desktop-artist-inline"> - ${Utils.escapeHtml(song.artist)}${song.work ? ' • ' + Utils.escapeHtml(song.work) : ''}</span></div>
             <div class="song-info-sub">${Utils.escapeHtml(song.artist)}${song.work ? ' • ' + Utils.escapeHtml(song.work) : ''}</div>
           </div>
