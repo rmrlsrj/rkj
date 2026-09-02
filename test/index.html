@@ -155,14 +155,14 @@
     
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; transition: background-color 0.3s ease, color 0.3s ease; }
-    header { background-color: var(--panel-bg); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: background-color 0.3s ease, border-color 0.3s ease; }
+    header { background-color: var(--panel-bg); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: background-color 0.3s ease, border-color 0.3s ease; }
     header h1 { font-size: 1.2rem; font-weight: 700; color: var(--text); }
-    .header-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .theme-toggle-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px; border-radius: 50%; transition: transform 0.2s; }
     .theme-toggle-btn:hover { transform: scale(1.1); }
-    .streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: nowrap; }
+    .streamer-nav, .tab-nav { display: flex; gap: 3px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: nowrap; }
     .streamer-btn, .tab-btn { flex: 0 0 auto; white-space: nowrap; }
-    @media (min-width: 1201px) {
+    @media (min-width: 1101px) {
       header {
         position: relative;
       }
@@ -170,12 +170,12 @@
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
-        max-width: calc(100vw - 32px);
+        max-width: calc(100vw - 24px);
         flex-wrap: nowrap;
       }
     }
 
-    @media (min-width: 901px) and (max-width: 1200px) {
+    @media (min-width: 821px) and (max-width: 1100px) {
       header {
         flex-wrap: wrap;
       }
@@ -187,23 +187,23 @@
         justify-content: center;
         order: 3;
         flex-wrap: nowrap;
-        gap: 8px;
+        gap: 6px;
       }
       header .streamer-nav {
         gap: 2px;
       }
       header .streamer-btn {
-        padding: 6px 10px;
+        padding: 6px 8px;
       }
       header .tab-nav {
         gap: 2px;
       }
       header .tab-btn {
-        padding: 6px 12px;
+        padding: 6px 10px;
       }
     }
-    .streamer-btn { padding: 6px 14px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-    @media (max-width: 900px) {
+    .streamer-btn { padding: 6px 10px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    @media (max-width: 820px) {
       header {
         display: grid;
         grid-template-columns: 1fr auto;
@@ -262,7 +262,7 @@
     .streamer-btn.active { background-color: var(--accent-hover); color: #fff; }
     .streamer-btn[data-streamer-target="ALL"].active { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; }
     .streamer-btn[data-streamer-target="ALL"]:hover { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; }
-    .tab-btn { padding: 6px 16px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .tab-btn { padding: 6px 12px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .tab-btn.active, .tab-btn:hover { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; border-color: transparent; }
     .tab-content { display: none; width: 100%; flex: 1; }
     .tab-content.active { display: block; }
