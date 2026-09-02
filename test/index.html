@@ -168,11 +168,13 @@
     @media (min-width: 901px) {
       header {
         position: relative;
+        flex-wrap: nowrap;
       }
       header .header-controls {
         position: absolute;
+        top: 50%;
         left: 50%;
-        transform: translateX(-50%);
+        transform: translate(-50%, -50%);
         max-width: calc(100vw - 32px);
         flex-wrap: nowrap;
       }
