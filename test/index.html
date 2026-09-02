@@ -720,7 +720,6 @@
             <div class="now-playing-streamer" id="npStreamer" style="display: none;"></div>
             <div class="now-playing-title" id="npTitle">노래목록 불러오는 중...</div>
             <div class="now-playing-artist" id="npArtist">로딩 대기 중...</div>
-            <div class="now-playing-stats" id="npStats" aria-live="polite"></div>
             <div class="now-playing-meta" id="npMeta" style="display: none;"></div>
           </div>
           <div id="nextSongFlow" class="desktop-song-flow is-empty" aria-label="다음곡"></div>
@@ -1793,7 +1792,7 @@
         card.tabIndex = 0;
         card.addEventListener('click', () => onPlay(idx));
         card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPlay(idx); } });
-        
+
         card.innerHTML = `
           <div>
             <div class="song-info-main"><span class="song-order">${idx + 1}.</span><span class="song-title-viewport"><span class="song-info-main-track">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)}</span></span>${streamerLabel}</div>
