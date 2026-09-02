@@ -678,18 +678,23 @@
         min-width: 0;
         display: flex;
         align-items: baseline;
+        flex-wrap: nowrap;
         gap: 6px;
+        overflow: hidden;
+        white-space: nowrap;
       }
       .song-order {
         font-size: 0.76rem;
         flex-shrink: 0;
       }
       .song-info-main-track {
-        display: block;
-        flex: 1 1 auto;
-        min-width: 0;
+        display: inline-block;
+        flex: 0 0 auto;
+        width: max-content;
+        min-width: max-content;
+        max-width: none;
         font-size: 1.05rem;
-        overflow: hidden;
+        overflow: visible;
         white-space: nowrap;
         position: relative;
         will-change: transform;
@@ -1722,7 +1727,8 @@
         card.addEventListener('mouseenter', () => {
           const track = card.querySelector('.song-info-main-track');
           if (!track) return;
-          const overflow = track.scrollWidth - track.clientWidth;
+          const availableWidth = wrap.clientWidth - (track.offsetLeft - wrap.offsetLeft);
+          const overflow = track.scrollWidth - availableWidth;
           if (overflow <= 0) return;
           const duration = Math.min(8, Math.max(1.8, overflow / 45));
           track.style.transition = `transform ${duration}s linear`;
