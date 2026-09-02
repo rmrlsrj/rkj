@@ -656,36 +656,46 @@
         gap: 4px;
       }
 
-      /* 데스크톱 곡 목록: 번호·날짜 | 곡명 - 가수명 | 언어 */
+      /* 데스크톱 곡 목록: 윗줄(번호·날짜·[전체탭]스트리머) / 아랫줄(제목 - 가수명) */
       .song-card {
         min-height: 42px;
         padding: 7px 10px;
-        display: grid;
-        grid-template-columns: 94px minmax(0, 1fr) 38px;
-        gap: 6px;
+        display: flex;
         align-items: center;
+        gap: 10px;
       }
-      .song-card > div:first-child { display: contents; }
-      .song-info-date,
-      .song-info-main,
-      .song-info-sub { margin: 0; }
+      .song-card > div:first-child {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+        flex: 1 1 auto;
+      }
       .song-info-date {
-        grid-column: 1;
-        grid-row: 1;
         font-size: 0.72rem;
         white-space: nowrap;
-        padding-right: 8px;
-        border-right: 1px solid var(--border);
+        color: var(--text-muted);
+        gap: 6px;
+      }
+      .song-card .log-id-tag {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 0;
+        padding-left: 8px;
+        border-left: 1px solid var(--border);
       }
       .song-info-main {
-        grid-column: 2;
-        grid-row: 1;
-        display: block;
+        margin: 0;
         min-width: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
         font-size: 0.86rem;
+        display: block;
+        overflow: hidden;
+        white-space: nowrap;
+        position: relative;
+      }
+      .song-info-main-track {
+        display: inline-block;
+        will-change: transform;
       }
       .song-card .song-info-sub { display: none; }
       .song-card .song-info-main .desktop-artist-inline {
@@ -694,9 +704,8 @@
         font-weight: 400;
       }
       .song-badge {
-        grid-column: 3;
-        grid-row: 1;
-        justify-self: end;
+        flex-shrink: 0;
+        align-self: center;
         padding: 3px 6px;
       }
     }
@@ -1703,6 +1712,25 @@
         if (this.npMetaCached) this.els.npMeta.style.display = 'none';
       }
 
+      #attachTitleMarquee(card) {
+        card.addEventListener('mouseenter', () => {
+          const wrap = card.querySelector('.song-info-main');
+          const track = card.querySelector('.song-info-main-track');
+          if (!wrap || !track) return;
+          const overflow = track.scrollWidth - wrap.clientWidth;
+          if (overflow <= 0) return;
+          const duration = Math.min(8, Math.max(1.8, overflow / 45));
+          track.style.transition = `transform ${duration}s linear`;
+          track.style.transform = `translateX(-${overflow}px)`;
+        });
+        card.addEventListener('mouseleave', () => {
+          const track = card.querySelector('.song-info-main-track');
+          if (!track) return;
+          track.style.transition = 'transform 0.4s ease-out';
+          track.style.transform = 'translateX(0)';
+        });
+      }
+
       getSongContextColors(song) {
         const streamerColorMap = {
           '키라': { primary: 'var(--kira-primary)', secondary: 'var(--kira-secondary)', light: 'var(--kira-light)' },
@@ -1795,7 +1823,7 @@
       #createPlaylistCard(song, idx, context) {
         const { activeSongId, onPlay, showStreamer } = context;
         const isActive = song.id === activeSongId;
-        const streamerLabel = showStreamer && song.streamers?.length ? ` <span class="log-id-tag">${Utils.escapeHtml(song.streamers.join(', '))}</span>` : '';
+        const streamerLabel = showStreamer && song.streamers?.length ? `<span class="log-id-tag">${Utils.escapeHtml(song.streamers.join(', '))}</span>` : '';
 
         const card = document.createElement('div');
         card.className = `song-card ${isActive ? 'active' : ''}${showStreamer ? ' song-card--scoped' : ''}`;
@@ -1811,11 +1839,12 @@
         card.tabIndex = 0;
         card.addEventListener('click', () => onPlay(idx));
         card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPlay(idx); } });
+        this.#attachTitleMarquee(card);
         
         card.innerHTML = `
           <div>
             <div class="song-info-date"><span class="song-order">${idx + 1}</span><span class="song-date">${Utils.escapeHtml(song.date)}</span>${streamerLabel}</div>
-            <div class="song-info-main">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)}<span class="desktop-artist-inline"> - ${Utils.escapeHtml(song.artist)}${song.work ? ' • ' + Utils.escapeHtml(song.work) : ''}</span></div>
+            <div class="song-info-main"><span class="song-info-main-track">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)}<span class="desktop-artist-inline"> - ${Utils.escapeHtml(song.artist)}${song.work ? ' • ' + Utils.escapeHtml(song.work) : ''}</span></span></div>
             <div class="song-info-sub">${Utils.escapeHtml(song.artist)}${song.work ? ' • ' + Utils.escapeHtml(song.work) : ''}</div>
           </div>
           <span class="song-badge">${Utils.escapeHtml(song.lang)}</span>
