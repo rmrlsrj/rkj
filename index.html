@@ -162,12 +162,7 @@
     .theme-toggle-btn:hover { transform: scale(1.1); }
     .streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: nowrap; }
     .streamer-btn, .tab-btn { flex: 0 0 auto; white-space: nowrap; }
-    /* 901px 이상에서는 폭에 관계없이 항상 한 줄을 유지한다.
-       Grid로 [제목 칸 | 버튼 그룹 칸 | 빈 칸] 3단 구조를 만들어서,
-       제목 칸은 제목에 필요한 만큼의 폭을 최소 보장받도록(minmax(max-content, 1fr)) 한다.
-       그래서 화면이 좁아져도 버튼 그룹이 제목 영역을 침범하지 못하고,
-       대신 자연스럽게 오른쪽으로 밀려나게 된다.
-       공간이 넉넉할 때는 좌우 빈 칸이 똑같이(1fr) 늘어나서 버튼 그룹이 중앙에 위치한다. */
+    
     @media (min-width: 901px) {
       header {
         display: grid;
@@ -188,8 +183,6 @@
       }
     }
 
-    /* 901~1200px 구간은 폭이 좁으므로, 줄바꿈 대신 여백만 줄여서
-       한 줄을 최대한 오래 유지할 수 있는 여유 공간을 확보한다. */
     @media (min-width: 901px) and (max-width: 1200px) {
       header .header-controls {
         gap: 8px;
@@ -310,7 +303,7 @@
     .stats-lang-btn,
     .stats-sort-btn {
       font-weight: 700;
-}
+    }
 
     .filter-btn.active, .filter-btn:hover { background-color: var(--accent-hover); color: #fff; border-color: var(--accent-hover); }
     [data-main-scope="ALL"] .main-lang-btn.active, [data-main-scope="ALL"] .main-lang-btn:hover, [data-main-scope="ALL"] .main-sort-btn.active, [data-main-scope="ALL"] .main-sort-btn:hover { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; border-color: transparent; }
@@ -325,13 +318,14 @@
       .song-card.song-card--scoped:hover { border-color: var(--song-primary); }
       .stats-item .date-link:hover { color: #fff; background-color: var(--accent-hover); border-radius: 4px; text-decoration: none; }
     }
-    /* 1줄: 곡 순번 + 곡 제목(가장 눈에 띄게) + [전체탭] 스트리머 */
-    .song-info-main { font-size: 0.85rem; color: var(--text); margin-bottom: 4px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px; word-break: break-word; overflow-wrap: anywhere; }
+    /* 1줄: 곡 순번 + 곡 제목 + [전체탭] 스트리머 */
+    .song-info-main { font-size: 0.85rem; color: var(--text); margin-bottom: 4px; display: flex; align-items: baseline; flex-wrap: nowrap; gap: 4px; min-width: 0; }
+    .song-title-viewport { flex: 1 1 auto; min-width: 0; word-break: break-word; overflow-wrap: anywhere; }
     .song-order { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); flex-shrink: 0; }
-    .song-info-main-track { font-size: 1.05rem; font-weight: 700; color: var(--text); } /* 곡 제목: 나머지 텍스트보다 약 2pt 크게 */
+    .song-info-main-track { font-size: 0.98rem; font-weight: 700; color: var(--text); }
     .playing-icon { display: inline-block; margin-right: 6px; font-size: 0.85rem; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
-    /* 2줄: 아티스트 - 작품명 | 날짜 (둘 다 연한 색) */
+    /* 2줄: 아티스트 - 작품명 | 날짜 */
     .song-info-sub { font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; flex-wrap: wrap; }
     .song-date { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; margin-left: 6px; padding-left: 6px; border-left: 1px solid var(--border); }
     .song-badge { font-size: 0.7rem; font-weight: 600; padding: 4px 8px; border-radius: 6px; background-color: var(--accent-light); color: var(--accent-secondary); border: 1px solid rgba(0,0,0,0.05); white-space: nowrap; }
@@ -393,119 +387,49 @@
     .back-to-top:hover { transform: translateY(-3px); background-color: var(--accent-hover); }
 
     .initial-loading-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--bg-color);
-}
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--bg-color);
+    }
 
-.initial-loading-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  text-align: center;
-  padding: 24px;
-}
+    .initial-loading-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+      padding: 24px;
+    }
 
-.initial-loading-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text);
-}
+    .initial-loading-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
 
-.initial-loading-text {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
+    .initial-loading-text {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
 
-.initial-loading-spinner {
-  width: 28px;
-  height: 28px;
-  border: 3px solid var(--border);
-  border-top-color: var(--all-primary);
-  border-radius: 50%;
-  animation: initial-loading-spin 0.8s linear infinite;
-}
+    .initial-loading-spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid var(--border);
+      border-top-color: var(--all-primary);
+      border-radius: 50%;
+      animation: initial-loading-spin 0.8s linear infinite;
+    }
 
-@keyframes initial-loading-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-    /* 재생 탭 데스크톱 밀도 개선: 동작 구조는 유지하고 화면 구성만 조정 */
-    @media (min-width: 901px) {
-      .main-container {
-        max-width: 1480px;
-        grid-template-columns: minmax(0, 1.18fr) minmax(500px, 0.82fr);
-        gap: 24px;
-        padding: 24px;
+    @keyframes initial-loading-spin {
+      to {
+        transform: rotate(360deg);
       }
-
-      .player-section { gap: 12px; }
-
-      .playlist-section {
-        height: min(720px, calc(100vh - 92px));
-        padding: 14px;
-      }
-
-      .search-filter-box { gap: 8px; margin-bottom: 10px; }
-      .search-input { padding-top: 9px; padding-bottom: 9px; }
-      .video-select { padding-top: 7px; padding-bottom: 7px; }
-      .filter-group { gap: 5px; }
-      .filter-btn { padding: 5px 10px; }
-
-      .playlist-scroll { gap: 6px; }
-      .song-card { padding: 9px 12px; min-height: 66px; }
-      .song-info-main { font-size: 0.8rem; margin-bottom: 3px; }
-      .song-info-main-track { font-size: 1rem; }
-      .song-info-sub { font-size: 0.76rem; }
-      .song-date { font-size: 0.76rem; }
-      .song-badge { padding: 3px 7px; }
     }
-
-    @media (min-width: 1200px) {
-      .filter-group { display: inline-flex; vertical-align: top; }
-      .search-filter-box { display: block; }
-      .search-filter-box > .search-wrapper,
-      .search-filter-box > .video-select { margin-bottom: 8px; }
-      .search-filter-box > .filter-group + .filter-group { margin-left: 5px; }
-    }
-
-    /* 재생 탭: 영상 · 현재 곡 · 곡 목록을 한 화면에서 읽기 쉬운 라이브러리형 구성으로 정리 */
-    .now-playing-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-    .now-playing-stat { padding: 5px 8px; border-radius: 6px; background: var(--card-bg); color: var(--text-muted); font-size: 0.75rem; }
-    .now-playing-stat strong { color: var(--accent-secondary); font-size: 0.9rem; }
-
-    @media (min-width: 901px) {
-      .main-container { max-width: 1480px; grid-template-columns: minmax(0, 1.55fr) minmax(330px, 0.85fr); gap: 16px; padding: 24px; }
-      .player-section { display: contents; }
-      .player-container { grid-column: 1; min-height: 0; }
-      .now-playing-card { grid-column: 2; align-self: stretch; border-left: 1px solid var(--border); padding: 22px; display: flex; flex-direction: column; justify-content: center; }
-      .playlist-section { grid-column: 1 / -1; height: min(600px, calc(100vh - 510px)); min-height: 420px; padding: 14px 16px; }
-      .search-filter-box { display: grid; grid-template-columns: minmax(260px, 1fr) 260px auto auto; align-items: center; gap: 8px; margin-bottom: 12px; }
-      .search-filter-box > .search-wrapper, .search-filter-box > .video-select { margin: 0; }
-      .search-filter-box > .filter-group, .search-filter-box > .filter-group + .filter-group { display: flex; margin: 0; }
-      .filter-group { flex-wrap: nowrap; gap: 4px; }
-      .filter-btn { padding: 6px 9px; white-space: nowrap; }
-      .playlist-scroll { gap: 4px; }
-      .song-card { min-height: 48px; padding: 8px 12px; display: grid; grid-template-columns: 105px minmax(220px, 1.15fr) minmax(180px, 0.85fr) 42px; gap: 12px; align-items: center; }
-      .song-card > div:first-child { display: contents; }
-      .song-info-main, .song-info-sub { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .song-info-main { font-size: 0.9rem; }
-      .song-info-sub { font-size: 0.76rem; }
-      .song-badge { justify-self: end; padding: 3px 6px; }
-    }
-
-    @media (max-width: 1200px) and (min-width: 901px) {
-      .search-filter-box { grid-template-columns: minmax(240px, 1fr) 220px; }
-      .search-filter-box > .filter-group { grid-column: span 1; }
-    }
-
 
     /* ================================================================
        재생 탭 데스크톱 개선 (901px 이상만 적용)
@@ -550,20 +474,15 @@
         min-width: 0;
         min-height: 0;
         height: 100%;
-        display: flex !important;
+        display: flex;
         flex-direction: column;
         gap: 0;
         background: var(--bg-color);
-        /* 화면(모니터/배율)이 작아 내용 전체 높이가 영역보다 커지는 경우에도
-           내용이 잘려서 아예 안 보이는 일이 없도록, 넘치는 만큼만 세로 스크롤 허용.
-           평소(공간이 충분할 때)는 스크롤이 생기지 않아 기존 모습 그대로 유지된다. */
         overflow-y: auto;
         overflow-x: hidden;
       }
 
-      /* 실제 카드 스타일(테두리/모서리/그림자/배경)은 내용물 높이만큼만 감싸는
-         내부 래퍼가 담당한다. 다음곡에서 카드가 끝나고, 그 아래 남는 공간은
-         .player-section의 페이지 배경이 그대로 보여 카드와 확실히 구분된다. */
+      /* 실제 카드 스타일은 내용물 높이만큼만 감싸는 내부 래퍼가 담당 */
       .player-section-card {
         flex: 0 0 auto;
         display: flex;
@@ -604,9 +523,7 @@
       }
       .desktop-song-flow-main strong { color: var(--text); font-weight: 600; }
 
-      /* 플레이어는 좌측 패널의 남는 높이를 채우지 않고,
-         너비 기준 16:9 비율만큼만 높이를 갖는다.
-         (남는 세로 공간은 늘리지 않고 .player-section 하단에 그대로 비워둔다 → 레터박스 방지) */
+      /* 플레이어는 좌측 패널의 남는 높이를 채우지 않고, 16:9 비율만큼만 높이를 가짐 */
       .player-container {
         flex: 0 0 auto;
         width: 100%;
@@ -649,7 +566,7 @@
       }
       .filter-group { flex-wrap: wrap; gap: 5px; }
 
-      /* 핵심: 스크롤과 기존 IntersectionObserver 순차 로딩은 이 영역에서만 작동 */
+      /* 스크롤과 기존 IntersectionObserver 순차 로딩 영역 */
       .playlist-scroll {
         flex: 1 1 auto;
         min-height: 0;
@@ -658,7 +575,7 @@
         gap: 10px;
       }
 
-      /* 데스크톱 곡 목록: 윗줄(순번 · 제목[가장 크게] · [전체탭]스트리머) / 아랫줄(아티스트-작품명 · 날짜) */
+      /* 데스크톱 곡 목록: 윗줄(순번 · 제목 · [전체탭]스트리머) / 아랫줄(아티스트-작품명 · 날짜) */
       .song-card {
         min-height: 58px;
         padding: 10px 12px;
@@ -697,7 +614,7 @@
         width: max-content;
         min-width: max-content;
         max-width: none;
-        font-size: 1.05rem;
+        font-size: 0.98rem;
         overflow: visible;
         white-space: nowrap;
         position: relative;
@@ -749,28 +666,12 @@
       }
     }
 
-    /* ================================================================
-       작은/저해상도 모니터 보정 (예: 10인치 모니터 + 150% 배율)
-       - 실제 표시 영역의 세로 높이가 낮아, 플레이어(16:9)가 넓게 잡히면
-         그 아래 현재곡/다음곡 정보가 화면 밖으로 밀려 잘리는 문제를 방지.
-       - 화면 높이(vh)에 따라 플레이어 "폭"이 계단식이 아니라 clamp()로
-         부드럽게 줄어들도록 하여, 비율에 따라 "높이"도 함께 줄어들게 한다.
-         → 하단 정보가 표시될 세로 공간을 자연스럽게 확보.
-       - 플레이어가 줄어든 만큼 우측 곡 리스트 영역(minmax(560px, 1fr))이
-         자동으로 넓어져 목록 정보가 더 여유 있게 보이도록 한다.
-       - 화면이 충분히 높을 때(900px 초과)는 이 규칙이 적용되지 않아
-         기존 레이아웃(위쪽 폭 배분)이 그대로 유지된다.
-       - 조절 폭 900px(화면 넉넉) ~ 600px(화면 부족) 구간에서
-         플레이어 폭이 640px → 380px 사이를 매끄럽게 오간다.
-         (숫자 조정이 필요하면 아래 두 값만 바꾸면 됨: 640px / 380px)
-       ================================================================ */
+    /* 작은/저해상도 모니터 보정 */
     @media (min-width: 901px) and (max-height: 900px) {
       .main-container {
         grid-template-columns: clamp(380px, calc(0.87 * 100vh - 140px), 640px) minmax(560px, 1fr);
       }
 
-      /* 플레이어 하단 정보 영역의 위아래 여백을 살짝 줄여
-         세로 공간을 추가로 확보 (정보 자체는 그대로 유지) */
       .now-playing-card { padding: 10px 18px; }
       .desktop-song-flow { padding: 7px 16px; }
     }
@@ -820,7 +721,6 @@
             <div class="now-playing-streamer" id="npStreamer" style="display: none;"></div>
             <div class="now-playing-title" id="npTitle">노래목록 불러오는 중...</div>
             <div class="now-playing-artist" id="npArtist">로딩 대기 중...</div>
-            <div class="now-playing-stats" id="npStats" aria-live="polite"></div>
             <div class="now-playing-meta" id="npMeta" style="display: none;"></div>
           </div>
           <div id="nextSongFlow" class="desktop-song-flow is-empty" aria-label="다음곡"></div>
@@ -1117,7 +1017,6 @@
 
             const xhr = new XMLHttpRequest();
 
-            // 5.5초 안에 완료되지 않으면 이번 요청을 중단
             xhr.timeout = 5500;
 
             xhr.open('GET', url, true);
@@ -1673,7 +1572,7 @@
         btn.classList.add('active');
         document.documentElement.setAttribute('data-streamer', 'ALL');
         document.documentElement.setAttribute('data-main-scope', 'ALL');
-       }
+      }
 
       switchTab(tabId, btn) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1894,15 +1793,15 @@
         card.tabIndex = 0;
         card.addEventListener('click', () => onPlay(idx));
         card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPlay(idx); } });
-        this.#attachTitleMarquee(card);
-        
+
         card.innerHTML = `
           <div>
             <div class="song-info-main"><span class="song-order">${idx + 1}.</span><span class="song-title-viewport"><span class="song-info-main-track">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)}</span></span>${streamerLabel}</div>
-            <div class="song-info-sub"><span class="song-info-sub-viewport"><span class="song-info-sub-track"><span class="song-info-sub-text">${Utils.escapeHtml(song.artist)}${song.work ? ' - ' + Utils.escapeHtml(song.work) : ''}</span></span></span><span class="song-date">${Utils.escapeHtml(song.date)}</span></div>
+            <div class="song-info-sub"><span class="song-info-sub-viewport"><span class="song-info-sub-track">${Utils.escapeHtml(song.artist)}${song.work ? ' - ' + Utils.escapeHtml(song.work) : ''}</span></span><span class="song-date">${Utils.escapeHtml(song.date)}</span></div>
           </div>
           <span class="song-badge">${Utils.escapeHtml(song.lang)}</span>
         `;
+        this.#attachTitleMarquee(card);
         return card;
       }
 
@@ -2077,7 +1976,6 @@
         }
       }
 
-      // 이벤트 중복을 제거하기 위한 헬퍼 함수 1: 검색창 
       #setupSearch(inputEl, clearBtnEl, filterObj, renderFn, timerKey) {
         inputEl.addEventListener('input', () => {
           this.ui.toggleClearBtn(inputEl, clearBtnEl);
@@ -2094,7 +1992,6 @@
         });
       }
 
-      // 이벤트 중복을 제거하기 위한 헬퍼 함수 2: 필터 버튼
       #setupFilters(selector, filterKey, filterObj, renderFn, isSort = false, isMain = false) {
         document.querySelectorAll(selector).forEach(btn => {
           btn.addEventListener('click', (e) => {
@@ -2126,7 +2023,6 @@
           btn.addEventListener('click', (e) => this.switchMainTab(e.target.dataset.tabTarget, e.target));
         });
 
-        // 4단계: 헬퍼 함수로 중복을 완전히 제거한 메인 탭 이벤트
         this.#setupSearch(this.ui.els.searchInput, this.ui.els.searchClearBtn, this.data.mainFilters, this.renderPlaylist, 'searchDebounceTimer');
         this.ui.els.videoSelect.addEventListener('change', (e) => { this.data.mainFilters.videoId = e.target.value; this.renderPlaylist(); });
         document.querySelectorAll('.main-lang-btn').forEach(btn => {
@@ -2139,7 +2035,6 @@
         });
         this.#setupFilters('.main-sort-btn', 'sort', this.data.mainFilters, this.renderPlaylist, true, true);
 
-        // 4단계: 헬퍼 함수로 중복을 완전히 제거한 통계 탭 이벤트
         this.#setupSearch(this.ui.els.statsSearchInput, this.ui.els.statsClearBtn, this.data.statsFilters, this.renderStatistics, 'statsSearchDebounceTimer');
         this.ui.els.statsVideoSelect.addEventListener('change', (e) => { this.data.statsFilters.videoId = e.target.value; this.renderStatistics(); });
         this.#setupFilters('.stats-lang-btn', 'lang', this.data.statsFilters, this.renderStatistics);
@@ -2207,6 +2102,7 @@
         const list = this.data.getFilteredMainSongs();
         this.mainPlayer.updatePlaylist(list);
         this.ui.renderPlaylist(list, this.mainPlayer.currentSongId, (idx) => this.playSong(idx), this.data.mainScopeKey === 'ALL');
+        this.updateDesktopSongFlow();
       }
 
       renderStatistics() {
