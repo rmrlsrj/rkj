@@ -143,50 +143,6 @@
     .theme-toggle-btn:hover { transform: scale(1.1); }
     .streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: nowrap; }
     .streamer-btn, .tab-btn { flex: 0 0 auto; white-space: nowrap; }
-    /* 901px 이상에서는 폭에 관계없이 항상 한 줄을 유지한다.
-       Grid로 [제목 칸 | 버튼 그룹 칸 | 빈 칸] 3단 구조를 만들어서,
-       제목 칸은 제목에 필요한 만큼의 폭을 최소 보장받도록(minmax(max-content, 1fr)) 한다.
-       그래서 화면이 좁아져도 버튼 그룹이 제목 영역을 침범하지 못하고,
-       대신 자연스럽게 오른쪽으로 밀려나게 된다.
-       공간이 넉넉할 때는 좌우 빈 칸이 똑같이(1fr) 늘어나서 버튼 그룹이 중앙에 위치한다. */
-    @media (min-width: 901px) {
-      header {
-        display: grid;
-        grid-template-columns: minmax(max-content, 1fr) auto minmax(0, 1fr);
-        align-items: center;
-        column-gap: 12px;
-        flex-wrap: nowrap;
-      }
-      header h1 {
-        grid-column: 1;
-        justify-self: start;
-      }
-      header .header-controls {
-        grid-column: 2;
-        justify-self: center;
-        max-width: calc(100vw - 32px);
-        flex-wrap: nowrap;
-      }
-    }
-    /* 901~1200px 구간은 폭이 좁으므로, 줄바꿈 대신 여백만 줄여서
-       한 줄을 최대한 오래 유지할 수 있는 여유 공간을 확보한다. */
-    @media (min-width: 901px) and (max-width: 1200px) {
-      header .header-controls {
-        gap: 8px;
-      }
-      header .streamer-nav {
-        gap: 2px;
-      }
-      header .streamer-btn {
-        padding: 6px 10px;
-      }
-      header .tab-nav {
-        gap: 2px;
-      }
-      header .tab-btn {
-        padding: 6px 12px;
-      }
-    }
     .streamer-btn { padding: 6px 14px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
     @media (max-width: 900px) {
       header {
@@ -244,8 +200,9 @@
     .tab-btn.active, .tab-btn:hover { background: linear-gradient(135deg, #ff4b3e 0%, #ff9a18 100%); color: #fff; border-color: transparent; }
     .tab-content { display: none; width: 100%; flex: 1; }
     .tab-content.active { display: block; }
-    .main-container { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
-    @media (min-width: 900px) { .main-container { grid-template-columns: 1.2fr 0.8fr; } }
+    .main-container { display: grid; grid-template-columns: var(--main-grid-columns, 1fr); gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
+    /* 900px 경계에서만 기존 2열 값을 유지한다. 901px 이상은 아래의 단일 데스크톱 규칙이 담당한다. */
+    @media (min-width: 900px) and (max-width: 900px) { .main-container { --main-grid-columns: 1.2fr 0.8fr; } }
     .player-section { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
     .player-container { position: relative; padding-bottom: 56.25%; height: 0; background-color: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
     .player-container iframe, .player-container div#player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
@@ -430,19 +387,20 @@
         width: 100%;
         max-width: 1640px;
         height: 100%;
-        grid-template-columns: minmax(0, 1.08fr) minmax(500px, 0.92fr);
+        --main-grid-columns: minmax(0, 1.08fr) minmax(500px, 0.92fr);
         gap: 20px;
         padding: 20px 24px;
         align-items: stretch;
         overflow: hidden;
       }
       /* 좌측: 재생 흐름을 담는 바깥 영역 (카드 스타일 없음, 페이지 배경만 표시) */
+      /* 좌측 재생 영역의 크기·내부 흐름·필요 시 세로 스크롤을 이 요소가 맡는다. */
       .player-section {
         grid-column: 1;
         min-width: 0;
         min-height: 0;
         height: 100%;
-        display: flex !important;
+        display: flex;
         flex-direction: column;
         gap: 0;
         background: var(--bg-color);
@@ -594,38 +552,40 @@
         align-self: center;
         padding: 3px 6px;
       }
-    }
-    /* 중간 폭 데스크톱 보정 */
-    @media (min-width: 901px) and (max-width: 1200px) {
-      .main-container {
-        grid-template-columns: minmax(0, 1fr) minmax(420px, 0.9fr);
-        gap: 14px;
-        padding: 16px 20px;
+      /* 헤더의 901px 이상 배치도 같은 데스크톱 구간에서 함께 관리한다. */
+      header {
+        display: grid;
+        grid-template-columns: minmax(max-content, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        column-gap: 12px;
+        flex-wrap: nowrap;
       }
-    }
-    /* ================================================================
-       작은/저해상도 모니터 보정 (예: 10인치 모니터 + 150% 배율)
-       - 실제 표시 영역의 세로 높이가 낮아, 플레이어(16:9)가 넓게 잡히면
-         그 아래 현재곡/다음곡 정보가 화면 밖으로 밀려 잘리는 문제를 방지.
-       - 화면 높이(vh)에 따라 플레이어 "폭"이 계단식이 아니라 clamp()로
-         부드럽게 줄어들도록 하여, 비율에 따라 "높이"도 함께 줄어들게 한다.
-         → 하단 정보가 표시될 세로 공간을 자연스럽게 확보.
-       - 플레이어가 줄어든 만큼 우측 곡 리스트 영역(minmax(560px, 1fr))이
-         자동으로 넓어져 목록 정보가 더 여유 있게 보이도록 한다.
-       - 화면이 충분히 높을 때(900px 초과)는 이 규칙이 적용되지 않아
-         기존 레이아웃(위쪽 폭 배분)이 그대로 유지된다.
-       - 조절 폭 900px(화면 넉넉) ~ 600px(화면 부족) 구간에서
-         플레이어 폭이 640px → 380px 사이를 매끄럽게 오간다.
-         (숫자 조정이 필요하면 아래 두 값만 바꾸면 됨: 640px / 380px)
-       ================================================================ */
-    @media (min-width: 901px) and (max-height: 900px) {
-      .main-container {
-        grid-template-columns: clamp(380px, calc(0.87 * 100vh - 140px), 640px) minmax(560px, 1fr);
+      header h1 { grid-column: 1; justify-self: start; }
+      header .header-controls {
+        grid-column: 2;
+        justify-self: center;
+        max-width: calc(100vw - 32px);
+        flex-wrap: nowrap;
       }
-      /* 플레이어 하단 정보 영역의 위아래 여백을 살짝 줄여
-         세로 공간을 추가로 확보 (정보 자체는 그대로 유지) */
-      .now-playing-card { padding: 10px 18px; }
-      .desktop-song-flow { padding: 7px 16px; }
+      /* 조건부 보정은 데스크톱 블록 안에 두어 적용 순서를 한 곳에서 확인한다. */
+      @media (max-width: 1200px) {
+        header .header-controls { gap: 8px; }
+        header .streamer-nav, header .tab-nav { gap: 2px; }
+        header .streamer-btn { padding: 6px 10px; }
+        header .tab-btn { padding: 6px 12px; }
+        .main-container {
+          --main-grid-columns: minmax(0, 1fr) minmax(420px, 0.9fr);
+          gap: 14px;
+          padding: 16px 20px;
+        }
+      }
+      @media (max-height: 900px) {
+        .main-container {
+          --main-grid-columns: clamp(380px, calc(0.87 * 100vh - 140px), 640px) minmax(560px, 1fr);
+        }
+        .now-playing-card { padding: 10px 18px; }
+        .desktop-song-flow { padding: 7px 16px; }
+      }
     }
 </style>
 </head>
