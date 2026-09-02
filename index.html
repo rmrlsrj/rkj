@@ -281,8 +281,9 @@
     .db-badge { background-color: var(--card-bg); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
     
     .log-id-tag { font-size: 0.75rem; color: var(--text-muted); margin-left: 6px; font-weight: 500; }
+    .desktop-artist-inline { display: none; }
     .playlist-section { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; height: 600px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s ease, border-color 0.3s ease; min-width: 0; }
-    .search-filter-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+    .search-filter-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; container-type: inline-size; }
     .search-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
     .search-input { width: 100%; padding: 10px 36px 10px 14px; border-radius: 8px; border: 1px solid var(--border); background-color: var(--panel-bg); color: var(--text); font-size: 0.9rem; outline: none; transition: border-color 0.2s, background-color 0.3s, color 0.3s; }
     .search-input:focus { border-color: var(--accent-primary); }
@@ -290,6 +291,12 @@
     .search-clear-btn:hover { color: var(--accent-primary); }
     .video-select { width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background-color: var(--panel-bg); color: var(--text); font-size: 0.85rem; font-weight: 500; outline: none; cursor: pointer; transition: border-color 0.2s, background-color 0.3s, color 0.3s; }
     .video-select:focus { border-color: var(--accent-primary); }
+    .filter-groups { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px 14px; }
+    .filter-groups .filter-group + .filter-group { position: relative; padding-left: 14px; border-left: 2px solid var(--text); }
+    @container (max-width: 620px) {
+      .filter-groups { row-gap: 12px; }
+      .filter-groups .filter-group + .filter-group { padding-left: 0; border-left: none; width: 100%; margin-top: 2px; padding-top: 12px; border-top: 2px solid var(--text); }
+    }
     .filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
     .filter-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background-color: var(--panel-bg); color: var(--text-muted); font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
     
@@ -313,7 +320,9 @@
       .song-card.song-card--scoped:hover { border-color: var(--song-primary); }
       .stats-item .date-link:hover { color: #fff; background-color: var(--accent-hover); border-radius: 4px; text-decoration: none; }
     }
-    .song-info-date { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px; }
+    .song-info-date { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px; display: flex; align-items: center; gap: 6px; }
+    .song-order { font-weight: 700; color: var(--text); flex-shrink: 0; }
+    .song-date { white-space: nowrap; padding-left: 6px; border-left: 1px solid var(--border); }
     .song-info-main { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 3px; display: flex; align-items: center; word-break: break-word; overflow-wrap: anywhere; }
     .playing-icon { display: inline-block; margin-right: 6px; font-size: 0.85rem; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
@@ -420,6 +429,270 @@
     transform: rotate(360deg);
   }
 }
+
+    /* 재생 탭 데스크톱 밀도 개선: 동작 구조는 유지하고 화면 구성만 조정 */
+    @media (min-width: 901px) {
+      .main-container {
+        max-width: 1480px;
+        grid-template-columns: minmax(0, 1.18fr) minmax(500px, 0.82fr);
+        gap: 24px;
+        padding: 24px;
+      }
+
+      .player-section { gap: 12px; }
+
+      .playlist-section {
+        height: min(720px, calc(100vh - 92px));
+        padding: 14px;
+      }
+
+      .search-filter-box { gap: 8px; margin-bottom: 10px; }
+      .search-input { padding-top: 9px; padding-bottom: 9px; }
+      .video-select { padding-top: 7px; padding-bottom: 7px; }
+      .filter-group { gap: 5px; }
+      .filter-btn { padding: 5px 10px; }
+
+      .playlist-scroll { gap: 6px; }
+      .song-card { padding: 9px 12px; min-height: 66px; }
+      .song-info-date { font-size: 0.76rem; margin-bottom: 1px; }
+      .song-info-main { font-size: 0.9rem; margin-bottom: 2px; }
+      .song-info-sub { font-size: 0.76rem; }
+      .song-badge { padding: 3px 7px; }
+    }
+
+    @media (min-width: 1200px) {
+      .filter-group { display: inline-flex; vertical-align: top; }
+      .search-filter-box { display: block; }
+      .search-filter-box > .search-wrapper,
+      .search-filter-box > .video-select { margin-bottom: 8px; }
+      .search-filter-box > .filter-group + .filter-group { margin-left: 5px; }
+    }
+
+    /* 재생 탭: 영상 · 현재 곡 · 곡 목록을 한 화면에서 읽기 쉬운 라이브러리형 구성으로 정리 */
+    .now-playing-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .now-playing-stat { padding: 5px 8px; border-radius: 6px; background: var(--card-bg); color: var(--text-muted); font-size: 0.75rem; }
+    .now-playing-stat strong { color: var(--accent-secondary); font-size: 0.9rem; }
+    .now-playing-controls { display: flex; gap: 8px; margin-top: 14px; }
+    .song-nav-btn { flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px; background: var(--panel-bg); color: var(--text); font: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .song-nav-btn:hover:not(:disabled) { border-color: var(--accent-primary); color: var(--accent-secondary); background: var(--accent-light); }
+    .song-nav-btn:disabled { cursor: not-allowed; opacity: 0.45; }
+
+    @media (min-width: 901px) {
+      .main-container { max-width: 1480px; grid-template-columns: minmax(0, 1.55fr) minmax(330px, 0.85fr); gap: 16px; padding: 24px; }
+      .player-section { display: contents; }
+      .player-container { grid-column: 1; min-height: 0; }
+      .now-playing-card { grid-column: 2; align-self: stretch; border-left: 1px solid var(--border); padding: 22px; display: flex; flex-direction: column; justify-content: center; }
+      .playlist-section { grid-column: 1 / -1; height: min(600px, calc(100vh - 510px)); min-height: 420px; padding: 14px 16px; }
+      .search-filter-box { display: grid; grid-template-columns: minmax(260px, 1fr) 260px auto auto; align-items: center; gap: 8px; margin-bottom: 12px; }
+      .search-filter-box > .search-wrapper, .search-filter-box > .video-select { margin: 0; }
+      .search-filter-box > .filter-group, .search-filter-box > .filter-group + .filter-group { display: flex; margin: 0; }
+      .filter-group { flex-wrap: nowrap; gap: 4px; }
+      .filter-btn { padding: 6px 9px; white-space: nowrap; }
+      .playlist-scroll { gap: 4px; }
+      .song-card { min-height: 48px; padding: 8px 12px; display: grid; grid-template-columns: 105px minmax(220px, 1.15fr) minmax(180px, 0.85fr) 42px; gap: 12px; align-items: center; }
+      .song-card > div:first-child { display: contents; }
+      .song-info-date, .song-info-main, .song-info-sub { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .song-info-date { font-size: 0.76rem; }
+      .song-info-main { font-size: 0.9rem; }
+      .song-info-sub { font-size: 0.76rem; }
+      .song-badge { justify-self: end; padding: 3px 6px; }
+    }
+
+    @media (max-width: 1200px) and (min-width: 901px) {
+      .search-filter-box { grid-template-columns: minmax(240px, 1fr) 220px; }
+      .search-filter-box > .filter-group { grid-column: span 1; }
+    }
+
+
+    /* ================================================================
+       재생 탭 데스크톱 개선 (901px 이상만 적용)
+       - 모바일은 기존 표시 그대로 유지
+       - 페이지 전체가 아닌 우측 곡 리스트 내부만 스크롤
+       - 기존 LazyListRenderer / 순차 로딩 JS는 수정하지 않음
+       ================================================================ */
+    .desktop-song-flow { display: none; }
+
+    @media (min-width: 901px) {
+      /* 재생 탭이 열린 동안 모니터 한 화면 안에서만 구성 */
+      body:has(#tab-player.active) {
+        height: 100vh;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      #tab-player.active {
+        display: flex;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      /* 좌우 패널이 화면의 남은 높이를 모두 사용 */
+      .main-container {
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100%;
+        max-width: 1640px;
+        height: 100%;
+        grid-template-columns: minmax(0, 1.08fr) minmax(500px, 0.92fr);
+        gap: 20px;
+        padding: 20px 24px;
+        align-items: stretch;
+        overflow: hidden;
+      }
+
+      /* 좌측: 하나의 재생 흐름 패널 */
+      .player-section {
+        grid-column: 1;
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
+        display: flex !important;
+        flex-direction: column;
+        gap: 0;
+        background: var(--panel-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      }
+
+      /* 지난곡 / 다음곡: 현재곡보다 낮은 위계 */
+      .desktop-song-flow {
+        display: block;
+        flex: 0 0 auto;
+        padding: 10px 16px;
+        cursor: pointer;
+        opacity: 0.62;
+        transition: opacity 0.2s, background-color 0.2s;
+      }
+      #prevSongFlow { border-bottom: 1px solid var(--border); }
+      #nextSongFlow { border-top: 1px solid var(--border); }
+      .desktop-song-flow:hover { opacity: 0.9; background: var(--card-bg); }
+      .desktop-song-flow.is-empty { cursor: default; opacity: 0.35; }
+      .desktop-song-flow.is-empty:hover { background: transparent; }
+      .desktop-song-flow-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        margin-bottom: 3px;
+      }
+      .desktop-song-flow-main {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .desktop-song-flow-main strong { color: var(--text); font-weight: 600; }
+
+      /* 플레이어는 좌측 패널의 남는 높이를 사용하되 16:9 비율 유지 */
+      .player-container {
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100%;
+        height: auto;
+        padding-bottom: 0;
+        aspect-ratio: 16 / 9;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      /* 현재곡은 기존 강조 톤 유지 */
+      .now-playing-card {
+        flex: 0 0 auto;
+        margin: 0;
+        padding: 14px 20px;
+        border: 0;
+        border-radius: 0;
+        border-top: 1px solid var(--border);
+        box-shadow: none;
+      }
+      .now-playing-controls { display: none; }
+
+      /* 우측 패널도 좌측과 같은 화면 높이를 사용 */
+      .playlist-section {
+        grid-column: 2;
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .search-filter-box {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .filter-group { flex-wrap: wrap; gap: 5px; }
+
+      /* 핵심: 스크롤과 기존 IntersectionObserver 순차 로딩은 이 영역에서만 작동 */
+      .playlist-scroll {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        gap: 4px;
+      }
+
+      /* 데스크톱 곡 목록: 번호·날짜 | 곡명 - 가수명 | 언어 */
+      .song-card {
+        min-height: 42px;
+        padding: 7px 10px;
+        display: grid;
+        grid-template-columns: 94px minmax(0, 1fr) 38px;
+        gap: 6px;
+        align-items: center;
+      }
+      .song-card > div:first-child { display: contents; }
+      .song-info-date,
+      .song-info-main,
+      .song-info-sub { margin: 0; }
+      .song-info-date {
+        grid-column: 1;
+        grid-row: 1;
+        font-size: 0.72rem;
+        white-space: nowrap;
+        padding-right: 8px;
+        border-right: 1px solid var(--border);
+      }
+      .song-info-main {
+        grid-column: 2;
+        grid-row: 1;
+        display: block;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.86rem;
+      }
+      .song-card .song-info-sub { display: none; }
+      .song-card .song-info-main .desktop-artist-inline {
+        display: inline;
+        color: var(--text-muted);
+        font-weight: 400;
+      }
+      .song-badge {
+        grid-column: 3;
+        grid-row: 1;
+        justify-self: end;
+        padding: 3px 6px;
+      }
+    }
+
+    /* 중간 폭 데스크톱 보정 */
+    @media (min-width: 901px) and (max-width: 1200px) {
+      .main-container {
+        grid-template-columns: minmax(0, 1fr) minmax(420px, 0.9fr);
+        gap: 14px;
+        padding: 16px 20px;
+      }
+    }
 </style>
 </head>
 <body>
@@ -456,6 +729,7 @@
   <div id="tab-player" class="tab-content active">
     <div class="main-container">
       <div class="player-section">
+        <div id="prevSongFlow" class="desktop-song-flow is-empty" aria-label="지난곡"></div>
         <div class="player-container">
           <div id="player"></div>
         </div>
@@ -463,8 +737,14 @@
           <div class="now-playing-date" id="npDate">데이터 로딩 중...</div>
           <div class="now-playing-title" id="npTitle">노래목록 불러오는 중...</div>
           <div class="now-playing-artist" id="npArtist">로딩 대기 중...</div>
+          <div class="now-playing-stats" id="npStats" aria-live="polite"></div>
           <div class="now-playing-meta" id="npMeta" style="display: none;"></div>
+          <div class="now-playing-controls" aria-label="곡 이동">
+            <button type="button" class="song-nav-btn" id="npPrevBtn">◀ 이전곡</button>
+            <button type="button" class="song-nav-btn" id="npNextBtn">다음곡 ▶</button>
+          </div>
         </div>
+        <div id="nextSongFlow" class="desktop-song-flow is-empty" aria-label="다음곡"></div>
       </div>
 
       <div class="playlist-section">
@@ -478,18 +758,20 @@
             <option value="ALL">📺 전체 방송 보기</option>
           </select>
           
-          <div class="filter-group">
-            <button class="filter-btn main-lang-btn active" data-lang="ALL">전체</button>
-            <button class="filter-btn main-lang-btn" data-lang="KO">한식</button>
-            <button class="filter-btn main-lang-btn" data-lang="JA">일식</button>
-            <button class="filter-btn main-lang-btn" data-lang="EN">양식</button>
-            <button class="filter-btn main-lang-btn" data-lang="BUNSIK">분식</button>
-          </div>
-          <div class="filter-group">
-            <button class="filter-btn main-sort-btn" data-sort="DATE_DESC">최신순</button>
-            <button class="filter-btn main-sort-btn active" data-sort="DATE_ASC">날짜순</button>
-            <button class="filter-btn main-sort-btn" data-sort="TITLE_ASC">가나다순</button>
-            <button class="filter-btn main-sort-btn" data-sort="SHUFFLE">🎲 랜덤</button>
+          <div class="filter-groups">
+            <div class="filter-group">
+              <button class="filter-btn main-lang-btn active" data-lang="ALL">전체</button>
+              <button class="filter-btn main-lang-btn" data-lang="KO">한식</button>
+              <button class="filter-btn main-lang-btn" data-lang="JA">일식</button>
+              <button class="filter-btn main-lang-btn" data-lang="EN">양식</button>
+              <button class="filter-btn main-lang-btn" data-lang="BUNSIK">분식</button>
+            </div>
+            <div class="filter-group">
+              <button class="filter-btn main-sort-btn" data-sort="DATE_DESC">최신순</button>
+              <button class="filter-btn main-sort-btn active" data-sort="DATE_ASC">날짜순</button>
+              <button class="filter-btn main-sort-btn" data-sort="TITLE_ASC">가나다순</button>
+              <button class="filter-btn main-sort-btn" data-sort="SHUFFLE">🎲 랜덤</button>
+            </div>
           </div>
         </div>
         <div class="playlist-scroll" id="playlist"></div>
@@ -1259,6 +1541,8 @@
           npTitle: document.getElementById('npTitle'),
           npArtist: document.getElementById('npArtist'),
           npMeta: document.getElementById('npMeta'),
+          prevSongFlow: document.getElementById('prevSongFlow'),
+          nextSongFlow: document.getElementById('nextSongFlow'),
           videoSelect: document.getElementById('videoSelect'),
           statsVideoSelect: document.getElementById('statsVideoSelect'),
           backToTop: document.getElementById('backToTop'),
@@ -1433,6 +1717,26 @@
         this.npMetaEls.songId.textContent = song.songId;
       }
 
+      updateDesktopSongFlow(prevSong, nextSong, onPrev, onNext) {
+        const renderFlow = (el, label, song, onClick) => {
+          if (!el) return;
+          if (!song) {
+            el.classList.add('is-empty');
+            el.onclick = null;
+            el.innerHTML = `<div class="desktop-song-flow-label">${label}</div><div class="desktop-song-flow-main">없음</div>`;
+            return;
+          }
+          el.classList.remove('is-empty');
+          el.innerHTML = `
+            <div class="desktop-song-flow-label">${label}</div>
+            <div class="desktop-song-flow-main"><strong>${Utils.escapeHtml(song.title)}</strong> <span> - ${Utils.escapeHtml(song.artist)}</span></div>
+          `;
+          el.onclick = onClick;
+        };
+        renderFlow(this.els.prevSongFlow, '지난곡', prevSong, onPrev);
+        renderFlow(this.els.nextSongFlow, '다음곡', nextSong, onNext);
+      }
+
       highlightActiveSong(songId) {
         this.els.playlist.querySelectorAll('.song-card.active').forEach(card => card.classList.remove('active'));
         this.els.playlist.querySelectorAll('.playing-icon').forEach(icon => icon.remove());
@@ -1470,8 +1774,8 @@
         
         card.innerHTML = `
           <div>
-            <div class="song-info-date">${Utils.escapeHtml(song.date)}${streamerLabel}</div>
-            <div class="song-info-main">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)}</div>
+            <div class="song-info-date"><span class="song-order">${idx + 1}</span><span class="song-date">${Utils.escapeHtml(song.date)}</span>${streamerLabel}</div>
+            <div class="song-info-main">${isActive ? '<span class="playing-icon">▶️</span>' : ''}${Utils.escapeHtml(song.title)}<span class="desktop-artist-inline"> - ${Utils.escapeHtml(song.artist)}${song.work ? ' • ' + Utils.escapeHtml(song.work) : ''}</span></div>
             <div class="song-info-sub">${Utils.escapeHtml(song.artist)}${song.work ? ' • ' + Utils.escapeHtml(song.work) : ''}</div>
           </div>
           <span class="song-badge">${Utils.escapeHtml(song.lang)}</span>
@@ -1734,8 +2038,10 @@
         if (this.mainPlayer.playlist.length > 0) {
           this.mainPlayer.cue(0);
           this.ui.updateNowPlaying(this.mainPlayer.playlist[0]);
+          this.updateDesktopSongFlow();
         } else {
           this.ui.setEmptyNowPlaying();
+          this.updateDesktopSongFlow();
         }
 
         if (this.ui.els.tabStats.classList.contains('active')) this.renderStatistics();
@@ -1752,11 +2058,26 @@
         if (this.mainPlayer.playlist.length > 0) {
           this.mainPlayer.cue(0);
           this.ui.updateNowPlaying(this.mainPlayer.playlist[0]);
+          this.updateDesktopSongFlow();
         } else {
           this.ui.setEmptyNowPlaying();
+          this.updateDesktopSongFlow();
         }
 
         this.loadYouTubeAPI();
+      }
+
+      updateDesktopSongFlow() {
+        const index = this.mainPlayer.currentIndex;
+        const playlist = this.mainPlayer.playlist;
+        const prevSong = index > 0 ? playlist[index - 1] : null;
+        const nextSong = index >= 0 && index + 1 < playlist.length ? playlist[index + 1] : null;
+        this.ui.updateDesktopSongFlow(
+          prevSong,
+          nextSong,
+          prevSong ? () => this.playSong(index - 1) : null,
+          nextSong ? () => this.playSong(index + 1) : null
+        );
       }
 
       renderPlaylist() {
@@ -1781,6 +2102,7 @@
         this.mainPlayer.play(index, cueOnly);
         this.ui.highlightActiveSong(song.id); 
         this.ui.updateNowPlaying(song);
+        this.updateDesktopSongFlow();
       }
 
       playNextSong() {
