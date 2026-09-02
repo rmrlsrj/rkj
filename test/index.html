@@ -498,27 +498,50 @@
 
     /* ================================================================
        재생 탭 데스크톱 개선 (901px 이상만 적용)
-       모바일은 기존 표시를 그대로 유지
+       - 모바일은 기존 표시 그대로 유지
+       - 페이지 전체가 아닌 우측 곡 리스트 내부만 스크롤
+       - 기존 LazyListRenderer / 순차 로딩 JS는 수정하지 않음
        ================================================================ */
     .desktop-song-flow { display: none; }
 
     @media (min-width: 901px) {
-      /* 데스크톱 전체 폭을 더 활용: 좌측 재생 흐름 + 우측 넓은 플레이리스트 */
-      .main-container {
-        max-width: 1640px;
-        grid-template-columns: minmax(0, 1.2fr) minmax(380px, 0.9fr);
-        gap: 18px;
-        padding: 24px;
-        align-items: stretch;
+      /* 재생 탭이 열린 동안 모니터 한 화면 안에서만 구성 */
+      body:has(#tab-player.active) {
+        height: 100vh;
+        min-height: 0;
+        overflow: hidden;
       }
 
-      /* 좌측: 지난곡 → 플레이어 → 현재곡 → 다음곡을 하나의 패널로 묶음 */
+      #tab-player.active {
+        display: flex;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      /* 좌우 패널이 화면의 남은 높이를 모두 사용 */
+      .main-container {
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100%;
+        max-width: 1640px;
+        height: 100%;
+        grid-template-columns: minmax(0, 1.08fr) minmax(500px, 0.92fr);
+        gap: 20px;
+        padding: 20px 24px;
+        align-items: stretch;
+        overflow: hidden;
+      }
+
+      /* 좌측: 하나의 재생 흐름 패널 */
       .player-section {
         grid-column: 1;
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
         display: flex !important;
         flex-direction: column;
         gap: 0;
-        min-width: 0;
         background: var(--panel-bg);
         border: 1px solid var(--border);
         border-radius: 12px;
@@ -526,9 +549,10 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.03);
       }
 
-      /* 지난곡 / 다음곡: 현재곡보다 한 단계 낮은 정보 위계 */
+      /* 지난곡 / 다음곡: 현재곡보다 낮은 위계 */
       .desktop-song-flow {
         display: block;
+        flex: 0 0 auto;
         padding: 10px 16px;
         cursor: pointer;
         opacity: 0.62;
@@ -554,16 +578,23 @@
       }
       .desktop-song-flow-main strong { color: var(--text); font-weight: 600; }
 
+      /* 플레이어는 좌측 패널의 남는 높이를 사용하되 16:9 비율 유지 */
       .player-container {
+        flex: 1 1 auto;
+        min-height: 0;
         width: 100%;
+        height: auto;
+        padding-bottom: 0;
+        aspect-ratio: 16 / 9;
         border-radius: 0;
         box-shadow: none;
       }
 
-      /* 현재곡은 기존 강조 톤을 유지하되, 좌측 통합 패널 안에서 자연스럽게 연결 */
+      /* 현재곡은 기존 강조 톤 유지 */
       .now-playing-card {
-        margin-top: 0;
-        padding: 18px 20px;
+        flex: 0 0 auto;
+        margin: 0;
+        padding: 14px 20px;
         border: 0;
         border-radius: 0;
         border-top: 1px solid var(--border);
@@ -571,17 +602,20 @@
       }
       .now-playing-controls { display: none; }
 
-      /* 우측: 좌측 패널의 전체 높이를 그대로 사용 */
+      /* 우측 패널도 좌측과 같은 화면 높이를 사용 */
       .playlist-section {
         grid-column: 2;
-        height: auto;
+        min-width: 0;
         min-height: 0;
-        align-self: stretch;
+        height: 100%;
         padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
 
-      /* 검색/필터는 기존 우측 세로 구조 유지 */
       .search-filter-box {
+        flex: 0 0 auto;
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -589,10 +623,12 @@
       }
       .filter-group { flex-wrap: wrap; gap: 5px; }
 
-      /* 남는 세로 공간을 전부 곡 리스트에 사용 */
+      /* 핵심: 스크롤과 기존 IntersectionObserver 순차 로딩은 이 영역에서만 작동 */
       .playlist-scroll {
         flex: 1 1 auto;
         min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
         gap: 4px;
       }
 
@@ -639,13 +675,12 @@
       }
     }
 
-    /* 중간 폭 데스크톱에서는 우측 최소 폭을 확보하면서 기존 반응형 유지 */
+    /* 중간 폭 데스크톱 보정 */
     @media (min-width: 901px) and (max-width: 1200px) {
       .main-container {
-        max-width: none;
-        grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.9fr);
+        grid-template-columns: minmax(0, 1fr) minmax(420px, 0.9fr);
         gap: 14px;
-        padding: 20px;
+        padding: 16px 20px;
       }
     }
 </style>
