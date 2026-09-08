@@ -160,11 +160,39 @@
     .header-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
     .theme-toggle-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px; border-radius: 50%; transition: transform 0.2s; }
     .theme-toggle-btn:hover { transform: scale(1.1); }
-    .streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: nowrap; }
+.streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: nowrap; }
     .streamer-btn, .tab-btn { flex: 0 0 auto; white-space: nowrap; }
     .streamer-btn { padding: 6px 14px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
     
-/* 🟢 721px ~ 900px (피벗 모니터 864px 및 태블릿): 한 줄로 정렬 */
+    @media (min-width: 901px) {
+      header {
+        display: grid;
+        grid-template-columns: minmax(max-content, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        column-gap: 12px;
+        flex-wrap: nowrap;
+      }
+      header h1 {
+        grid-column: 1;
+        justify-self: start;
+      }
+      header .header-controls {
+        grid-column: 2;
+        justify-self: center;
+        max-width: calc(100vw - 32px);
+        flex-wrap: nowrap;
+      }
+    }
+
+    @media (min-width: 901px) and (max-width: 1200px) {
+      header .header-controls { gap: 8px; }
+      header .streamer-nav { gap: 2px; }
+      header .streamer-btn { padding: 6px 10px; }
+      header .tab-nav { gap: 2px; }
+      header .tab-btn { padding: 6px 12px; }
+    }
+
+    /* 🟢 721px ~ 900px (피벗 모니터 864px 및 태블릿): 한 줄로 정렬 */
     @media (min-width: 721px) and (max-width: 900px) {
       header {
         display: flex;
@@ -459,7 +487,7 @@
        ================================================================ */
     .desktop-song-flow { display: none; }
 
-    @media (min-width: 721px) {
+    @media (min-width: 7210px) {
       /* 재생 탭이 열린 동안 모니터 한 화면 안에서만 구성 */
       body:has(#tab-player.active) {
         height: 100vh;
@@ -677,7 +705,7 @@
       }
     }
 
-/* 🟢 피벗 세로 모니터 (800px ~ 1000px): 플레이어 320px 콤팩트 고정 + 곡 목록 대폭 확장 */
+/* 🟢 피벗 세로 모니터 (721px ~ 1000px): 플레이어 320px 콤팩트 고정 + 곡 목록 대폭 확장 */
     @media (min-width: 721px) and (max-width: 1000px) {
       .main-container {
         grid-template-columns: 320px minmax(0, 1fr);
