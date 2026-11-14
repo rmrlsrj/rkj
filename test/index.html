@@ -314,8 +314,8 @@
     .saved-playlists-song-row {
       border-inline-start: 4px solid var(--song-primary);
       background: color-mix(in srgb, var(--song-light) 40%, var(--card-bg));
-      gap: 1px; padding: 4px 8px; line-height: 1.3; min-width: 0;
     }
+    #playlistEditor .saved-playlists-song-row { gap: 1px; padding: 4px 8px; line-height: 1.3; min-width: 0; }
     button.saved-playlists-row:hover,
     .saved-playlists-row[aria-current="true"] {
       border-color: var(--song-primary, var(--accent-primary));
@@ -340,7 +340,7 @@
     .playlist-editor-divider:hover::before, .playlist-editor-divider:focus-visible::before { background: var(--accent-primary); height: 3px; }
     .playlist-editor-divider::after { content: ''; grid-area: 1 / 1; width: 32px; height: 6px; border-radius: 4px; background: var(--text-muted); }
     .playlist-editor-divider::before { grid-area: 1 / 1; }
-    #panel-playlists #playlistEditorResults, #panel-playlists #savedPlaylistSongs, .playlist-editor-songs { gap: 4px; }
+    #panel-playlists #playlistEditorResults, .playlist-editor-songs { gap: 4px; }
     .playlist-editor-songs { display: grid; margin: 0; padding: 0; list-style: none; }
     .playlist-editor-result, .playlist-editor-songs li { display: flex; align-items: center; gap: 5px; }
     .playlist-editor-result .saved-playlists-row, .playlist-editor-songs .saved-playlists-row { flex: 1; }
@@ -2568,6 +2568,20 @@
         return row;
       }
 
+      getPlaylistCardColors(playlist) {
+        const counts = new Map();
+        const total = playlist.songs.length + (playlist.unavailableSongs ?? 0);
+        for (const song of playlist.songs) {
+          const singers = [...new Set((song.streamers ?? []).filter(Boolean))];
+          // A collaboration contributes to the total, but not to a solo streamer's count.
+          if (singers.length !== 1) continue;
+          const singer = singers[0];
+          counts.set(singer, (counts.get(singer) ?? 0) + 1);
+        }
+        const dominant = [...counts].find(([, count]) => count * 10 >= total * 7);
+        return this.getSongContextColors({ streamers: dominant ? [dominant[0]] : [] });
+      }
+
       showEmpty(container, message) {
         const empty = document.createElement('p');
         empty.className = 'empty-state';
@@ -2587,6 +2601,12 @@
           const visibility = playlist.published ? '공개' : '비공개';
           const details = [playlist.serverRecord ? '' : `${playlist.songs.length}곡`, visibility, playlist.updated.slice(0, 10)];
           const row = this.createRow(playlist.title, details.filter(Boolean).join(' · '), () => this.openDetail(playlist));
+          if (playlist.songs.length) {
+            const colors = this.getPlaylistCardColors(playlist);
+            row.classList.add('saved-playlists-song-row');
+            row.style.setProperty('--song-primary', colors.primary);
+            row.style.setProperty('--song-light', colors.light);
+          }
           row.dataset.playlistId = playlist.id;
           this.results.append(row);
         });
