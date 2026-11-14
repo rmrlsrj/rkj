@@ -307,6 +307,9 @@
     .saved-playlists-toolbar .saved-playlists-primary:disabled { opacity: 0.55; cursor: default; }
     .saved-playlists-detail-header { display: grid; gap: 5px; padding: 2px 0 10px; border-bottom: 1px solid var(--border); }
     .saved-playlists-detail-header .saved-playlists-heading { font-size: 1.15rem; }
+    .saved-playlists-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .saved-playlists-title-row .saved-playlists-heading { flex: 1 1 180px; min-width: 0; }
+    .saved-playlists-title-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
     .saved-playlists-editor-toolbar .saved-playlists-heading { flex: 1; }
     #playlistEditorStatus { flex-basis: 100%; }
     .saved-playlists-row:focus-visible, #panel-playlists button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 1px; }
@@ -841,8 +844,6 @@
           <div class="saved-playlists-controls saved-playlists-toolbar" data-playlist-menu="detail">
             <button type="button" id="savedPlaylistsBack" class="filter-btn">← 목록</button>
             <div class="saved-playlists-controls">
-              <button type="button" id="savedPlaylistPlayAll" class="filter-btn saved-playlists-primary">전체 재생</button>
-              <button type="button" id="savedPlaylistPlayShuffle" class="filter-btn">🔀 셔플 재생</button>
               <button type="button" id="savedPlaylistEdit" class="filter-btn" hidden>편집</button>
               <button type="button" id="savedPlaylistDelete" class="filter-btn" hidden>삭제</button>
             </div>
@@ -873,7 +874,13 @@
         <div id="savedPlaylistsDetail" class="saved-playlists-view right-panel-view" hidden>
           <p id="savedPlaylistDeleteStatus" class="saved-playlists-meta" role="status"></p>
           <div class="saved-playlists-detail-header">
-            <h2 id="savedPlaylistTitle" class="saved-playlists-heading" tabindex="-1"></h2>
+            <div class="saved-playlists-title-row">
+              <h2 id="savedPlaylistTitle" class="saved-playlists-heading" tabindex="-1"></h2>
+              <div class="saved-playlists-title-actions">
+                <button type="button" id="savedPlaylistPlayAll" class="filter-btn saved-playlists-primary">전체 재생</button>
+                <button type="button" id="savedPlaylistPlayShuffle" class="filter-btn">🔀 셔플 재생</button>
+              </div>
+            </div>
             <p id="savedPlaylistDescription" class="saved-playlists-meta"></p>
             <p id="savedPlaylistMeta" class="saved-playlists-meta"></p>
           </div>
