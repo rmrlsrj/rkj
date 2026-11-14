@@ -2392,7 +2392,12 @@ callback: async function(response) {
 
     const data = await result.json();
 
-  if (result.ok && data.success && data.verified) {
+ if (result.ok && data.success && data.verified) {
+  window.reactkrLogin = {
+    ownerId: data.owner_id,
+    credential: response.credential
+  };
+
   status.textContent = 'Google 로그인 완료';
 
   document.getElementById('google-login-button').style.display = 'none';
