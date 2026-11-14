@@ -2042,9 +2042,13 @@ getSongByLogId(logId) {
         this.ui.renderSkeleton('statsList', CONFIG.SKELETON_COUNT_STATS, true);
         
         try {
-          await this.data.loadAllData();
-          this.applyStreamerData();
-          this.ui.hideInitialLoading();
+await this.data.loadAllData();
+this.applyStreamerData();
+
+// 노래 DB 준비 완료 알림
+document.dispatchEvent(new Event('reactkr:data-ready'));
+
+this.ui.hideInitialLoading();
         } catch (err) {
           console.error(err);
           this.ui.hideInitialLoading();
