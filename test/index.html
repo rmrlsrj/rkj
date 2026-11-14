@@ -290,7 +290,14 @@
     .saved-playlists-meta:empty { display: none; }
     .saved-playlists-account:has(> :not([hidden]):not(:empty)) { padding-bottom: 10px; border-bottom: 1px solid var(--border); }
     .saved-playlists-toolbar { justify-content: space-between; gap: 8px; }
-    .saved-playlists-primary { border-color: var(--accent-primary); background: var(--accent-light); color: var(--text); }
+    #panel-playlists .filter-btn {
+      border: 1px solid var(--border); background: var(--card-bg); color: var(--text); font-weight: 700;
+    }
+    #panel-playlists .filter-btn:not(:disabled):hover,
+    #panel-playlists .filter-btn.active,
+    #panel-playlists .saved-playlists-primary {
+      border-color: var(--accent-primary); background: var(--accent-light); color: var(--text);
+    }
     .saved-playlists-toolbar .saved-playlists-primary:disabled { opacity: 0.55; cursor: default; }
     .saved-playlists-detail-header { display: grid; gap: 5px; padding: 2px 0 10px; border-bottom: 1px solid var(--border); }
     .saved-playlists-detail-header .saved-playlists-heading { font-size: 1.15rem; }
@@ -307,8 +314,9 @@
     .saved-playlists-song-row {
       border-inline-start: 4px solid var(--song-primary);
       background: color-mix(in srgb, var(--song-light) 40%, var(--card-bg));
+      gap: 1px; padding: 4px 8px; line-height: 1.3; min-width: 0;
     }
-    .saved-playlists-row:hover,
+    button.saved-playlists-row:hover,
     .saved-playlists-row[aria-current="true"] {
       border-color: var(--song-primary, var(--accent-primary));
       background: var(--song-light, var(--accent-light));
@@ -332,11 +340,15 @@
     .playlist-editor-divider:hover::before, .playlist-editor-divider:focus-visible::before { background: var(--accent-primary); height: 3px; }
     .playlist-editor-divider::after { content: ''; grid-area: 1 / 1; width: 32px; height: 6px; border-radius: 4px; background: var(--text-muted); }
     .playlist-editor-divider::before { grid-area: 1 / 1; }
-    .playlist-editor-songs { margin: 0; padding-left: 1.5rem; font-size: 0.85rem; overflow-wrap: anywhere; }
-    .playlist-editor-result { display: flex; align-items: center; gap: 6px; }
-    .playlist-editor-result .saved-playlists-row { flex: 1; min-width: 0; }
-    .playlist-editor-songs li { margin-bottom: 4px; }
-    .playlist-editor-drag { cursor: grab; }
+    #panel-playlists #playlistEditorResults, #panel-playlists #savedPlaylistSongs, .playlist-editor-songs { gap: 4px; }
+    .playlist-editor-songs { display: grid; margin: 0; padding: 0; list-style: none; }
+    .playlist-editor-result, .playlist-editor-songs li { display: flex; align-items: center; gap: 5px; }
+    .playlist-editor-result .saved-playlists-row, .playlist-editor-songs .saved-playlists-row { flex: 1; }
+    .playlist-editor-songs .saved-playlists-row { cursor: default; }
+    #panel-playlists .playlist-editor-result .filter-btn, #panel-playlists .playlist-editor-songs .filter-btn {
+      flex: 0 0 auto; padding: 3px 7px;
+    }
+    .playlist-editor-drag { cursor: grab; padding: 3px; color: var(--text-muted); }
     .playlist-editor-drop-before { box-shadow: 0 -2px var(--accent-primary); }
     .playlist-editor-drop-after { box-shadow: 0 2px var(--accent-primary); }
     #playlistEditorLeave { max-width: min(420px, 90vw); padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel-bg); color: var(--text); }
@@ -2315,7 +2327,8 @@
             this.draftItems.splice(index, 1);
             this.renderDraftItems();
           };
-          row.append(handle, [item.song.title, item.song.artist].filter(Boolean).join(' · ') + ' ', remove);
+          const card = this.createSongRow(item.song, `${index + 1}. ${item.song.title}`);
+          row.append(handle, card, remove);
           return row;
         }));
         this.updateDraftStatus();
@@ -2532,8 +2545,8 @@
       }
 
       createRow(title, meta, onClick) {
-        const row = document.createElement('button');
-        row.type = 'button';
+        const row = document.createElement(onClick ? 'button' : 'div');
+        if (onClick) row.type = 'button';
         row.className = 'saved-playlists-row';
         const name = document.createElement('strong');
         name.textContent = title;
@@ -2541,7 +2554,7 @@
         details.className = 'saved-playlists-meta';
         details.textContent = meta;
         row.append(name, details);
-        row.addEventListener('click', onClick);
+        if (onClick) row.addEventListener('click', onClick);
         return row;
       }
 
