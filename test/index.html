@@ -813,7 +813,9 @@
             <button type="button" id="savedPlaylistsBack" class="filter-btn">← 목록</button>
             <button type="button" id="savedPlaylistPlayAll" class="filter-btn">전체 재생</button>
             <button type="button" id="savedPlaylistEdit" class="filter-btn" hidden>편집</button>
+            <button type="button" id="savedPlaylistDelete" class="filter-btn" hidden>삭제</button>
           </div>
+          <p id="savedPlaylistDeleteStatus" class="saved-playlists-meta" role="status"></p>
           <h2 id="savedPlaylistTitle" class="saved-playlists-heading" tabindex="-1"></h2>
           <p id="savedPlaylistDescription" class="saved-playlists-meta"></p>
           <p id="savedPlaylistMeta" class="saved-playlists-meta"></p>
@@ -2069,6 +2071,7 @@
     class SavedPlaylistsView {
       accountId = null;
       publicPlaylists = [];
+      deletedPlaylistIds = new Set();
       publicStatus = '공개 목록을 불러오는 중…';
       serverPlaylists = [];
       mineStatus = '';
@@ -2094,6 +2097,8 @@
         this.createButton = element('savedPlaylistCreate');
         this.createButton.disabled = true;
         this.editButton = element('savedPlaylistEdit');
+        this.deleteButton = element('savedPlaylistDelete');
+        this.deleteStatus = element('savedPlaylistDeleteStatus');
         this.editor = element('playlistEditor');
         this.editorDivider = element('playlistEditorDivider');
         this.editorHeading = element('playlistEditorHeading');
@@ -2354,7 +2359,7 @@
           const data = await response.json();
           if (data.success !== true || !Array.isArray(data.playlists)) throw new Error('Invalid public list');
           const songsById = this.getSongsByLogId();
-          this.publicPlaylists = data.playlists.map(record => {
+          this.publicPlaylists = data.playlists.filter(record => !this.deletedPlaylistIds.has(String(record.playlist_id))).map(record => {
             const entries = Array.isArray(record.songs) ? record.songs : [];
             const songs = entries.slice().sort((a, b) => Number(a.position) - Number(b.position))
               .map(entry => songsById.get(String(entry.log_id))).filter(song => song?.videoId);
@@ -2570,6 +2575,10 @@
         const canEdit = this.serverPlaylists.includes(playlist) && playlist.mine && !playlist.serverRecord;
         this.editButton.hidden = !canEdit;
         this.editButton.onclick = canEdit ? () => this.openEditor(playlist) : null;
+        this.deleteStatus.textContent = '';
+        this.deleteButton.hidden = !canEdit;
+        this.deleteButton.disabled = this.deleting === true;
+        this.deleteButton.onclick = canEdit ? () => this.deletePlaylist(playlist) : null;
         this.songs.replaceChildren();
         playlist.songs.forEach((song, index) => {
           const row = this.createSongRow(song, `${index + 1}. ${song.title}`, () => this.onPlay(playlist, index));
@@ -2586,6 +2595,36 @@
         this.songs.scrollTop = 0;
         this.highlightPlaying(this.playingId, this.playingIndex);
         this.title.focus();
+      }
+
+      async deletePlaylist(playlist) {
+        if (this.deleting || !this.accountId || !this.serverPlaylists.includes(playlist) || !playlist.mine) return;
+        if (!window.confirm(`‘${playlist.title}’ 플레이리스트를 삭제할까요?`)) return;
+        const owner = this.accountId;
+        this.deleting = true;
+        this.deleteButton.disabled = true;
+        this.editButton.disabled = true;
+        this.deleteStatus.textContent = '삭제하는 중…';
+        try {
+          await this.deleteOnServer({ playlist_id: playlist.id, version: playlist.version });
+          this.deletedPlaylistIds.add(playlist.id);
+          if (owner !== this.accountId) return;
+          this.serverPlaylists = this.serverPlaylists.filter(entry => entry.id !== playlist.id);
+          this.publicPlaylists = this.publicPlaylists.filter(entry => entry.id !== playlist.id);
+          this.renderBrowse();
+          if (this.openId === playlist.id) this.closeDetail();
+          if (playlist.published) void this.loadPublic();
+        } catch (error) {
+          if (owner === this.accountId && this.openId === playlist.id) {
+            this.deleteStatus.textContent = error.code === 'VERSION_CONFLICT'
+              ? '목록이 변경되었습니다. 새로고침해 최신 목록을 연 뒤 다시 시도해 주세요.'
+              : '삭제 결과를 확인하지 못했습니다. 다시 시도해 주세요.';
+          }
+        } finally {
+          this.deleting = false;
+          this.deleteButton.disabled = false;
+          this.editButton.disabled = false;
+        }
       }
 
       closeDetail() {
@@ -2614,6 +2653,7 @@
         this.status = document.getElementById('playlistAuthStatus');
         this.view.createOnServer = payload => this.createPlaylist(payload);
         this.view.updateOnServer = async payload => this.toPlaylist((await this.callPlaylist('/playlist/update', payload)).playlist);
+        this.view.deleteOnServer = payload => this.callPlaylist('/playlist/delete', payload);
         this.signOut.onclick = () => this.view.requestLeave(() => this.clearSession('로그아웃했습니다.'));
       }
 
@@ -2737,7 +2777,8 @@
         this.view.setServerLists([], '내 플레이리스트를 불러오는 중…');
         try {
           const data = await this.callPlaylist('/playlist/mine');
-          const lists = data.playlists.map(record => this.toPlaylist(record));
+          const lists = data.playlists.map(record => this.toPlaylist(record))
+            .filter(playlist => !this.view.deletedPlaylistIds.has(playlist.id));
           if (credential === this.credential) {
             const byId = new Map(lists.map(list => [list.id, list]));
             this.view.serverPlaylists.forEach(list => byId.set(list.id, list));
