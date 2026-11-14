@@ -285,10 +285,16 @@
     .saved-playlists-heading { margin: 0; font-size: 1rem; overflow-wrap: anywhere; }
     .saved-playlists-meta { margin: 0; color: var(--text-muted); font-size: 0.8rem; overflow-wrap: anywhere; }
     #panel-playlists { gap: 12px; }
-    .saved-playlists-account { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+    .saved-playlists-menu { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; }
+    .saved-playlists-account { display: flex; align-items: center; margin-inline-start: auto; }
     .saved-playlists-account #playlistGoogleSignIn:empty,
+    .saved-playlists-account:not(:has(#playlistGoogleSignIn:not([hidden]):not(:empty), #playlistSignOut:not([hidden]))),
     .saved-playlists-meta:empty { display: none; }
-    .saved-playlists-account:has(> :not([hidden]):not(:empty)) { padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    .saved-playlists-menu > .saved-playlists-toolbar { display: none; flex: 1 1 auto; }
+    #panel-playlists:has(> #savedPlaylistsBrowse:not([hidden])) .saved-playlists-menu > [data-playlist-menu="browse"],
+    #panel-playlists:has(> #savedPlaylistsDetail:not([hidden])) .saved-playlists-menu > [data-playlist-menu="detail"],
+    #panel-playlists:has(> #playlistEditor:not([hidden])) .saved-playlists-menu > [data-playlist-menu="editor"] { display: flex; }
+    #playlistAuthStatus { flex-basis: 100%; }
     .saved-playlists-toolbar { justify-content: space-between; gap: 8px; }
     #panel-playlists .filter-btn {
       border: 1px solid var(--border); background: var(--card-bg); color: var(--text); font-weight: 700;
@@ -301,7 +307,6 @@
     .saved-playlists-toolbar .saved-playlists-primary:disabled { opacity: 0.55; cursor: default; }
     .saved-playlists-detail-header { display: grid; gap: 5px; padding: 2px 0 10px; border-bottom: 1px solid var(--border); }
     .saved-playlists-detail-header .saved-playlists-heading { font-size: 1.15rem; }
-    .saved-playlists-editor-toolbar { padding-bottom: 8px; border-bottom: 1px solid var(--border); }
     .saved-playlists-editor-toolbar .saved-playlists-heading { flex: 1; }
     #playlistEditorStatus { flex-basis: 100%; }
     .saved-playlists-row:focus-visible, #panel-playlists button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 1px; }
@@ -328,7 +333,7 @@
     #savedPlaylistPlayAll:disabled { opacity: 0.55; cursor: default; }
     .playlist-editor {
       display: grid; flex: 1; min-height: 0;
-      grid-template-rows: auto minmax(0, var(--editor-top, 1fr)) 16px minmax(0, var(--editor-bottom, 1fr));
+      grid-template-rows: minmax(0, var(--editor-top, 1fr)) 16px minmax(0, var(--editor-bottom, 1fr));
     }
     .playlist-editor-pane { min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 8px; padding: 4px; }
     .playlist-editor-fields { display: grid; gap: 8px; font-size: 0.85rem; }
@@ -825,25 +830,15 @@
       </div>
 
       <div id="panel-playlists" class="playlist-section right-panel-view" hidden>
-        <div class="saved-playlists-account">
-          <div id="playlistGoogleSignIn"></div>
-          <button type="button" id="playlistSignOut" class="filter-btn" hidden>로그아웃</button>
-          <span id="playlistAuthStatus" class="saved-playlists-meta" role="status">로그인 준비 중</span>
-        </div>
-        <div id="savedPlaylistsBrowse" class="saved-playlists-view right-panel-view">
-          <div class="saved-playlists-controls saved-playlists-toolbar">
+        <div class="saved-playlists-menu">
+          <div class="saved-playlists-controls saved-playlists-toolbar" data-playlist-menu="browse">
             <div class="saved-playlists-controls" role="group" aria-label="플레이리스트 범위">
               <button type="button" class="filter-btn active" data-playlist-scope="public" aria-pressed="true">공개 목록</button>
               <button type="button" class="filter-btn" data-playlist-scope="mine" aria-pressed="false">내 목록</button>
             </div>
             <button type="button" id="savedPlaylistCreate" class="filter-btn saved-playlists-primary">＋ 새로 만들기</button>
           </div>
-          <input id="savedPlaylistsSearch" type="search" class="search-input" aria-label="플레이리스트 검색" placeholder="제목 · 설명 검색">
-          <p class="saved-playlists-meta">최근 수정순</p>
-          <div id="savedPlaylistsResults" class="playlist-scroll"></div>
-        </div>
-        <div id="savedPlaylistsDetail" class="saved-playlists-view right-panel-view" hidden>
-          <div class="saved-playlists-controls saved-playlists-toolbar">
+          <div class="saved-playlists-controls saved-playlists-toolbar" data-playlist-menu="detail">
             <button type="button" id="savedPlaylistsBack" class="filter-btn">← 목록</button>
             <div class="saved-playlists-controls">
               <button type="button" id="savedPlaylistPlayAll" class="filter-btn saved-playlists-primary">전체 재생</button>
@@ -851,6 +846,24 @@
               <button type="button" id="savedPlaylistDelete" class="filter-btn" hidden>삭제</button>
             </div>
           </div>
+          <div class="saved-playlists-controls saved-playlists-toolbar saved-playlists-editor-toolbar" data-playlist-menu="editor">
+            <button type="button" id="playlistEditorCancel" class="filter-btn">← 뒤로</button>
+            <h2 id="playlistEditorHeading" class="saved-playlists-heading" tabindex="-1"></h2>
+            <button type="button" id="playlistEditorSave" class="filter-btn active">저장</button>
+            <span id="playlistEditorStatus" class="saved-playlists-meta" role="status"></span>
+          </div>
+          <div class="saved-playlists-account">
+            <div id="playlistGoogleSignIn"></div>
+            <button type="button" id="playlistSignOut" class="filter-btn" hidden>로그아웃</button>
+          </div>
+          <span id="playlistAuthStatus" class="saved-playlists-meta" role="status">로그인 준비 중</span>
+        </div>
+        <div id="savedPlaylistsBrowse" class="saved-playlists-view right-panel-view">
+          <input id="savedPlaylistsSearch" type="search" class="search-input" aria-label="플레이리스트 검색" placeholder="제목 · 설명 검색">
+          <p class="saved-playlists-meta">최근 수정순</p>
+          <div id="savedPlaylistsResults" class="playlist-scroll"></div>
+        </div>
+        <div id="savedPlaylistsDetail" class="saved-playlists-view right-panel-view" hidden>
           <p id="savedPlaylistDeleteStatus" class="saved-playlists-meta" role="status"></p>
           <div class="saved-playlists-detail-header">
             <h2 id="savedPlaylistTitle" class="saved-playlists-heading" tabindex="-1"></h2>
@@ -860,12 +873,6 @@
           <div id="savedPlaylistSongs" class="playlist-scroll"></div>
         </div>
         <div id="playlistEditor" class="playlist-editor right-panel-view" hidden>
-          <div class="saved-playlists-controls saved-playlists-editor-toolbar">
-            <button type="button" id="playlistEditorCancel" class="filter-btn">← 뒤로</button>
-            <h2 id="playlistEditorHeading" class="saved-playlists-heading" tabindex="-1"></h2>
-            <button type="button" id="playlistEditorSave" class="filter-btn active">저장</button>
-            <span id="playlistEditorStatus" class="saved-playlists-meta" role="status"></span>
-          </div>
           <section id="playlistEditorExplore" class="playlist-editor-pane" aria-labelledby="playlistEditorExploreTitle">
             <h2 id="playlistEditorExploreTitle" class="saved-playlists-heading">곡 탐색</h2>
             <select id="playlistEditorVideo" class="video-select" aria-label="방송 선택"></select>
@@ -2157,7 +2164,7 @@
           event.preventDefault();
           event.returnValue = '';
         };
-        this.scopeButtons = this.browse.querySelectorAll('[data-playlist-scope]');
+        this.scopeButtons = document.querySelectorAll('[data-playlist-menu="browse"] [data-playlist-scope]');
 
         this.scopeButtons.forEach(button => button.addEventListener('click', () => {
           this.scope = button.dataset.playlistScope;
@@ -2726,7 +2733,7 @@
         this.view.createOnServer = payload => this.createPlaylist(payload);
         this.view.updateOnServer = async payload => this.toPlaylist((await this.callPlaylist('/playlist/update', payload)).playlist);
         this.view.deleteOnServer = payload => this.callPlaylist('/playlist/delete', payload);
-        this.signOut.onclick = () => this.view.requestLeave(() => this.clearSession('로그아웃했습니다.'));
+        this.signOut.onclick = () => this.view.requestLeave(() => this.clearSession(''));
       }
 
       start() {
@@ -2778,7 +2785,7 @@
           this.view.setAccount(data.owner_id);
           this.button.hidden = true;
           this.signOut.hidden = false;
-          this.status.textContent = 'Google 로그인 완료';
+          this.status.textContent = '';
           this.expiryTimer = setTimeout(() => this.clearSession('로그인이 만료되었습니다. 다시 로그인해 주세요.'), Math.min(expiresIn, 3600000));
           void this.loadMine();
         } catch {
