@@ -1600,17 +1600,18 @@
       }
 
       updateStreamerNav(btn, key) {
-        document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.documentElement.setAttribute('data-streamer', key);
+        this.showStreamerSelection(btn, key);
         document.documentElement.setAttribute('data-main-scope', key);
       }
 
-      updateMainScopeNav(btn) {
+      showStreamerSelection(btn, key) {
         document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        document.documentElement.setAttribute('data-streamer', 'ALL');
-        document.documentElement.setAttribute('data-main-scope', 'ALL');
+        document.documentElement.setAttribute('data-streamer', key);
+      }
+
+      updateMainScopeNav(btn) {
+        this.updateStreamerNav(btn, 'ALL');
       }
 
       switchTab(tabId, btn) {
@@ -2120,6 +2121,7 @@
         this.statsPlayer = new StatsPlayerManager();
         this.savedPlaylists = new SavedPlaylistsView((playlist, index) => this.playSavedPlaylist(playlist, index));
         this.playingSavedPlaylistId = null;
+        this.playlistBrowseScope = null;
         this.isYouTubeApiLoading = false;
         this.searchDebounceTimer = null;
         this.statsSearchDebounceTimer = null;
@@ -2183,11 +2185,7 @@
         this.ui.els.backToTop.addEventListener('click', () => this.ui.scrollToTop());
 
         document.querySelectorAll('.streamer-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            const target = e.target.dataset.streamerTarget;
-            if (target === 'ALL') this.switchMainScope(e.target);
-            else this.switchStreamer(target, e.target);
-          });
+          btn.addEventListener('click', () => this.selectStreamer(btn));
         });
         document.querySelectorAll('.tab-btn').forEach(btn => {
           btn.addEventListener('click', (e) => this.switchMainTab(e.target.dataset.tabTarget, e.target));
@@ -2353,6 +2351,18 @@
         }
       }
 
+      selectStreamer(btn) {
+        const key = btn.dataset.streamerTarget;
+        if (!this.ui.els.panelPlaylists.hidden) {
+          this.playlistBrowseScope = key;
+          this.ui.showStreamerSelection(btn, key);
+          return;
+        }
+
+        if (key === 'ALL') this.switchMainScope(btn);
+        else this.switchStreamer(key, btn);
+      }
+
       switchStreamer(key, btn) {
         if (this.data.streamerKey === key && this.data.mainScopeKey === key && this.data.getStreamerSongs().length > 0) return;
         this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
@@ -2403,6 +2413,11 @@
 
       switchMainTab(tabId, btn) {
         this.ui.switchTab(tabId, btn);
+        const scope = tabId === 'playlists' && this.playlistBrowseScope !== null
+          ? this.playlistBrowseScope
+          : this.data.mainScopeKey;
+        const streamerButton = document.querySelector(`.streamer-btn[data-streamer-target="${scope}"]`);
+        this.ui.showStreamerSelection(streamerButton, scope);
         if (tabId === 'stats') {
           if (this.data.mainScopeKey === 'ALL') {
             this.statsPlayer.close();
