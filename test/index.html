@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="ko" data-theme="light" data-streamer="kira">
 <head>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Unofficial</title>
@@ -2353,6 +2355,23 @@ playSavedPlaylist(savedSongs) {
   GAS 연결 확인 중...
 </div>
 
+<!-- Google 로그인 테스트 영역 -->
+<div id="google-login-area"
+     style="position:fixed;
+            top:20px;
+            right:20px;
+            z-index:2147483647;
+            background:white;
+            padding:12px;
+            border:2px solid #4285f4;
+            border-radius:8px;">
+  <div id="google-login-button"></div>
+  <div id="google-login-status"
+       style="color:black; font-size:12px; margin-top:8px;">
+    로그인하지 않음
+  </div>
+</div>
+  
 <script>
 (async function testGasConnection() {
   const dataReady = new Promise(resolve => {
