@@ -2327,6 +2327,9 @@ this.ui.hideInitialLoading();
 
 <script>
 (async function testGasConnection() {
+  const dataReady = new Promise(resolve => {
+  document.addEventListener('reactkr:data-ready', resolve, { once: true });
+});
   const url = 'https://script.google.com/macros/s/AKfycbwteNow06y6gOWyH3-CiWv7RoOkIJ7JSuY6kzDDFuZtTixKXkxWQ9Vb96SwAk2mqEDf/exec';
 
   const result = document.getElementById('gas-test-result');
@@ -2338,6 +2341,7 @@ this.ui.hideInitialLoading();
     }
 
     const data = await response.json();
+    await dataReady;
 
 result.replaceChildren();
 
@@ -2368,8 +2372,11 @@ const songList = document.createElement('ol');
 (playlist.songs || []).forEach(song => {
   const songItem = document.createElement('li');
 
-  songItem.textContent =
-    song.song_title + ' / ' + song.artist;
+const actualSong = App.data.getSongByLogId(song.log_id);
+
+songItem.textContent = actualSong
+  ? actualSong.title + ' / ' + actualSong.artist
+  : '[원본 DB에서 찾을 수 없음] ' + song.log_id;
 
   songList.appendChild(songItem);
 });
