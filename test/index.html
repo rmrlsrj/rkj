@@ -2331,9 +2331,31 @@
 
     const data = await response.json();
 
-    result.textContent =
-      'GAS 연결 성공! 플레이리스트 수: ' +
-      data.playlists.length;
+result.replaceChildren();
+
+const heading = document.createElement('h3');
+heading.textContent =
+  '공개 플레이리스트 (' + data.playlists.length + '개)';
+
+result.appendChild(heading);
+
+data.playlists.forEach(playlist => {
+  const item = document.createElement('div');
+
+  item.style.padding = '10px';
+  item.style.borderBottom = '1px solid #ddd';
+
+  const title = document.createElement('strong');
+  title.textContent = playlist.title;
+
+  const description = document.createElement('p');
+  description.textContent = playlist.description || '설명 없음';
+
+  item.appendChild(title);
+  item.appendChild(description);
+
+  result.appendChild(item);
+});
 
     console.log('GAS 응답:', data);
 
