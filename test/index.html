@@ -2192,6 +2192,34 @@ this.ui.hideInitialLoading();
         this.ui.renderStatsList(list, (ev, e, div, anchor) => this.toggleStatsPlayer(ev, e, div, anchor));
       }
 
+playSavedPlaylist(savedSongs) {
+  // 저장된 log_id를 기존 노래 DB와 연결
+  const songs = savedSongs
+    .map(item => this.data.getSongByLogId(item.log_id))
+    .filter(Boolean);
+
+  if (songs.length === 0) {
+    alert('재생할 수 있는 노래가 없습니다.');
+    return;
+  }
+
+  // 기존 플레이어의 재생목록 변경
+  this.mainPlayer.stop();
+  this.mainPlayer.reset();
+  this.mainPlayer.updatePlaylist(songs);
+
+  // 화면에 재생목록 표시
+  this.ui.renderPlaylist(
+    songs,
+    null,
+    (index) => this.playSong(index),
+    true
+  );
+
+  // 첫 번째 곡 재생
+  this.playSong(0);
+}
+      
       playSong(index, cueOnly = false) {
         this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
         
