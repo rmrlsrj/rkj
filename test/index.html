@@ -1191,6 +1191,10 @@
         return this.#currentStreamerSongs; 
       }
 
+getSongByLogId(logId) {
+  return this.#allSongs.find(song => song.logId === logId) || null;
+}
+      
       getMainSongs() {
         if (this.#mainScopeKey === 'ALL') {
           const activeMembers = Object.values(STREAMER_MAP).map(s => s.dbId);
