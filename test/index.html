@@ -291,7 +291,8 @@
       background: var(--card-bg); color: var(--text); font: inherit; font-size: 0.85rem;
       overflow-wrap: anywhere; cursor: pointer;
     }
-    .saved-playlists-row:hover, .saved-playlists-row[aria-current="true"] { border-color: var(--accent-primary); background: var(--accent-light); }
+    .saved-playlists-row:hover { border-color: var(--accent-primary); background: var(--accent-light); }
+    .saved-playlists-row[aria-current="true"] { border-color: var(--song-primary); background: var(--song-light); }
     #savedPlaylistPlayAll:disabled { opacity: 0.55; cursor: default; }
     .search-filter-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; container-type: inline-size; }
     .search-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
@@ -324,8 +325,7 @@
     .playlist-scroll::-webkit-scrollbar { width: 6px; }
     .playlist-scroll::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 3px; }
     .song-card { padding: 12px 14px; border-radius: 8px; background-color: var(--panel-bg); border: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
-    .song-card.active { border-left: 4px solid var(--accent-primary); background-color: var(--accent-light); }
-    .song-card.song-card--scoped.active { border-left-color: var(--song-primary); background-color: var(--song-light); }
+    .song-card.active { border-left: 4px solid var(--song-primary); background-color: var(--song-light); }
     @media (hover: hover) {
       .song-card:hover { border-color: var(--accent-primary); transform: translateY(-1px); }
       .song-card.song-card--scoped:hover { border-color: var(--song-primary); }
@@ -1828,12 +1828,10 @@
         card.className = `song-card ${isActive ? 'active' : ''}${showStreamer ? ' song-card--scoped' : ''}`;
         card.dataset.songId = song.id;
         
-        if (showStreamer) {
-          const colors = this.getSongContextColors(song);
-          card.style.setProperty('--song-primary', colors.primary);
-          card.style.setProperty('--song-secondary', colors.secondary);
-          card.style.setProperty('--song-light', colors.light);
-        }
+        const colors = this.getSongContextColors(song);
+        card.style.setProperty('--song-primary', colors.primary);
+        card.style.setProperty('--song-secondary', colors.secondary);
+        card.style.setProperty('--song-light', colors.light);
         
         card.tabIndex = 0;
         card.addEventListener('click', () => onPlay(idx));
@@ -1994,8 +1992,9 @@
     }
 
     class SavedPlaylistsView {
-      constructor(onPlay) {
+      constructor(onPlay, getSongContextColors) {
         this.onPlay = onPlay;
+        this.getSongContextColors = getSongContextColors;
         this.scope = 'public';
         this.playlists = [];
         this.openId = null;
@@ -2082,6 +2081,9 @@
         this.songs.replaceChildren();
         playlist.songs.forEach((song, index) => {
           const row = this.createRow(`${index + 1}. ${song.title}`, [song.artist, song.streamers.join(', '), song.date].filter(Boolean).join(' · '), () => this.onPlay(playlist, index));
+          const colors = this.getSongContextColors(song);
+          row.style.setProperty('--song-primary', colors.primary);
+          row.style.setProperty('--song-light', colors.light);
           this.songs.append(row);
         });
         if (playlist.songs.length === 0) this.showEmpty(this.songs, '수록곡이 없습니다.');
@@ -2119,7 +2121,10 @@
         this.ui = new UIController();
         this.mainPlayer = new MainPlayerManager(() => this.playNextSong());
         this.statsPlayer = new StatsPlayerManager();
-        this.savedPlaylists = new SavedPlaylistsView((playlist, index) => this.playSavedPlaylist(playlist, index));
+        this.savedPlaylists = new SavedPlaylistsView(
+          (playlist, index) => this.playSavedPlaylist(playlist, index),
+          song => this.ui.getSongContextColors(song)
+        );
         this.playingSavedPlaylistId = null;
         this.playlistBrowseScope = null;
         this.isYouTubeApiLoading = false;
