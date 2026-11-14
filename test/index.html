@@ -280,11 +280,19 @@
     .song-info-streamers { font-size: 0.78rem; font-weight: 500; color: var(--text-muted); white-space: nowrap; margin-left: 6px; padding-left: 6px; border-left: 1px solid var(--border); }
     .playlist-section { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; height: 600px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s ease, border-color 0.3s ease; min-width: 0; }
     .right-panel-view[hidden] { display: none !important; }
-    .playlist-home-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
-    .playlist-home-title { margin: 0; color: var(--text); font-size: 1rem; }
-    .playlist-home-placeholder { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-muted); text-align: center; }
-    .playlist-home-placeholder strong { color: var(--text); font-size: 1rem; }
-    .playlist-home-placeholder p { margin: 0; font-size: 0.85rem; line-height: 1.6; }
+    .saved-playlists-view { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 10px; }
+    .saved-playlists-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .saved-playlists-heading { margin: 0; font-size: 1rem; overflow-wrap: anywhere; }
+    .saved-playlists-meta { margin: 0; color: var(--text-muted); font-size: 0.8rem; overflow-wrap: anywhere; }
+    .saved-playlists-tag { margin-left: auto; }
+    .saved-playlists-row {
+      flex: 0 0 auto; width: 100%; display: grid; gap: 3px; padding: 8px 10px;
+      border: 1px solid var(--border); border-radius: 8px; text-align: left;
+      background: var(--card-bg); color: var(--text); font: inherit; font-size: 0.85rem;
+      overflow-wrap: anywhere; cursor: pointer;
+    }
+    .saved-playlists-row:hover, .saved-playlists-row[aria-current="true"] { border-color: var(--accent-primary); background: var(--accent-light); }
+    #savedPlaylistPlayAll:disabled { opacity: 0.55; cursor: default; }
     .search-filter-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; container-type: inline-size; }
     .search-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
     .search-input { width: 100%; padding: 10px 36px 10px 14px; border-radius: 8px; border: 1px solid var(--border); background-color: var(--panel-bg); color: var(--text); font-size: 0.9rem; outline: none; transition: border-color 0.2s, background-color 0.3s, color 0.3s; }
@@ -759,12 +767,25 @@
       </div>
 
       <div id="panel-playlists" class="playlist-section right-panel-view" hidden>
-        <div class="playlist-home-header">
-          <h2 class="playlist-home-title">플레이리스트</h2>
+        <div id="savedPlaylistsBrowse" class="saved-playlists-view right-panel-view">
+          <div class="saved-playlists-controls" role="group" aria-label="플레이리스트 범위">
+            <button type="button" class="filter-btn active" data-playlist-scope="public" aria-pressed="true">전체 플레이리스트</button>
+            <button type="button" class="filter-btn" data-playlist-scope="mine" aria-pressed="false">내 플레이리스트</button>
+            <span class="saved-playlists-meta saved-playlists-tag">테스트 데이터</span>
+          </div>
+          <input id="savedPlaylistsSearch" type="search" class="search-input" aria-label="플레이리스트 검색" placeholder="제목 · 설명 검색">
+          <p class="saved-playlists-meta">최근 수정순</p>
+          <div id="savedPlaylistsResults" class="playlist-scroll"></div>
         </div>
-        <div class="playlist-home-placeholder">
-          <strong>플레이리스트 화면 준비 중</strong>
-          <p>다음 단계에서 목록과 상세 화면을 이 영역에 추가합니다.</p>
+        <div id="savedPlaylistsDetail" class="saved-playlists-view right-panel-view" hidden>
+          <div class="saved-playlists-controls">
+            <button type="button" id="savedPlaylistsBack" class="filter-btn">← 목록</button>
+            <button type="button" id="savedPlaylistPlayAll" class="filter-btn">전체 재생</button>
+          </div>
+          <h2 id="savedPlaylistTitle" class="saved-playlists-heading" tabindex="-1"></h2>
+          <p id="savedPlaylistDescription" class="saved-playlists-meta"></p>
+          <p id="savedPlaylistMeta" class="saved-playlists-meta"></p>
+          <div id="savedPlaylistSongs" class="playlist-scroll"></div>
         </div>
       </div>
     </div>
@@ -1134,6 +1155,10 @@
 
       getStreamerSongs() { 
         return this.#currentStreamerSongs; 
+      }
+
+      getPlaylistSampleSongs() {
+        return this.#allSongs.filter(song => song.logId && song.videoId).slice(-6).reverse();
       }
 
       getMainSongs() {
@@ -1967,6 +1992,123 @@
       }
     }
 
+    class SavedPlaylistsView {
+      constructor(onPlay) {
+        this.onPlay = onPlay;
+        this.scope = 'public';
+        this.playlists = [];
+        this.openId = null;
+        const element = id => document.getElementById(id);
+        this.browse = element('savedPlaylistsBrowse');
+        this.detail = element('savedPlaylistsDetail');
+        this.search = element('savedPlaylistsSearch');
+        this.results = element('savedPlaylistsResults');
+        this.title = element('savedPlaylistTitle');
+        this.description = element('savedPlaylistDescription');
+        this.meta = element('savedPlaylistMeta');
+        this.songs = element('savedPlaylistSongs');
+        this.playAll = element('savedPlaylistPlayAll');
+        this.scopeButtons = this.browse.querySelectorAll('[data-playlist-scope]');
+
+        this.scopeButtons.forEach(button => button.addEventListener('click', () => {
+          this.scope = button.dataset.playlistScope;
+          this.scopeButtons.forEach(candidate => {
+            const selected = candidate === button;
+            candidate.classList.toggle('active', selected);
+            candidate.setAttribute('aria-pressed', String(selected));
+          });
+          this.renderBrowse();
+        }));
+        this.search.addEventListener('input', () => this.renderBrowse());
+        element('savedPlaylistsBack').addEventListener('click', () => this.closeDetail());
+      }
+
+      setSamples(songs) {
+        this.playlists = [
+          { id: 'empty', title: '빈 플레이리스트', description: '아직 수록곡이 없는 예시입니다.', updated: '2026-10-02', mine: true, published: false, songs: [] },
+          { id: 'recent', title: '최근 방송에서 부른 곡', description: '노래 DB의 최근 곡을 모았습니다.', updated: '2026-10-03', mine: false, published: true, songs: songs.slice(0, 3) },
+          { id: 'mix', title: '내 노래 모음', description: '내 목록과 전체 목록에서 모두 볼 수 있는 예시입니다.', updated: '2026-10-04', mine: true, published: true, songs: songs.slice(3, 6) }
+        ];
+        this.renderBrowse();
+      }
+
+      createRow(title, meta, onClick) {
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'saved-playlists-row';
+        const name = document.createElement('strong');
+        name.textContent = title;
+        const details = document.createElement('span');
+        details.className = 'saved-playlists-meta';
+        details.textContent = meta;
+        row.append(name, details);
+        row.addEventListener('click', onClick);
+        return row;
+      }
+
+      showEmpty(container, message) {
+        const empty = document.createElement('p');
+        empty.className = 'empty-state';
+        empty.textContent = message;
+        container.append(empty);
+      }
+
+      renderBrowse() {
+        const queries = Utils.getSearchQueries(this.search.value);
+        const matches = this.playlists.filter(playlist => {
+          const inScope = this.scope === 'mine' ? playlist.mine : playlist.published;
+          return inScope && Utils.matchesSearch(Utils.createSearchText([playlist.title, playlist.description]), queries);
+        }).sort((a, b) => b.updated.localeCompare(a.updated));
+
+        this.results.replaceChildren();
+        matches.forEach(playlist => {
+          const visibility = playlist.published ? '공개' : '비공개';
+          const row = this.createRow(playlist.title, `${playlist.songs.length}곡 · ${visibility} · ${playlist.updated}`, () => this.openDetail(playlist));
+          row.dataset.playlistId = playlist.id;
+          this.results.append(row);
+        });
+        if (matches.length === 0) this.showEmpty(this.results, '조건에 맞는 플레이리스트가 없습니다.');
+        this.results.scrollTop = 0;
+      }
+
+      openDetail(playlist) {
+        this.openId = playlist.id;
+        this.title.textContent = playlist.title;
+        this.description.textContent = playlist.description;
+        this.meta.textContent = `${playlist.songs.length}곡 · ${playlist.published ? '공개' : '비공개'} · ${playlist.updated}`;
+        this.playAll.disabled = playlist.songs.length === 0;
+        this.playAll.onclick = () => this.onPlay(playlist, 0);
+        this.songs.replaceChildren();
+        playlist.songs.forEach((song, index) => {
+          const row = this.createRow(`${index + 1}. ${song.title}`, [song.artist, song.streamers.join(', '), song.date].filter(Boolean).join(' · '), () => this.onPlay(playlist, index));
+          this.songs.append(row);
+        });
+        if (playlist.songs.length === 0) this.showEmpty(this.songs, '수록곡이 없습니다.');
+        this.browse.hidden = true;
+        this.detail.hidden = false;
+        this.songs.scrollTop = 0;
+        this.highlightPlaying(this.playingId, this.playingIndex);
+        this.title.focus();
+      }
+
+      closeDetail() {
+        const previousRow = this.results.querySelector(`[data-playlist-id="${this.openId}"]`);
+        this.openId = null;
+        this.detail.hidden = true;
+        this.browse.hidden = false;
+        (previousRow || this.search).focus();
+      }
+
+      highlightPlaying(playlistId, index) {
+        this.playingId = playlistId;
+        this.playingIndex = index;
+        this.songs.querySelectorAll('button').forEach((row, rowIndex) => {
+          if (this.openId === playlistId && rowIndex === index) row.setAttribute('aria-current', 'true');
+          else row.removeAttribute('aria-current');
+        });
+      }
+    }
+
     // =========================================================================
     // 🚀 7. 앱 오케스트레이터 및 이벤트 바인더
     // =========================================================================
@@ -1976,6 +2118,8 @@
         this.ui = new UIController();
         this.mainPlayer = new MainPlayerManager(() => this.playNextSong());
         this.statsPlayer = new StatsPlayerManager();
+        this.savedPlaylists = new SavedPlaylistsView((playlist, index) => this.playSavedPlaylist(playlist, index));
+        this.playingSavedPlaylistId = null;
         this.isYouTubeApiLoading = false;
         this.searchDebounceTimer = null;
         this.statsSearchDebounceTimer = null;
@@ -1991,10 +2135,12 @@
         
         try {
           await this.data.loadAllData();
+          this.savedPlaylists.setSamples(this.data.getPlaylistSampleSongs());
           this.applyStreamerData();
           this.ui.hideInitialLoading();
         } catch (err) {
           console.error(err);
+          this.savedPlaylists.setSamples([]);
           this.ui.hideInitialLoading();
           this.ui.showError('데이터베이스 연동 중 오류가 발생했습니다.');
         }
@@ -2124,9 +2270,23 @@
 
       renderPlaylist() {
         const list = this.data.getFilteredMainSongs();
-        this.mainPlayer.updatePlaylist(list);
-        this.ui.renderPlaylist(list, this.mainPlayer.currentSongId, (idx) => this.playSong(idx), this.data.mainScopeKey === 'ALL');
+        if (this.playingSavedPlaylistId === null) this.mainPlayer.updatePlaylist(list);
+        this.ui.renderPlaylist(list, this.mainPlayer.currentSongId, (index) => {
+          if (this.playingSavedPlaylistId !== null) {
+            this.playingSavedPlaylistId = null;
+            this.mainPlayer.updatePlaylist(list);
+          }
+          this.playSong(index);
+        }, this.data.mainScopeKey === 'ALL');
         this.updateDesktopSongFlow();
+      }
+
+      playSavedPlaylist(playlist, index) {
+        if (!playlist.songs[index]) return;
+        this.playingSavedPlaylistId = playlist.id;
+        this.mainPlayer.updatePlaylist(playlist.songs);
+        this.loadYouTubeAPI();
+        this.playSong(index);
       }
 
       renderStatistics() {
@@ -2144,6 +2304,7 @@
         
         this.mainPlayer.play(index, cueOnly);
         this.ui.highlightActiveSong(song.id); 
+        this.savedPlaylists.highlightPlaying(this.playingSavedPlaylistId, index);
         this.ui.updateNowPlaying(song);
         this.updateDesktopSongFlow();
       }
@@ -2202,6 +2363,8 @@
         this.data.mainFilters.videoId = 'ALL'; this.data.statsFilters.videoId = 'ALL';
         this.data.mainFilters.lang = this.data.getMainLang();
         this.mainPlayer.reset();
+        this.playingSavedPlaylistId = null;
+        this.savedPlaylists.highlightPlaying(null, -1);
         
         this.ui.updateStreamerNav(btn, key);
         this.ui.updateMainLangBtns(this.data.getMainLang());
@@ -2222,6 +2385,8 @@
         this.data.mainFilters.videoId = 'ALL';
         this.data.mainFilters.lang = this.data.getMainLang();
         this.mainPlayer.reset();
+        this.playingSavedPlaylistId = null;
+        this.savedPlaylists.highlightPlaying(null, -1);
 
         this.ui.updateMainScopeNav(btn);
         this.ui.updateMainLangBtns(this.data.getMainLang());
