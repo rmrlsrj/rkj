@@ -279,6 +279,85 @@
     
     .song-info-streamers { font-size: 0.78rem; font-weight: 500; color: var(--text-muted); white-space: nowrap; margin-left: 6px; padding-left: 6px; border-left: 1px solid var(--border); }
     .playlist-section { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; height: 600px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s ease, border-color 0.3s ease; min-width: 0; }
+    .right-panel-view[hidden] { display: none !important; }
+    .saved-playlists-view { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 10px; }
+    .saved-playlists-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .saved-playlists-heading { margin: 0; font-size: 1rem; overflow-wrap: anywhere; }
+    .saved-playlists-meta { margin: 0; color: var(--text-muted); font-size: 0.8rem; overflow-wrap: anywhere; }
+    #panel-playlists { gap: 12px; }
+    .saved-playlists-menu { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; }
+    .saved-playlists-account { display: flex; align-items: center; margin-inline-start: auto; }
+    .saved-playlists-account #playlistGoogleSignIn:empty,
+    .saved-playlists-account:not(:has(#playlistGoogleSignIn:not([hidden]):not(:empty), #playlistSignOut:not([hidden]))),
+    .saved-playlists-meta:empty { display: none; }
+    .saved-playlists-menu > .saved-playlists-toolbar { display: none; flex: 1 1 auto; }
+    #panel-playlists:has(> #savedPlaylistsBrowse:not([hidden])) .saved-playlists-menu > [data-playlist-menu="browse"],
+    #panel-playlists:has(> #savedPlaylistsDetail:not([hidden])) .saved-playlists-menu > [data-playlist-menu="detail"],
+    #panel-playlists:has(> #playlistEditor:not([hidden])) .saved-playlists-menu > [data-playlist-menu="editor"] { display: flex; }
+    #playlistAuthStatus { flex-basis: 100%; }
+    .saved-playlists-toolbar { justify-content: space-between; gap: 8px; }
+    #panel-playlists .filter-btn {
+      border: 1px solid var(--border); background: var(--card-bg); color: var(--text); font-weight: 700;
+    }
+    #panel-playlists .filter-btn:not(:disabled):hover,
+    #panel-playlists .filter-btn.active,
+    #panel-playlists .saved-playlists-primary {
+      border-color: var(--accent-primary); background: var(--accent-light); color: var(--text);
+    }
+    .saved-playlists-toolbar .saved-playlists-primary:disabled { opacity: 0.55; cursor: default; }
+    .saved-playlists-detail-header { display: grid; gap: 5px; padding: 2px 0 10px; border-bottom: 1px solid var(--border); }
+    .saved-playlists-detail-header .saved-playlists-heading { font-size: 1.15rem; }
+    .saved-playlists-editor-toolbar .saved-playlists-heading { flex: 1; }
+    #playlistEditorStatus { flex-basis: 100%; }
+    .saved-playlists-row:focus-visible, #panel-playlists button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 1px; }
+    .saved-playlists-row {
+      flex: 0 0 auto; width: 100%; display: grid; gap: 3px; padding: 8px 10px;
+      border: 1px solid var(--border); border-radius: 8px; text-align: left;
+      background: var(--card-bg); color: var(--text); font: inherit; font-size: 0.85rem;
+      overflow-wrap: anywhere; cursor: pointer;
+    }
+    .saved-playlists-song-row {
+      border-inline-start: 4px solid var(--song-primary);
+      background: color-mix(in srgb, var(--song-light) 40%, var(--card-bg));
+    }
+    #playlistEditor .saved-playlists-song-row { gap: 1px; padding: 4px 8px; line-height: 1.3; min-width: 0; }
+    button.saved-playlists-row:hover,
+    .saved-playlists-row[aria-current="true"] {
+      border-color: var(--song-primary, var(--accent-primary));
+      background: var(--song-light, var(--accent-light));
+    }
+    .saved-playlists-song-row[aria-current="true"] > strong::before {
+      content: '▶ ';
+      color: var(--song-primary);
+    }
+    #savedPlaylistPlayAll:disabled { opacity: 0.55; cursor: default; }
+    .playlist-editor {
+      display: grid; flex: 1; min-height: 0;
+      grid-template-rows: minmax(0, var(--editor-top, 1fr)) 16px minmax(0, var(--editor-bottom, 1fr));
+    }
+    .playlist-editor-pane { min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 8px; padding: 4px; }
+    .playlist-editor-fields { display: grid; gap: 8px; font-size: 0.85rem; }
+    .playlist-editor-fields label { display: grid; gap: 4px; }
+    .playlist-editor-fields .playlist-editor-visibility { display: flex; align-items: center; }
+    .playlist-editor-fields textarea { resize: vertical; font: inherit; }
+    .playlist-editor-divider { cursor: row-resize; touch-action: none; user-select: none; display: grid; place-items: center; }
+    .playlist-editor-divider::before { content: ''; width: 100%; height: 2px; background: var(--border); }
+    .playlist-editor-divider:hover::before, .playlist-editor-divider:focus-visible::before { background: var(--accent-primary); height: 3px; }
+    .playlist-editor-divider::after { content: ''; grid-area: 1 / 1; width: 32px; height: 6px; border-radius: 4px; background: var(--text-muted); }
+    .playlist-editor-divider::before { grid-area: 1 / 1; }
+    #panel-playlists #playlistEditorResults, .playlist-editor-songs { gap: 4px; }
+    .playlist-editor-songs { display: grid; margin: 0; padding: 0; list-style: none; }
+    .playlist-editor-result, .playlist-editor-songs li { display: flex; align-items: center; gap: 5px; }
+    .playlist-editor-result .saved-playlists-row, .playlist-editor-songs .saved-playlists-row { flex: 1; }
+    .playlist-editor-songs .saved-playlists-row { cursor: default; }
+    #panel-playlists .playlist-editor-result .filter-btn, #panel-playlists .playlist-editor-songs .filter-btn {
+      flex: 0 0 auto; padding: 3px 7px;
+    }
+    .playlist-editor-drag { cursor: grab; padding: 3px; color: var(--text-muted); }
+    .playlist-editor-drop-before { box-shadow: 0 -2px var(--accent-primary); }
+    .playlist-editor-drop-after { box-shadow: 0 2px var(--accent-primary); }
+    #playlistEditorLeave { max-width: min(420px, 90vw); padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel-bg); color: var(--text); }
+    #playlistEditorLeave::backdrop { background: rgba(0, 0, 0, 0.45); }
     .search-filter-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; container-type: inline-size; }
     .search-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
     .search-input { width: 100%; padding: 10px 36px 10px 14px; border-radius: 8px; border: 1px solid var(--border); background-color: var(--panel-bg); color: var(--text); font-size: 0.9rem; outline: none; transition: border-color 0.2s, background-color 0.3s, color 0.3s; }
@@ -310,11 +389,9 @@
     .playlist-scroll::-webkit-scrollbar { width: 6px; }
     .playlist-scroll::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 3px; }
     .song-card { padding: 12px 14px; border-radius: 8px; background-color: var(--panel-bg); border: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
-    .song-card.active { border-left: 4px solid var(--accent-primary); background-color: var(--accent-light); }
-    .song-card.song-card--scoped.active { border-left-color: var(--song-primary); background-color: var(--song-light); }
+    .song-card.active { border-left: 4px solid var(--song-primary); background-color: var(--song-light); }
     @media (hover: hover) {
-      .song-card:hover { border-color: var(--accent-primary); transform: translateY(-1px); }
-      .song-card.song-card--scoped:hover { border-color: var(--song-primary); }
+      .song-card:hover { border-color: var(--song-primary); transform: translateY(-1px); }
       .stats-item .date-link:hover { color: #fff; background-color: var(--accent-hover); border-radius: 4px; text-decoration: none; }
     }
     /* 1줄: 곡 순번 + 곡 제목 + [전체탭] 스트리머 */
@@ -697,6 +774,7 @@
       
       <div class="tab-nav">
         <button class="tab-btn active" data-tab-target="player">재생</button>
+        <button class="tab-btn" data-tab-target="playlists">플레이리스트</button>
         <button class="tab-btn" data-tab-target="stats">통계</button>
       </div>
     </div>
@@ -721,7 +799,7 @@
         </div>
       </div>
 
-      <div class="playlist-section">
+      <div id="panel-player" class="playlist-section right-panel-view">
         <div class="search-filter-box">
           <div class="search-wrapper">
             <input type="text" id="searchInput" class="search-input" placeholder="곡명 · 가수 · 별칭 · 년월일 검색">
@@ -749,6 +827,88 @@
           </div>
         </div>
         <div class="playlist-scroll" id="playlist"></div>
+      </div>
+
+      <div id="panel-playlists" class="playlist-section right-panel-view" hidden>
+        <div class="saved-playlists-menu">
+          <div class="saved-playlists-controls saved-playlists-toolbar" data-playlist-menu="browse">
+            <div class="saved-playlists-controls" role="group" aria-label="플레이리스트 범위">
+              <button type="button" class="filter-btn active" data-playlist-scope="public" aria-pressed="true">공개 목록</button>
+              <button type="button" class="filter-btn" data-playlist-scope="mine" aria-pressed="false">내 목록</button>
+            </div>
+            <button type="button" id="savedPlaylistCreate" class="filter-btn saved-playlists-primary">＋ 새로 만들기</button>
+          </div>
+          <div class="saved-playlists-controls saved-playlists-toolbar" data-playlist-menu="detail">
+            <button type="button" id="savedPlaylistsBack" class="filter-btn">← 목록</button>
+            <div class="saved-playlists-controls">
+              <button type="button" id="savedPlaylistPlayAll" class="filter-btn saved-playlists-primary">전체 재생</button>
+              <button type="button" id="savedPlaylistEdit" class="filter-btn" hidden>편집</button>
+              <button type="button" id="savedPlaylistDelete" class="filter-btn" hidden>삭제</button>
+            </div>
+          </div>
+          <div class="saved-playlists-controls saved-playlists-toolbar saved-playlists-editor-toolbar" data-playlist-menu="editor">
+            <button type="button" id="playlistEditorCancel" class="filter-btn">← 뒤로</button>
+            <h2 id="playlistEditorHeading" class="saved-playlists-heading" tabindex="-1"></h2>
+            <button type="button" id="playlistEditorSave" class="filter-btn active">저장</button>
+            <span id="playlistEditorStatus" class="saved-playlists-meta" role="status"></span>
+          </div>
+          <div class="saved-playlists-account">
+            <div id="playlistGoogleSignIn"></div>
+            <button type="button" id="playlistSignOut" class="filter-btn" hidden>로그아웃</button>
+          </div>
+          <span id="playlistAuthStatus" class="saved-playlists-meta" role="status">로그인 준비 중</span>
+<details class="saved-playlists-meta">
+  <summary>플레이리스트 이용 안내</summary>
+  <p>로그인 시 계정 구분값을 사용하며, 목록 이름·설명, 담은 곡과 순서, 공개 여부를 저장합니다. 이메일 주소와 이름은 저장하지 않습니다.</p>
+  <p>새 목록은 기본 공개입니다. 비공개로 설정하면 본인만 볼 수 있습니다. 삭제한 목록과 수록곡은 복구할 수 없습니다.</p>
+  <p>문의: <a href="mailto:fldorxm.rmrlsrj@gmail.com">fldorxm.rmrlsrj@gmail.com</a></p>
+</details>
+        </div>
+        <div id="savedPlaylistsBrowse" class="saved-playlists-view right-panel-view">
+          <input id="savedPlaylistsSearch" type="search" class="search-input" aria-label="플레이리스트 검색" placeholder="제목 · 설명 검색">
+          <p class="saved-playlists-meta">최근 수정순</p>
+          <div id="savedPlaylistsResults" class="playlist-scroll"></div>
+        </div>
+        <div id="savedPlaylistsDetail" class="saved-playlists-view right-panel-view" hidden>
+          <p id="savedPlaylistDeleteStatus" class="saved-playlists-meta" role="status"></p>
+          <div class="saved-playlists-detail-header">
+            <h2 id="savedPlaylistTitle" class="saved-playlists-heading" tabindex="-1"></h2>
+            <p id="savedPlaylistDescription" class="saved-playlists-meta"></p>
+            <p id="savedPlaylistMeta" class="saved-playlists-meta"></p>
+          </div>
+          <div id="savedPlaylistSongs" class="playlist-scroll"></div>
+        </div>
+        <div id="playlistEditor" class="playlist-editor right-panel-view" hidden>
+          <section id="playlistEditorExplore" class="playlist-editor-pane" aria-labelledby="playlistEditorExploreTitle">
+            <h2 id="playlistEditorExploreTitle" class="saved-playlists-heading">곡 탐색</h2>
+            <select id="playlistEditorVideo" class="video-select" aria-label="방송 선택"></select>
+            <input id="playlistEditorSearch" type="search" class="search-input" aria-label="곡 검색" placeholder="곡명 · 가수 · 별칭 검색">
+            <div id="playlistEditorResults" class="saved-playlists-view" style="flex: none"></div>
+          </section>
+          <div id="playlistEditorDivider" class="playlist-editor-divider" role="separator" tabindex="0"
+            aria-label="곡 탐색 영역 높이" aria-orientation="horizontal" aria-controls="playlistEditorExplore"
+            aria-valuemin="20" aria-valuemax="80" aria-valuenow="50"></div>
+          <section class="playlist-editor-pane" aria-label="플레이리스트 편집 내용">
+            <div class="playlist-editor-fields">
+              <label>제목 <input id="playlistEditorTitle" type="text" class="search-input" maxlength="100"></label>
+              <label>설명 <textarea id="playlistEditorDescription" class="search-input" rows="2" maxlength="1000"></textarea></label>
+              <label class="playlist-editor-visibility"><input id="playlistEditorPrivate" type="checkbox" aria-describedby="playlistEditorVisibilityHint"> 비공개 (나만 보기)</label>
+              <p id="playlistEditorVisibilityHint" class="saved-playlists-meta">체크하지 않으면 공개 목록에 표시됩니다.</p>
+            </div>
+            <p id="playlistEditorSongCount" class="saved-playlists-meta"></p>
+            <ol id="playlistEditorSongs" class="playlist-editor-songs"></ol>
+          </section>
+        </div>
+        <dialog id="playlistEditorLeave" aria-labelledby="playlistEditorLeaveTitle">
+          <h2 id="playlistEditorLeaveTitle" class="saved-playlists-heading">저장하지 않은 변경사항이 있습니다.</h2>
+          <p>이 화면을 나가기 전에 변경사항을 저장할까요?</p>
+          <div class="saved-playlists-controls">
+            <button type="button" id="playlistLeaveSave" class="filter-btn active">저장</button>
+            <button type="button" id="playlistLeaveDiscard" class="filter-btn">폐기</button>
+            <button type="button" id="playlistLeaveCancel" class="filter-btn" autofocus>취소</button>
+          </div>
+          <p id="playlistLeaveStatus" class="saved-playlists-meta" role="alert"></p>
+        </dialog>
       </div>
     </div>
   </div>
@@ -795,6 +955,11 @@
     // =========================================================================
     // ⚙️ 0. 전역 설정
     // =========================================================================
+    const PLAYLIST_AUTH = {
+      googleClientId: '674342453238-dqt5pr5pbg8etn7gahlt15nrprfiosa9.apps.googleusercontent.com',
+      verifyUrl: 'https://reactkr-playlist-auth-prod.crescnet-4890.workers.dev/auth/verify'
+    };
+
     const CONFIG = {
       TIMER_INTERVAL: 250,      
       DEBOUNCE_DELAY: 250,      
@@ -1119,12 +1284,21 @@
         return this.#currentStreamerSongs; 
       }
 
+      getSongsByLogId() {
+        return new Map(this.#allSongs.filter(song => song.logId).map(song => [String(song.logId), song]));
+      }
+
       getMainSongs() {
-        if (this.#mainScopeKey === 'ALL') {
+        return this.getSongsForScope(this.#mainScopeKey);
+      }
+
+      getSongsForScope(key) {
+        if (key === 'ALL') {
           const activeMembers = Object.values(STREAMER_MAP).map(s => s.dbId);
           return this.#allSongs.filter(song => song.streamers.some(s => activeMembers.includes(s)));
         }
-        return this.#currentStreamerSongs;
+        if (key === this.#streamerKey) return this.#currentStreamerSongs;
+        return this.#allSongs.filter(song => song.streamers.includes(STREAMER_MAP[key].dbId));
       }
 
       getUniqueVideos() {
@@ -1274,7 +1448,10 @@
         this.#player = new YT.Player('player', {
           height: '100%', width: '100%', videoId: firstSong.videoId,
           playerVars: { 'autoplay': 0, 'controls': 1, 'start': firstSong.start },
-          events: { 'onReady': () => { this.#isReady = true; }, 'onStateChange': (e) => this.#onStateChange(e) }
+          events: {
+            'onReady': (e) => { if (e.target === this.#player) this.#isReady = true; },
+            'onStateChange': (e) => { if (e.target === this.#player) this.#onStateChange(e); }
+          }
         });
       }
 
@@ -1367,6 +1544,22 @@
         this.#currentSongId = null;
         this.#isSeekingForced = false; 
         this.#currentVideoId = null;
+      }
+
+      clearVideo() {
+        this.reset();
+        const player = this.#player;
+        this.#player = null;
+        this.#isReady = false;
+        if (!player) return;
+        const container = document.querySelector('.player-section .player-container');
+        const placeholder = document.createElement('div');
+        placeholder.id = 'player';
+        try {
+          player.destroy();
+        } finally {
+          container.replaceChildren(placeholder);
+        }
       }
     }
 
@@ -1523,6 +1716,8 @@
           backToTop: document.getElementById('backToTop'),
           tabPlayer: document.getElementById('tab-player'),
           tabStats: document.getElementById('tab-stats'),
+          panelPlayer: document.getElementById('panel-player'),
+          panelPlaylists: document.getElementById('panel-playlists'),
           searchInput: document.getElementById('searchInput'),
           searchClearBtn: document.getElementById('searchClearBtn'),
           statsSearchInput: document.getElementById('statsSearchInput'),
@@ -1556,17 +1751,18 @@
       }
 
       updateStreamerNav(btn, key) {
-        document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.documentElement.setAttribute('data-streamer', key);
+        this.showStreamerSelection(btn, key);
         document.documentElement.setAttribute('data-main-scope', key);
       }
 
-      updateMainScopeNav(btn) {
+      showStreamerSelection(btn, key) {
         document.querySelectorAll('.streamer-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        document.documentElement.setAttribute('data-streamer', 'ALL');
-        document.documentElement.setAttribute('data-main-scope', 'ALL');
+        document.documentElement.setAttribute('data-streamer', key);
+      }
+
+      updateMainScopeNav(btn) {
+        this.updateStreamerNav(btn, 'ALL');
       }
 
       switchTab(tabId, btn) {
@@ -1574,7 +1770,12 @@
         this.els.tabPlayer.classList.remove('active');
         this.els.tabStats.classList.remove('active');
         btn.classList.add('active');
-        (tabId === 'player' ? this.els.tabPlayer : this.els.tabStats).classList.add('active');
+
+        const isStats = tabId === 'stats';
+        this.els.tabPlayer.classList.toggle('active', !isStats);
+        this.els.tabStats.classList.toggle('active', isStats);
+        this.els.panelPlayer.hidden = tabId !== 'player';
+        this.els.panelPlaylists.hidden = tabId !== 'playlists';
       }
 
       toggleClearBtn(inputEl, btnEl) {
@@ -1670,20 +1871,17 @@
       }
 
       getSongContextColors(song) {
-        const streamerColorMap = {
-          '키라': { primary: 'var(--kira-primary)', secondary: 'var(--kira-secondary)', light: 'var(--kira-light)' },
-          '텐텐': { primary: 'var(--tenten-primary)', secondary: 'var(--tenten-secondary)', light: 'var(--tenten-light)' },
-          '나오': { primary: 'var(--nao-primary)', secondary: 'var(--nao-secondary)', light: 'var(--nao-light)' },
-          '스야': { primary: 'var(--suya-primary)', secondary: 'var(--suya-secondary)', light: 'var(--suya-light)' },
-          '쵸케': { primary: 'var(--choke-primary)', secondary: 'var(--choke-secondary)', light: 'var(--choke-light)' }
-        };
-        
-        const keys = Array.isArray(song?.streamers) ? song.streamers : [];
-        const validKeys = keys.filter(k => streamerColorMap[k]);
-        
-        if (validKeys.length === 1) {
-          const c = streamerColorMap[validKeys[0]];
-          return { primary: c.primary, secondary: c.secondary, light: c.light, gradient: c.primary };
+        const singers = Array.isArray(song?.streamers) ? [...new Set(song.streamers.filter(Boolean))] : [];
+        const keys = Object.keys(STREAMER_MAP).filter(key => singers.includes(STREAMER_MAP[key].dbId));
+
+        if (singers.length === 1 && keys.length === 1) {
+          const key = keys[0];
+          return {
+            primary: `var(--${key}-primary)`,
+            secondary: `var(--${key}-secondary)`,
+            light: `var(--${key}-light)`,
+            gradient: `var(--${key}-primary)`
+          };
         }
         
         return {
@@ -1778,12 +1976,10 @@
         card.className = `song-card ${isActive ? 'active' : ''}${showStreamer ? ' song-card--scoped' : ''}`;
         card.dataset.songId = song.id;
         
-        if (showStreamer) {
-          const colors = this.getSongContextColors(song);
-          card.style.setProperty('--song-primary', colors.primary);
-          card.style.setProperty('--song-secondary', colors.secondary);
-          card.style.setProperty('--song-light', colors.light);
-        }
+        const colors = this.getSongContextColors(song);
+        card.style.setProperty('--song-primary', colors.primary);
+        card.style.setProperty('--song-secondary', colors.secondary);
+        card.style.setProperty('--song-light', colors.light);
         
         card.tabIndex = 0;
         card.addEventListener('click', () => onPlay(idx));
@@ -1943,6 +2139,820 @@
       }
     }
 
+    class SavedPlaylistsView {
+      accountId = null;
+      publicPlaylists = [];
+      deletedPlaylistIds = new Set();
+      publicStatus = '공개 목록을 불러오는 중…';
+      serverPlaylists = [];
+      mineStatus = '';
+      pendingLeave = null;
+
+      constructor({ onPlay, getSongContextColors, getExploreSongs, onPreview, getSongsByLogId }) {
+        this.onPlay = onPlay;
+        this.getSongContextColors = getSongContextColors;
+        this.getExploreSongs = getExploreSongs;
+        this.onPreview = onPreview;
+        this.getSongsByLogId = getSongsByLogId;
+        this.scope = 'public';
+        this.openId = null;
+        const element = id => document.getElementById(id);
+        this.browse = element('savedPlaylistsBrowse');
+        this.detail = element('savedPlaylistsDetail');
+        this.search = element('savedPlaylistsSearch');
+        this.results = element('savedPlaylistsResults');
+        this.title = element('savedPlaylistTitle');
+        this.description = element('savedPlaylistDescription');
+        this.meta = element('savedPlaylistMeta');
+        this.songs = element('savedPlaylistSongs');
+        this.playAll = element('savedPlaylistPlayAll');
+        this.createButton = element('savedPlaylistCreate');
+        this.createButton.disabled = true;
+        this.editButton = element('savedPlaylistEdit');
+        this.deleteButton = element('savedPlaylistDelete');
+        this.deleteStatus = element('savedPlaylistDeleteStatus');
+        this.editor = element('playlistEditor');
+        this.editorDivider = element('playlistEditorDivider');
+        this.editorHeading = element('playlistEditorHeading');
+        this.editorTitle = element('playlistEditorTitle');
+        this.editorDescription = element('playlistEditorDescription');
+        this.editorPrivate = element('playlistEditorPrivate');
+        this.editorSongCount = element('playlistEditorSongCount');
+        this.editorSongs = element('playlistEditorSongs');
+        this.editorExplore = element('playlistEditorExplore');
+        this.editorVideo = element('playlistEditorVideo');
+        this.editorSearch = element('playlistEditorSearch');
+        this.editorResults = element('playlistEditorResults');
+        this.editorStatus = element('playlistEditorStatus');
+        this.leaveDialog = element('playlistEditorLeave');
+        this.leaveStatus = element('playlistLeaveStatus');
+        this.warnBeforeUnload = event => {
+          event.preventDefault();
+          event.returnValue = '';
+        };
+        this.scopeButtons = document.querySelectorAll('[data-playlist-menu="browse"] [data-playlist-scope]');
+
+        this.scopeButtons.forEach(button => button.addEventListener('click', () => {
+          this.scope = button.dataset.playlistScope;
+          this.scopeButtons.forEach(candidate => {
+            const selected = candidate === button;
+            candidate.classList.toggle('active', selected);
+            candidate.setAttribute('aria-pressed', String(selected));
+          });
+          this.renderBrowse();
+          if (this.scope === 'public') void this.loadPublic();
+        }));
+        this.search.addEventListener('input', () => this.renderBrowse());
+        element('savedPlaylistsBack').addEventListener('click', () => this.closeDetail());
+        this.createButton.addEventListener('click', () => this.openEditor());
+        element('playlistEditorCancel').addEventListener('click', () => this.requestLeave());
+        element('playlistEditorSave').addEventListener('click', () => this.submitDraft());
+        element('playlistLeaveSave').addEventListener('click', () => this.submitDraft());
+        element('playlistLeaveDiscard').addEventListener('click', () => this.finishLeave(() => this.closeEditor()));
+        element('playlistLeaveCancel').addEventListener('click', () => this.leaveDialog.close());
+        this.leaveDialog.addEventListener('close', () => {
+          if (!this.leaveDialog.open) this.pendingLeave = null;
+        });
+        this.leaveDialog.addEventListener('cancel', event => {
+          if (this.saving) event.preventDefault();
+        });
+        [this.editorTitle, this.editorDescription, this.editorPrivate].forEach(field => {
+          field.addEventListener('input', () => this.updateDraftStatus());
+        });
+        this.editorVideo.addEventListener('change', () => this.filterEditorSongs());
+        this.editorSearch.addEventListener('input', () => this.filterEditorSongs());
+        this.bindDraftSorting();
+        this.bindEditorDivider();
+      }
+
+      bindEditorDivider() {
+        const divider = this.editorDivider;
+        divider.addEventListener('pointerdown', event => {
+          if (!event.isPrimary || event.button !== 0) return;
+          divider.setPointerCapture(event.pointerId);
+          divider.focus();
+        });
+        divider.addEventListener('pointermove', event => {
+          if (!divider.hasPointerCapture(event.pointerId)) return;
+          const bounds = this.editor.getBoundingClientRect();
+          const halfDivider = divider.offsetHeight / 2;
+          const top = this.editorExplore.getBoundingClientRect().top;
+          const availableHeight = bounds.bottom - top - 2 * halfDivider;
+          if (availableHeight > 0) {
+            this.setEditorSplit((event.clientY - top - halfDivider) / availableHeight * 100);
+          }
+        });
+        divider.addEventListener('keydown', event => {
+          const steps = { ArrowUp: -5, ArrowDown: 5 };
+          const current = Number(divider.getAttribute('aria-valuenow'));
+          if (event.key === 'Home') this.setEditorSplit(20);
+          else if (event.key === 'End') this.setEditorSplit(80);
+          else if (Object.hasOwn(steps, event.key)) this.setEditorSplit(current + steps[event.key]);
+          else return;
+          event.preventDefault();
+        });
+      }
+
+      setEditorSplit(value) {
+        const percent = Math.round(Math.min(80, Math.max(20, value)));
+        this.editor.style.setProperty('--editor-top', `${percent}fr`);
+        this.editor.style.setProperty('--editor-bottom', `${100 - percent}fr`);
+        this.editorDivider.setAttribute('aria-valuenow', String(percent));
+      }
+
+      openEditor(playlist = null) {
+        if (!this.accountId || (playlist && !playlist.mine)) return;
+        this.editingPlaylist = playlist;
+        this.createRequest = null;
+        this.draftOwner = this.accountId;
+        this.editorHeading.textContent = playlist ? '플레이리스트 편집' : '새 플레이리스트';
+        this.editorTitle.value = playlist?.title ?? '';
+        this.editorDescription.value = playlist?.description ?? '';
+        this.editorPrivate.checked = playlist?.published === false;
+        this.draftItems = (playlist?.songs ?? []).map(song => ({ song }));
+        this.originalDraft = this.readDraft();
+        this.renderDraftItems();
+        this.browse.hidden = true;
+        this.detail.hidden = true;
+        this.editor.hidden = false;
+        this.editorSearch.value = '';
+        this.refreshEditorScope();
+        this.setEditorSplit(50);
+        this.editor.querySelectorAll('.playlist-editor-pane').forEach(pane => { pane.scrollTop = 0; });
+        this.editorHeading.focus();
+      }
+
+      refreshEditorScope() {
+        if (this.editor.hidden) return;
+        this.exploreSongs = this.getExploreSongs();
+        const videos = new Map();
+        this.exploreSongs.forEach(song => {
+          if (song.rawVideoId && !videos.has(song.rawVideoId)) {
+            videos.set(song.rawVideoId, [song.date, song.videoTitle].filter(Boolean).join(' · '));
+          }
+        });
+        this.editorVideo.replaceChildren(new Option('전체 방송', ''));
+        [...videos].reverse().forEach(([id, label]) => this.editorVideo.add(new Option(label, id)));
+        this.editorVideo.value = '';
+        this.filterEditorSongs();
+      }
+
+      filterEditorSongs() {
+        const queries = Utils.getSearchQueries(this.editorSearch.value);
+        const video = this.editorVideo.value;
+        this.exploreMatches = this.exploreSongs.filter(song =>
+          song.videoId && (!video || song.rawVideoId === video) && Utils.matchesSearch(song.searchText, queries)
+        ).reverse();
+        this.editorResults.replaceChildren();
+        this.renderExplorePage(0);
+        if (!this.exploreMatches.length) this.showEmpty(this.editorResults, '조건에 맞는 곡이 없습니다.');
+      }
+
+      renderExplorePage(start) {
+        const end = Math.min(start + CONFIG.CHUNK_SIZE, this.exploreMatches.length);
+        this.exploreMatches.slice(start, end).forEach(song => {
+          const line = document.createElement('div');
+          line.className = 'playlist-editor-result';
+          const row = this.createSongRow(song, song.title, () => this.onPreview(song));
+          const add = document.createElement('button');
+          add.type = 'button';
+          add.className = 'filter-btn';
+          add.textContent = '추가';
+          add.setAttribute('aria-label', `${song.title} 추가`);
+          add.onclick = () => {
+            this.draftItems.push({ song });
+            this.renderDraftItems();
+          };
+          line.append(row, add);
+          this.editorResults.append(line);
+        });
+        if (end < this.exploreMatches.length) {
+          const more = this.createRow('곡 더 보기', `${end} / ${this.exploreMatches.length}곡`, () => {
+            more.remove();
+            this.renderExplorePage(end);
+            this.editorResults.children[end].querySelector('button').focus();
+          });
+          this.editorResults.append(more);
+        }
+      }
+
+      renderDraftItems() {
+        this.editorSongCount.textContent = this.draftItems.length ? `수록곡 ${this.draftItems.length}곡` : '수록곡이 없습니다.';
+        this.editorSongs.replaceChildren(...this.draftItems.map((item, index) => {
+          const row = document.createElement('li');
+          row.dataset.index = index;
+          const handle = document.createElement('span');
+          handle.className = 'playlist-editor-drag';
+          handle.draggable = true;
+          handle.title = '드래그해서 순서 변경';
+          handle.textContent = '⠿ ';
+          handle.ondragstart = event => {
+            this.draggedItem = item;
+            event.dataTransfer.setData('text/plain', String(index));
+            event.dataTransfer.effectAllowed = 'move';
+          };
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'filter-btn';
+          remove.textContent = '삭제';
+          remove.setAttribute('aria-label', `${index + 1}번 곡 삭제`);
+          remove.onclick = () => {
+            this.draftItems.splice(index, 1);
+            this.renderDraftItems();
+          };
+          const card = this.createSongRow(item.song, `${index + 1}. ${item.song.title}`);
+          row.append(handle, card, remove);
+          return row;
+        }));
+        this.updateDraftStatus();
+      }
+
+      bindDraftSorting() {
+        const clearMarker = () => {
+          if (this.dropRow) this.dropRow.classList.remove('playlist-editor-drop-before', 'playlist-editor-drop-after');
+          this.dropRow = null;
+        };
+        const getTarget = event => event.target.closest('li[data-index]');
+        const isAfter = (event, row) => {
+          const bounds = row.getBoundingClientRect();
+          return event.clientY >= bounds.top + bounds.height / 2;
+        };
+        this.editorSongs.addEventListener('dragover', event => {
+          if (!this.draggedItem) return;
+          const row = getTarget(event);
+          if (!row) return;
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'move';
+          clearMarker();
+          this.dropRow = row;
+          row.classList.add(isAfter(event, row) ? 'playlist-editor-drop-after' : 'playlist-editor-drop-before');
+        });
+        this.editorSongs.addEventListener('drop', event => {
+          const row = getTarget(event);
+          if (!this.draggedItem || !row) return;
+          event.preventDefault();
+          const from = this.draftItems.indexOf(this.draggedItem);
+          const to = Number(row.dataset.index) + Number(isAfter(event, row));
+          clearMarker();
+          this.draggedItem = null;
+          if (from < 0) return;
+          const [item] = this.draftItems.splice(from, 1);
+          this.draftItems.splice(to > from ? to - 1 : to, 0, item);
+          this.renderDraftItems();
+        });
+        this.editorSongs.addEventListener('dragend', () => {
+          clearMarker();
+          this.draggedItem = null;
+        });
+      }
+
+      closeEditor() {
+        this.editor.hidden = true;
+        window.removeEventListener('beforeunload', this.warnBeforeUnload);
+        if (this.openId !== null) {
+          this.detail.hidden = false;
+          this.editButton.focus();
+        } else {
+          this.browse.hidden = false;
+          this.createButton.focus();
+        }
+      }
+
+      async loadPublic(afterWrite = false) {
+        if (this.loadingPublic) {
+          if (afterWrite) this.refreshPublicAfterLoad = true;
+          return;
+        }
+        this.loadingPublic = true;
+        this.publicStatus = '공개 목록을 불러오는 중…';
+        if (this.scope === 'public') this.renderBrowse();
+        try {
+          const response = await fetch(new URL('/playlist/public', PLAYLIST_AUTH.verifyUrl), {
+            signal: AbortSignal.timeout(15000),
+            credentials: 'omit'
+          });
+          if (!response.ok) throw new Error('Public list unavailable');
+          const data = await response.json();
+          if (data.success !== true || !Array.isArray(data.playlists)) throw new Error('Invalid public list');
+          await this.songsReady;
+          if (this.refreshPublicAfterLoad) return;
+          const songsById = this.getSongsByLogId();
+          this.publicPlaylists = data.playlists.filter(record => !this.deletedPlaylistIds.has(String(record.playlist_id))).map(record => {
+            const entries = Array.isArray(record.songs) ? record.songs : [];
+            const songs = entries.slice().sort((a, b) => Number(a.position) - Number(b.position))
+              .map(entry => songsById.get(String(entry.log_id))).filter(song => song?.videoId);
+            return {
+              id: String(record.playlist_id), title: String(record.title), description: String(record.description ?? ''),
+              updated: String(record.updated_at ?? record.created_at ?? ''),
+              published: true, mine: false, songs, unavailableSongs: entries.length - songs.length
+            };
+          });
+          this.publicStatus = '';
+        } catch {
+          this.publicStatus = '공개 목록을 불러오지 못했습니다. ‘공개 목록’을 눌러 다시 시도해 주세요.';
+        } finally {
+          this.loadingPublic = false;
+          if (this.refreshPublicAfterLoad) {
+            this.refreshPublicAfterLoad = false;
+            void this.loadPublic();
+          } else if (this.scope === 'public') this.renderBrowse();
+        }
+      }
+
+      setAccount(accountId) {
+        this.accountId = accountId;
+        this.serverPlaylists = [];
+        this.mineStatus = '';
+        this.createButton.disabled = !accountId;
+        if (this.openId !== null) {
+          this.openId = null;
+          this.detail.hidden = true;
+          if (this.editor.hidden) this.browse.hidden = false;
+        }
+        this.renderBrowse();
+      }
+
+      clearAccountContent() {
+        if (this.leaveDialog.open) this.leaveDialog.close();
+        this.pendingLeave = null;
+        this.openId = null;
+        if (!this.editor.hidden) this.closeEditor();
+        this.detail.hidden = true;
+        this.browse.hidden = false;
+        this.title.textContent = '';
+        this.description.textContent = '';
+        this.meta.textContent = '';
+        this.songs.replaceChildren();
+        this.playAll.onclick = null;
+        this.editButton.onclick = null;
+        this.deleteButton.onclick = null;
+        this.editorTitle.value = '';
+        this.editorDescription.value = '';
+        this.editorPrivate.checked = false;
+        this.editorSongs.replaceChildren();
+        this.editorSongCount.textContent = '';
+        this.editorStatus.textContent = '';
+        this.draftItems = [];
+        this.originalDraft = null;
+        this.editingPlaylist = null;
+        this.createRequest = null;
+      }
+
+      setServerLists(lists, status = '') {
+        this.serverPlaylists = lists;
+        this.mineStatus = status;
+        this.renderBrowse();
+      }
+
+      readDraft() {
+        return {
+          title: this.editorTitle.value,
+          description: this.editorDescription.value,
+          published: !this.editorPrivate.checked,
+          songs: this.draftItems.map(item => item.song)
+        };
+      }
+
+      isDraftDirty() {
+        const draft = this.readDraft();
+        const original = this.originalDraft;
+        return draft.title !== original.title || draft.description !== original.description ||
+          draft.published !== original.published || draft.songs.length !== original.songs.length ||
+          draft.songs.some((song, index) => song !== original.songs[index]);
+      }
+
+      updateDraftStatus() {
+        const dirty = this.isDraftDirty();
+        this.editorStatus.textContent = dirty ? '저장하지 않은 변경사항' : '';
+        if (dirty) window.addEventListener('beforeunload', this.warnBeforeUnload);
+        else window.removeEventListener('beforeunload', this.warnBeforeUnload);
+      }
+
+      requestLeave(continueNavigation = () => {}) {
+        if (this.saving) return;
+        if (this.editor.hidden) return continueNavigation();
+        if (!this.isDraftDirty()) {
+          this.closeEditor();
+          return continueNavigation();
+        }
+        if (this.leaveDialog.open) return;
+        this.pendingLeave = continueNavigation;
+        this.leaveStatus.textContent = '';
+        this.leaveDialog.showModal();
+      }
+
+      finishLeave(resolveDraft) {
+        const continueNavigation = this.pendingLeave;
+        this.pendingLeave = null;
+        this.leaveDialog.close();
+        resolveDraft();
+        continueNavigation?.();
+      }
+
+      async submitDraft() {
+        if (this.saving) return;
+        const draft = this.readDraft();
+        draft.title = draft.title.trim();
+        const status = this.leaveDialog.open ? this.leaveStatus : this.editorStatus;
+        if (!this.accountId || this.accountId !== this.draftOwner) {
+          status.textContent = '편집을 시작한 계정으로 로그인한 뒤 저장해 주세요.';
+          return null;
+        }
+        if (!draft.title) {
+          status.textContent = '제목을 입력해 주세요.';
+          if (!this.leaveDialog.open) this.editorTitle.focus();
+          return null;
+        }
+        if (draft.songs.some(song => !song.logId) || draft.songs.length > 500) {
+          status.textContent = '곡은 기록 ID가 있는 항목으로 최대 500곡까지 저장할 수 있습니다.';
+          return;
+        }
+        const payload = {
+          title: draft.title, description: draft.description, visibility: draft.published ? 'PUBLIC' : 'PRIVATE',
+          songs: draft.songs.map(song => ({
+            log_id: String(song.logId), song_title: song.title, artist: song.artist
+          }))
+        };
+        const fingerprint = JSON.stringify(payload);
+        if (this.createRequest?.fingerprint !== fingerprint) {
+          this.createRequest = { fingerprint, id: crypto.randomUUID() };
+        }
+        this.saving = true;
+        this.editor.inert = true;
+        const dialogButtons = this.leaveDialog.querySelectorAll('button');
+        dialogButtons.forEach(button => { button.disabled = true; });
+        status.textContent = '서버에 저장하는 중…';
+        try {
+          const playlist = this.editingPlaylist
+            ? await this.updateOnServer({
+                ...payload, playlist_id: this.editingPlaylist.id, version: this.editingPlaylist.version
+              })
+            : await this.createOnServer({ ...payload, request_id: this.createRequest.id });
+          if (this.accountId !== this.draftOwner) throw new Error('Session changed');
+          this.onPlaylistSaved(playlist);
+          this.serverPlaylists = [playlist, ...this.serverPlaylists.filter(entry => entry.id !== playlist.id)];
+          if (!playlist.published) {
+            this.publicPlaylists = this.publicPlaylists.filter(entry => entry.id !== playlist.id);
+          }
+          if (playlist.published || this.editingPlaylist?.published) void this.loadPublic(true);
+          this.renderBrowse();
+          this.editor.inert = false;
+          if (this.leaveDialog.open) this.finishLeave(() => this.finishSave(playlist));
+          else this.finishSave(playlist);
+        } catch (error) {
+          status.textContent = error.code === 'VERSION_CONFLICT'
+            ? '서버에서 목록이 변경되었습니다. 편집 내용은 남아 있습니다. 최신 목록을 다시 열어 주세요.'
+            : '서버에 저장하지 못했습니다. 편집 내용은 그대로 남아 있습니다.';
+        } finally {
+          this.saving = false;
+          this.editor.inert = false;
+          dialogButtons.forEach(button => { button.disabled = false; });
+        }
+      }
+
+      finishSave(playlist) {
+        this.closeEditor();
+        this.openDetail(playlist);
+      }
+
+      createRow(title, meta, onClick) {
+        const row = document.createElement(onClick ? 'button' : 'div');
+        if (onClick) row.type = 'button';
+        row.className = 'saved-playlists-row';
+        const name = document.createElement('strong');
+        name.textContent = title;
+        const details = document.createElement('span');
+        details.className = 'saved-playlists-meta';
+        details.textContent = meta;
+        row.append(name, details);
+        if (onClick) row.addEventListener('click', onClick);
+        return row;
+      }
+
+      createSongRow(song, title, onClick) {
+        const meta = [song.artist, song.streamers.join(', '), song.date].filter(Boolean).join(' · ');
+        const row = this.createRow(title, meta, onClick);
+        row.classList.add('saved-playlists-song-row');
+        const colors = this.getSongContextColors(song);
+        row.style.setProperty('--song-primary', colors.primary);
+        row.style.setProperty('--song-light', colors.light);
+        return row;
+      }
+
+      getPlaylistCardColors(playlist) {
+        const counts = new Map();
+        const total = playlist.songs.length + (playlist.unavailableSongs ?? 0);
+        for (const song of playlist.songs) {
+          const singers = [...new Set((song.streamers ?? []).filter(Boolean))];
+          // A collaboration contributes to the total, but not to a solo streamer's count.
+          if (singers.length !== 1) continue;
+          const singer = singers[0];
+          counts.set(singer, (counts.get(singer) ?? 0) + 1);
+        }
+        const dominant = [...counts].find(([, count]) => count * 10 >= total * 7);
+        return this.getSongContextColors({ streamers: dominant ? [dominant[0]] : [] });
+      }
+
+      showEmpty(container, message) {
+        const empty = document.createElement('p');
+        empty.className = 'empty-state';
+        empty.textContent = message;
+        container.append(empty);
+      }
+
+      renderBrowse() {
+        const queries = Utils.getSearchQueries(this.search.value);
+        const lists = this.scope === 'mine' ? this.serverPlaylists : this.publicPlaylists;
+        const matches = lists.filter(playlist => {
+          return Utils.matchesSearch(Utils.createSearchText([playlist.title, playlist.description]), queries);
+        }).sort((a, b) => b.updated.localeCompare(a.updated));
+
+        this.results.replaceChildren();
+        matches.forEach(playlist => {
+          const visibility = playlist.published ? '공개' : '비공개';
+          const details = [playlist.serverRecord ? '' : `${playlist.songs.length}곡`, visibility, playlist.updated.slice(0, 10)];
+          const row = this.createRow(playlist.title, details.filter(Boolean).join(' · '), () => this.openDetail(playlist));
+          if (playlist.songs.length) {
+            const colors = this.getPlaylistCardColors(playlist);
+            row.classList.add('saved-playlists-song-row');
+            row.style.setProperty('--song-primary', colors.primary);
+            row.style.setProperty('--song-light', colors.light);
+          }
+          row.dataset.playlistId = playlist.id;
+          this.results.append(row);
+        });
+        if (this.scope === 'mine' && !this.accountId) {
+          this.showEmpty(this.results, 'Google 로그인 후 내 플레이리스트를 볼 수 있습니다.');
+        } else if (matches.length === 0) {
+          const status = this.scope === 'mine' ? this.mineStatus : this.publicStatus;
+          this.showEmpty(this.results, status || (this.scope === 'mine' && lists.length === 0
+            ? '아직 만든 플레이리스트가 없습니다. 새로 만들어 보세요!'
+            : '조건에 맞는 플레이리스트가 없습니다.'));
+        }
+        this.results.scrollTop = 0;
+      }
+
+      openDetail(playlist) {
+        this.openId = playlist.id;
+        this.title.textContent = playlist.title;
+        this.description.textContent = playlist.description;
+        this.meta.textContent = [
+          playlist.serverRecord ? '' : `${playlist.songs.length}곡`,
+          playlist.published ? '공개' : '비공개',
+          playlist.updated.slice(0, 10)
+        ].filter(Boolean).join(' · ');
+        const firstPlayable = playlist.songs.findIndex(song => song.videoId);
+        this.playAll.disabled = firstPlayable < 0;
+        this.playAll.onclick = () => this.onPlay(playlist, firstPlayable);
+        const canEdit = this.serverPlaylists.includes(playlist) && playlist.mine && !playlist.serverRecord;
+        this.editButton.hidden = !canEdit;
+        this.editButton.onclick = canEdit ? () => this.openEditor(playlist) : null;
+        this.deleteStatus.textContent = '';
+        this.deleteButton.hidden = !canEdit;
+        this.deleteButton.disabled = this.deleting === true;
+        this.deleteButton.onclick = canEdit ? () => this.deletePlaylist(playlist) : null;
+        this.songs.replaceChildren();
+        playlist.songs.forEach((song, index) => {
+          const row = this.createSongRow(song, `${index + 1}. ${song.title}`, () => this.onPlay(playlist, index));
+          row.disabled = !song.videoId;
+          this.songs.append(row);
+        });
+        if (playlist.unavailableSongs) {
+          this.showEmpty(this.songs, `노래 DB에서 재생 정보를 찾을 수 없는 곡이 ${playlist.unavailableSongs}개 있습니다.`);
+        } else if (playlist.songs.length === 0) {
+          this.showEmpty(this.songs, playlist.serverRecord ? '수록곡을 불러오지 못했습니다.' : '수록곡이 없습니다.');
+        }
+        this.browse.hidden = true;
+        this.detail.hidden = false;
+        this.songs.scrollTop = 0;
+        this.highlightPlaying(this.playingId, this.playingIndex);
+        this.title.focus();
+      }
+
+      async deletePlaylist(playlist) {
+        if (this.deleting || !this.accountId || !this.serverPlaylists.includes(playlist) || !playlist.mine) return;
+        if (!window.confirm(`‘${playlist.title}’ 플레이리스트\n\n삭제하면 복구할 수 없습니다. 삭제하시겠습니까?`)) return;
+        if (!window.confirm('마지막으로 확인합니다. 복구할 수 없습니다. 삭제하시겠습니까?')) return;
+        const owner = this.accountId;
+        this.deleting = true;
+        this.deleteButton.disabled = true;
+        this.editButton.disabled = true;
+        this.deleteStatus.textContent = '삭제하는 중…';
+        try {
+          await this.deleteOnServer({ playlist_id: playlist.id, version: playlist.version });
+          this.deletedPlaylistIds.add(playlist.id);
+          if (owner !== this.accountId) return;
+          this.serverPlaylists = this.serverPlaylists.filter(entry => entry.id !== playlist.id);
+          this.publicPlaylists = this.publicPlaylists.filter(entry => entry.id !== playlist.id);
+          this.renderBrowse();
+          if (this.openId === playlist.id) this.closeDetail();
+          if (playlist.published) void this.loadPublic(true);
+        } catch (error) {
+          if (owner === this.accountId && this.openId === playlist.id) {
+            const messages = {
+              VERSION_CONFLICT: '목록이 변경되었습니다. 새로고침해 최신 목록을 연 뒤 다시 시도해 주세요.',
+              UNKNOWN_ACTION: 'Apps Script 배포에 삭제 요청 처리가 연결되어 있지 않습니다. (UNKNOWN_ACTION)',
+              INVALID_REQUEST: 'Apps Script에서 삭제 요청을 처리하지 못했습니다. 실행 기록을 확인해 주세요. (INVALID_REQUEST)',
+              'Not Found': 'Worker에서 삭제 경로 응답을 받지 못했습니다. (404)',
+              PLAYLIST_NOT_FOUND: '서버에서 이 계정의 목록을 찾지 못했습니다. 새로고침 후 확인해 주세요.',
+              INVALID_PLAYLIST_DATA: '목록 ID 또는 버전이 유효하지 않습니다. 새로고침 후 시도해 주세요.',
+              PLAYLIST_SAVE_BUSY: '서버가 다른 저장을 처리 중입니다. 잠시 후 다시 시도해 주세요.',
+              GAS_DELETE_TIMEOUT: 'Apps Script의 삭제 응답이 시간 안에 오지 않았습니다. (GAS_DELETE_TIMEOUT)',
+              GAS_DELETE_HTTP_ERROR: `Apps Script가 HTTP 오류를 반환했습니다${error.gasStatus ? ' (' + error.gasStatus + ')' : ''}. (GAS_DELETE_HTTP_ERROR)`,
+              GAS_DELETE_INVALID_RESPONSE: 'Apps Script가 예상한 JSON 대신 다른 응답을 반환했습니다. (GAS_DELETE_INVALID_RESPONSE)',
+              PLAYLIST_DELETE_FAILED: 'Worker에서 Apps Script로 삭제 요청을 보내는 중 오류가 발생했습니다. (PLAYLIST_DELETE_FAILED)'
+            };
+            const message = Object.hasOwn(messages, error.code) ? messages[error.code] : null;
+            const status = Number.isInteger(error.status) ? ` (HTTP ${error.status})` : '';
+            this.deleteStatus.textContent = message ?? `삭제 결과를 확인하지 못했습니다${status}. 목록을 새로고침해 확인해 주세요.`;
+          }
+        } finally {
+          this.deleting = false;
+          this.deleteButton.disabled = false;
+          this.editButton.disabled = false;
+        }
+      }
+
+      closeDetail() {
+        const previousRow = this.results.querySelector(`[data-playlist-id="${this.openId}"]`);
+        this.openId = null;
+        this.detail.hidden = true;
+        this.browse.hidden = false;
+        (previousRow || this.search).focus();
+      }
+
+      highlightPlaying(playlistId, index) {
+        this.playingId = playlistId;
+        this.playingIndex = index;
+        this.songs.querySelectorAll('button').forEach((row, rowIndex) => {
+          if (this.openId === playlistId && rowIndex === index) row.setAttribute('aria-current', 'true');
+          else row.removeAttribute('aria-current');
+        });
+      }
+    }
+
+    class PlaylistAuth {
+      constructor(view, onSessionEnd) {
+        this.view = view;
+        this.onSessionEnd = onSessionEnd;
+        this.button = document.getElementById('playlistGoogleSignIn');
+        this.signOut = document.getElementById('playlistSignOut');
+        this.status = document.getElementById('playlistAuthStatus');
+        this.view.createOnServer = payload => this.createPlaylist(payload);
+        this.view.updateOnServer = async payload => this.toPlaylist((await this.callPlaylist('/playlist/update', payload)).playlist);
+        this.view.deleteOnServer = payload => this.callPlaylist('/playlist/delete', payload);
+        this.signOut.onclick = () => this.view.requestLeave(() => this.clearSession(''));
+      }
+
+      start() {
+        if (!/^[\w.-]+\.apps\.googleusercontent\.com$/.test(PLAYLIST_AUTH.googleClientId)) {
+          this.status.textContent = 'Google 로그인 설정이 필요합니다.';
+          return;
+        }
+        const sdk = document.createElement('script');
+        sdk.src = 'https://accounts.google.com/gsi/client';
+        sdk.async = true;
+        sdk.onload = () => {
+          google.accounts.id.initialize({
+            client_id: PLAYLIST_AUTH.googleClientId,
+            auto_select: false,
+            callback: response => this.verify(response.credential)
+          });
+          google.accounts.id.renderButton(this.button, { theme: 'outline', size: 'medium', locale: 'ko' });
+          this.status.textContent = '';
+        };
+        sdk.onerror = () => { this.status.textContent = 'Google 로그인 버튼을 불러오지 못했습니다.'; };
+        document.head.append(sdk);
+      }
+
+      async verify(credential) {
+        if (this.verifying || this.view.accountId || !credential) return;
+        this.verifying = true;
+        this.status.textContent = 'Google 계정을 확인하는 중…';
+        try {
+          const response = await fetch(PLAYLIST_AUTH.verifyUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ credential }),
+            signal: AbortSignal.timeout(15000)
+          });
+          const data = await response.json();
+          if (!response.ok || data.success !== true || data.verified !== true ||
+              typeof data.owner_id !== 'string' || !data.owner_id.trim()) {
+            this.status.textContent = '계정 확인에 실패했습니다. 다시 로그인해 주세요.';
+            return;
+          }
+          // The Worker confirms the identity. The token's expiry only sets the UI timeout.
+          const payload = credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+          const expiresIn = Number(JSON.parse(atob(payload)).exp) * 1000 - Date.now();
+          if (!Number.isFinite(expiresIn) || expiresIn <= 0) {
+            this.status.textContent = '로그인이 만료되었습니다. 다시 로그인해 주세요.';
+            return;
+          }
+          this.credential = credential;
+          this.view.setAccount(data.owner_id);
+          this.button.hidden = true;
+          this.signOut.hidden = false;
+          this.status.textContent = '';
+          this.expiryTimer = setTimeout(() => this.clearSession('로그인이 만료되었습니다. 다시 로그인해 주세요.'), Math.min(expiresIn, 3600000));
+          void this.loadMine();
+        } catch {
+          this.status.textContent = '로그인 서버에 연결하지 못했습니다. 다시 시도해 주세요.';
+        } finally {
+          this.verifying = false;
+        }
+      }
+
+      clearSession(message) {
+        clearTimeout(this.expiryTimer);
+        this.credential = null;
+        google.accounts.id.disableAutoSelect();
+        this.view.setAccount(null);
+        this.view.clearAccountContent();
+        this.onSessionEnd();
+        this.button.hidden = false;
+        this.signOut.hidden = true;
+        this.status.textContent = message;
+      }
+
+      async callPlaylist(path, body = {}) {
+        const credential = this.credential;
+        if (!credential) throw new Error('Sign-in required');
+        const url = new URL(path, PLAYLIST_AUTH.verifyUrl);
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...body, credential }),
+          signal: AbortSignal.timeout(15000)
+        });
+        if (credential !== this.credential) throw new Error('Session changed');
+        if (response.status === 401) {
+          this.clearSession('로그인이 만료되었습니다. 다시 로그인해 주세요.');
+          throw new Error('Session expired');
+        }
+        const data = await response.json().catch(() => null);
+        if (credential !== this.credential) throw new Error('Session changed');
+        if (!response.ok || data?.success !== true) {
+          throw Object.assign(new Error('Request failed'), {
+            code: data?.error, status: response.status,
+            gasStatus: Number.isInteger(data?.gas_status) ? data.gas_status : null
+          });
+        }
+        return data;
+      }
+
+      toPlaylist(record) {
+        if (typeof record?.playlist_id !== 'string' || !record.playlist_id || typeof record.title !== 'string') {
+          throw new Error('Invalid playlist');
+        }
+        const songsById = this.view.getSongsByLogId();
+        const songs = Array.isArray(record.songs)
+          ? record.songs.slice().sort((a, b) => Number(a.position) - Number(b.position)).map(ref =>
+              songsById.get(String(ref.log_id)) ?? {
+                logId: String(ref.log_id), title: String(ref.song_title || ref.log_id),
+                artist: String(ref.artist ?? ''), streamers: []
+              })
+          : [];
+        return {
+          id: record.playlist_id,
+          title: record.title,
+          description: String(record.description ?? ''),
+          published: record.visibility === 'PUBLIC',
+          updated: String(record.updated_at ?? record.created_at ?? ''),
+          version: Number(record.version),
+          mine: true,
+          serverRecord: !Array.isArray(record.songs),
+          songs
+        };
+      }
+
+      async loadMine() {
+        const credential = this.credential;
+        this.view.setServerLists([], '내 플레이리스트를 불러오는 중…');
+        try {
+          const data = await this.callPlaylist('/playlist/mine');
+          await this.view.songsReady;
+          if (credential !== this.credential) return;
+          const lists = data.playlists.map(record => this.toPlaylist(record))
+            .filter(playlist => !this.view.deletedPlaylistIds.has(playlist.id));
+          if (credential === this.credential) {
+            const byId = new Map(lists.map(list => [list.id, list]));
+            this.view.serverPlaylists.forEach(list => byId.set(list.id, list));
+            this.view.setServerLists([...byId.values()]);
+          }
+        } catch {
+          if (credential === this.credential) this.view.setServerLists(this.view.serverPlaylists, '서버에서 내 목록을 불러오지 못했습니다. 다시 로그인해 주세요.');
+        }
+      }
+
+      async createPlaylist(payload) {
+        const path = payload.songs.length ? '/playlist/create-with-songs' : '/playlist/create';
+        const data = await this.callPlaylist(path, payload);
+        if (payload.songs.length && !Array.isArray(data.playlist?.songs)) throw new Error('Missing saved songs');
+        return this.toPlaylist({ description: payload.description, version: 1, songs: [], ...data.playlist });
+      }
+    }
+
     // =========================================================================
     // 🚀 7. 앱 오케스트레이터 및 이벤트 바인더
     // =========================================================================
@@ -1952,6 +2962,20 @@
         this.ui = new UIController();
         this.mainPlayer = new MainPlayerManager(() => this.playNextSong());
         this.statsPlayer = new StatsPlayerManager();
+        this.savedPlaylists = new SavedPlaylistsView({
+          onPlay: (playlist, index) => this.playSavedPlaylist(playlist, index),
+          getSongContextColors: song => this.ui.getSongContextColors(song),
+          getExploreSongs: () => this.data.getSongsForScope(this.playlistBrowseScope ?? this.data.mainScopeKey),
+          onPreview: song => this.playSavedPlaylist({ id: Symbol(), songs: [song] }, 0),
+          getSongsByLogId: () => this.data.getSongsByLogId()
+        });
+        this.playingSavedPlaylistId = null;
+        this.playingPrivatePlaylist = false;
+        this.savedPlaylists.onPlaylistSaved = playlist => {
+          if (playlist.id === this.playingSavedPlaylistId && !playlist.published) this.playingPrivatePlaylist = true;
+        };
+        this.playlistAuth = new PlaylistAuth(this.savedPlaylists, () => this.clearPrivatePlayback());
+        this.playlistBrowseScope = null;
         this.isYouTubeApiLoading = false;
         this.searchDebounceTimer = null;
         this.statsSearchDebounceTimer = null;
@@ -1962,11 +2986,14 @@
         document.documentElement.setAttribute('data-main-scope', this.data.mainScopeKey);
         this.ui.initScrollObserver();
         this.bindEvents(); 
+        const loadSongs = this.data.loadAllData();
+        this.savedPlaylists.songsReady = loadSongs.catch(() => {});
+        this.playlistAuth.start();
         this.ui.renderSkeleton('playlist', CONFIG.SKELETON_COUNT_MAIN, false);
         this.ui.renderSkeleton('statsList', CONFIG.SKELETON_COUNT_STATS, true);
         
         try {
-          await this.data.loadAllData();
+          await loadSongs;
           this.applyStreamerData();
           this.ui.hideInitialLoading();
         } catch (err) {
@@ -2013,14 +3040,14 @@
         this.ui.els.backToTop.addEventListener('click', () => this.ui.scrollToTop());
 
         document.querySelectorAll('.streamer-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            const target = e.target.dataset.streamerTarget;
-            if (target === 'ALL') this.switchMainScope(e.target);
-            else this.switchStreamer(target, e.target);
-          });
+          btn.addEventListener('click', () => this.selectStreamer(btn));
         });
         document.querySelectorAll('.tab-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => this.switchMainTab(e.target.dataset.tabTarget, e.target));
+          btn.addEventListener('click', () => {
+            const tabId = btn.dataset.tabTarget;
+            if (tabId === 'playlists' && !this.savedPlaylists.editor.hidden) return;
+            this.savedPlaylists.requestLeave(() => this.switchMainTab(tabId, btn));
+          });
         });
 
         this.#setupSearch(this.ui.els.searchInput, this.ui.els.searchClearBtn, this.data.mainFilters, this.renderPlaylist, 'searchDebounceTimer');
@@ -2100,8 +3127,40 @@
 
       renderPlaylist() {
         const list = this.data.getFilteredMainSongs();
-        this.mainPlayer.updatePlaylist(list);
-        this.ui.renderPlaylist(list, this.mainPlayer.currentSongId, (idx) => this.playSong(idx), this.data.mainScopeKey === 'ALL');
+        if (this.playingSavedPlaylistId === null) this.mainPlayer.updatePlaylist(list);
+        this.ui.renderPlaylist(list, this.mainPlayer.currentSongId, (index) => {
+          if (this.playingSavedPlaylistId !== null) {
+            this.playingSavedPlaylistId = null;
+            this.playingPrivatePlaylist = false;
+            this.mainPlayer.updatePlaylist(list);
+          }
+          this.playSong(index);
+        }, this.data.mainScopeKey === 'ALL');
+        this.updateDesktopSongFlow();
+      }
+
+      playSavedPlaylist(playlist, index) {
+        const song = playlist.songs[index];
+        if (!song?.videoId) return;
+        const queue = playlist.songs.filter(entry => entry.videoId);
+        this.playingSavedPlaylistId = playlist.id;
+        this.playingPrivatePlaylist = Boolean(playlist.mine && !playlist.published);
+        this.savedPlaylistQueuePositions = playlist.songs.flatMap((entry, position) => entry.videoId ? [position] : []);
+        this.mainPlayer.updatePlaylist(queue);
+        this.playSong(playlist.songs.slice(0, index).filter(entry => entry.videoId).length);
+      }
+
+      clearPrivatePlayback() {
+        if (!this.playingPrivatePlaylist) return;
+        this.playingPrivatePlaylist = false;
+        this.playingSavedPlaylistId = null;
+        this.savedPlaylistQueuePositions = [];
+        this.mainPlayer.clearVideo();
+        this.savedPlaylists.highlightPlaying(null, -1);
+        this.ui.setEmptyNowPlaying();
+        this.ui.els.npStreamer.textContent = '';
+        Object.values(this.ui.npMetaEls).forEach(element => { element.textContent = ''; });
+        this.renderPlaylist();
         this.updateDesktopSongFlow();
       }
 
@@ -2118,8 +3177,11 @@
         const song = this.mainPlayer.playlist[index];
         if (!song) return;
         
+        this.loadYouTubeAPI();
         this.mainPlayer.play(index, cueOnly);
         this.ui.highlightActiveSong(song.id); 
+        const highlightedIndex = this.playingSavedPlaylistId === null ? -1 : this.savedPlaylistQueuePositions[index];
+        this.savedPlaylists.highlightPlaying(this.playingSavedPlaylistId, highlightedIndex);
         this.ui.updateNowPlaying(song);
         this.updateDesktopSongFlow();
       }
@@ -2168,6 +3230,19 @@
         }
       }
 
+      selectStreamer(btn) {
+        const key = btn.dataset.streamerTarget;
+        if (!this.ui.els.panelPlaylists.hidden) {
+          this.playlistBrowseScope = key;
+          this.ui.showStreamerSelection(btn, key);
+          this.savedPlaylists.refreshEditorScope();
+          return;
+        }
+
+        if (key === 'ALL') this.switchMainScope(btn);
+        else this.switchStreamer(key, btn);
+      }
+
       switchStreamer(key, btn) {
         if (this.data.streamerKey === key && this.data.mainScopeKey === key && this.data.getStreamerSongs().length > 0) return;
         this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
@@ -2178,6 +3253,9 @@
         this.data.mainFilters.videoId = 'ALL'; this.data.statsFilters.videoId = 'ALL';
         this.data.mainFilters.lang = this.data.getMainLang();
         this.mainPlayer.reset();
+        this.playingSavedPlaylistId = null;
+        this.playingPrivatePlaylist = false;
+        this.savedPlaylists.highlightPlaying(null, -1);
         
         this.ui.updateStreamerNav(btn, key);
         this.ui.updateMainLangBtns(this.data.getMainLang());
@@ -2198,6 +3276,9 @@
         this.data.mainFilters.videoId = 'ALL';
         this.data.mainFilters.lang = this.data.getMainLang();
         this.mainPlayer.reset();
+        this.playingSavedPlaylistId = null;
+        this.playingPrivatePlaylist = false;
+        this.savedPlaylists.highlightPlaying(null, -1);
 
         this.ui.updateMainScopeNav(btn);
         this.ui.updateMainLangBtns(this.data.getMainLang());
@@ -2214,6 +3295,12 @@
 
       switchMainTab(tabId, btn) {
         this.ui.switchTab(tabId, btn);
+        if (tabId === 'playlists' && this.savedPlaylists.scope === 'public') void this.savedPlaylists.loadPublic();
+        const scope = tabId === 'playlists' && this.playlistBrowseScope !== null
+          ? this.playlistBrowseScope
+          : this.data.mainScopeKey;
+        const streamerButton = document.querySelector(`.streamer-btn[data-streamer-target="${scope}"]`);
+        this.ui.showStreamerSelection(streamerButton, scope);
         if (tabId === 'stats') {
           if (this.data.mainScopeKey === 'ALL') {
             this.statsPlayer.close();
