@@ -284,7 +284,20 @@
     .saved-playlists-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
     .saved-playlists-heading { margin: 0; font-size: 1rem; overflow-wrap: anywhere; }
     .saved-playlists-meta { margin: 0; color: var(--text-muted); font-size: 0.8rem; overflow-wrap: anywhere; }
-    .saved-playlists-tag { margin-left: auto; }
+    #panel-playlists { gap: 12px; }
+    .saved-playlists-account { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+    .saved-playlists-account #playlistGoogleSignIn:empty,
+    .saved-playlists-meta:empty { display: none; }
+    .saved-playlists-account:has(> :not([hidden]):not(:empty)) { padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    .saved-playlists-toolbar { justify-content: space-between; gap: 8px; }
+    .saved-playlists-primary { border-color: var(--accent-primary); background: var(--accent-light); color: var(--text); }
+    .saved-playlists-toolbar .saved-playlists-primary:disabled { opacity: 0.55; cursor: default; }
+    .saved-playlists-detail-header { display: grid; gap: 5px; padding: 2px 0 10px; border-bottom: 1px solid var(--border); }
+    .saved-playlists-detail-header .saved-playlists-heading { font-size: 1.15rem; }
+    .saved-playlists-editor-toolbar { padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .saved-playlists-editor-toolbar .saved-playlists-heading { flex: 1; }
+    #playlistEditorStatus { flex-basis: 100%; }
+    .saved-playlists-row:focus-visible, #panel-playlists button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 1px; }
     .saved-playlists-row {
       flex: 0 0 auto; width: 100%; display: grid; gap: 3px; padding: 8px 10px;
       border: 1px solid var(--border); border-radius: 8px; text-align: left;
@@ -792,37 +805,42 @@
       </div>
 
       <div id="panel-playlists" class="playlist-section right-panel-view" hidden>
-        <div class="saved-playlists-controls">
+        <div class="saved-playlists-account">
           <div id="playlistGoogleSignIn"></div>
           <button type="button" id="playlistSignOut" class="filter-btn" hidden>로그아웃</button>
           <span id="playlistAuthStatus" class="saved-playlists-meta" role="status">로그인 준비 중</span>
         </div>
         <div id="savedPlaylistsBrowse" class="saved-playlists-view right-panel-view">
-          <div class="saved-playlists-controls" role="group" aria-label="플레이리스트 범위">
-            <button type="button" class="filter-btn active" data-playlist-scope="public" aria-pressed="true">전체 플레이리스트</button>
-            <button type="button" class="filter-btn" data-playlist-scope="mine" aria-pressed="false">내 플레이리스트</button>
-            <button type="button" id="savedPlaylistCreate" class="filter-btn">새로 만들기</button>
-            <span class="saved-playlists-meta saved-playlists-tag">테스트</span>
+          <div class="saved-playlists-controls saved-playlists-toolbar">
+            <div class="saved-playlists-controls" role="group" aria-label="플레이리스트 범위">
+              <button type="button" class="filter-btn active" data-playlist-scope="public" aria-pressed="true">공개 목록</button>
+              <button type="button" class="filter-btn" data-playlist-scope="mine" aria-pressed="false">내 목록</button>
+            </div>
+            <button type="button" id="savedPlaylistCreate" class="filter-btn saved-playlists-primary">＋ 새로 만들기</button>
           </div>
           <input id="savedPlaylistsSearch" type="search" class="search-input" aria-label="플레이리스트 검색" placeholder="제목 · 설명 검색">
           <p class="saved-playlists-meta">최근 수정순</p>
           <div id="savedPlaylistsResults" class="playlist-scroll"></div>
         </div>
         <div id="savedPlaylistsDetail" class="saved-playlists-view right-panel-view" hidden>
-          <div class="saved-playlists-controls">
+          <div class="saved-playlists-controls saved-playlists-toolbar">
             <button type="button" id="savedPlaylistsBack" class="filter-btn">← 목록</button>
-            <button type="button" id="savedPlaylistPlayAll" class="filter-btn">전체 재생</button>
-            <button type="button" id="savedPlaylistEdit" class="filter-btn" hidden>편집</button>
-            <button type="button" id="savedPlaylistDelete" class="filter-btn" hidden>삭제</button>
+            <div class="saved-playlists-controls">
+              <button type="button" id="savedPlaylistPlayAll" class="filter-btn saved-playlists-primary">전체 재생</button>
+              <button type="button" id="savedPlaylistEdit" class="filter-btn" hidden>편집</button>
+              <button type="button" id="savedPlaylistDelete" class="filter-btn" hidden>삭제</button>
+            </div>
           </div>
           <p id="savedPlaylistDeleteStatus" class="saved-playlists-meta" role="status"></p>
-          <h2 id="savedPlaylistTitle" class="saved-playlists-heading" tabindex="-1"></h2>
-          <p id="savedPlaylistDescription" class="saved-playlists-meta"></p>
-          <p id="savedPlaylistMeta" class="saved-playlists-meta"></p>
+          <div class="saved-playlists-detail-header">
+            <h2 id="savedPlaylistTitle" class="saved-playlists-heading" tabindex="-1"></h2>
+            <p id="savedPlaylistDescription" class="saved-playlists-meta"></p>
+            <p id="savedPlaylistMeta" class="saved-playlists-meta"></p>
+          </div>
           <div id="savedPlaylistSongs" class="playlist-scroll"></div>
         </div>
         <div id="playlistEditor" class="playlist-editor right-panel-view" hidden>
-          <div class="saved-playlists-controls">
+          <div class="saved-playlists-controls saved-playlists-editor-toolbar">
             <button type="button" id="playlistEditorCancel" class="filter-btn">← 뒤로</button>
             <h2 id="playlistEditorHeading" class="saved-playlists-heading" tabindex="-1"></h2>
             <button type="button" id="playlistEditorSave" class="filter-btn active">저장</button>
@@ -2372,7 +2390,7 @@
           });
           this.publicStatus = '';
         } catch {
-          this.publicStatus = '공개 목록을 불러오지 못했습니다. 전체 플레이리스트를 눌러 다시 시도해 주세요.';
+          this.publicStatus = '공개 목록을 불러오지 못했습니다. ‘공개 목록’을 눌러 다시 시도해 주세요.';
         } finally {
           this.loadingPublic = false;
           if (this.scope === 'public') this.renderBrowse();
@@ -2589,7 +2607,7 @@
         if (playlist.unavailableSongs) {
           this.showEmpty(this.songs, `노래 DB에서 재생 정보를 찾을 수 없는 곡이 ${playlist.unavailableSongs}개 있습니다.`);
         } else if (playlist.songs.length === 0) {
-          this.showEmpty(this.songs, playlist.serverRecord ? '서버 수록곡 조회를 연결하는 중입니다.' : '수록곡이 없습니다.');
+          this.showEmpty(this.songs, playlist.serverRecord ? '수록곡을 불러오지 못했습니다.' : '수록곡이 없습니다.');
         }
         this.browse.hidden = true;
         this.detail.hidden = false;
