@@ -1230,8 +1230,8 @@
         return this.#currentStreamerSongs; 
       }
 
-      getPlaylistSampleSongs() {
-        return this.#allSongs.filter(song => song.logId && song.videoId).slice(-6).reverse();
+      getSongsByLogId() {
+        return new Map(this.#allSongs.filter(song => song.logId).map(song => [String(song.logId), song]));
       }
 
       getMainSongs() {
@@ -2068,7 +2068,8 @@
 
     class SavedPlaylistsView {
       accountId = null;
-      samples = [];
+      publicPlaylists = [];
+      publicStatus = '공개 목록을 불러오는 중…';
       serverPlaylists = [];
       mineStatus = '';
       pendingLeave = null;
@@ -2122,6 +2123,7 @@
             candidate.setAttribute('aria-pressed', String(selected));
           });
           this.renderBrowse();
+          if (this.scope === 'public') void this.loadPublic();
         }));
         this.search.addEventListener('input', () => this.renderBrowse());
         element('savedPlaylistsBack').addEventListener('click', () => this.closeDetail());
@@ -2338,13 +2340,37 @@
         }
       }
 
-      setSamples(songs) {
-        this.samples = [
-          { id: 'empty', title: '빈 플레이리스트', description: '아직 수록곡이 없는 예시입니다.', updated: '2026-10-02', mine: true, published: false, songs: [] },
-          { id: 'recent', title: '최근 방송에서 부른 곡', description: '노래 DB의 최근 곡을 모았습니다.', updated: '2026-10-03', mine: false, published: true, songs: songs.slice(0, 3) },
-          { id: 'mix', title: '내 노래 모음', description: '내 목록과 전체 목록에서 모두 볼 수 있는 예시입니다.', updated: '2026-10-04', mine: true, published: true, songs: songs.slice(3, 6) }
-        ];
-        this.renderBrowse();
+      async loadPublic() {
+        if (this.loadingPublic) return;
+        this.loadingPublic = true;
+        this.publicStatus = '공개 목록을 불러오는 중…';
+        if (this.scope === 'public') this.renderBrowse();
+        try {
+          const response = await fetch(new URL('/playlist/public', PLAYLIST_AUTH.verifyUrl), {
+            signal: AbortSignal.timeout(15000),
+            credentials: 'omit'
+          });
+          if (!response.ok) throw new Error('Public list unavailable');
+          const data = await response.json();
+          if (data.success !== true || !Array.isArray(data.playlists)) throw new Error('Invalid public list');
+          const songsById = this.getSongsByLogId();
+          this.publicPlaylists = data.playlists.map(record => {
+            const entries = Array.isArray(record.songs) ? record.songs : [];
+            const songs = entries.slice().sort((a, b) => Number(a.position) - Number(b.position))
+              .map(entry => songsById.get(String(entry.log_id))).filter(song => song?.videoId);
+            return {
+              id: String(record.playlist_id), title: String(record.title), description: String(record.description ?? ''),
+              updated: String(record.updated_at ?? record.created_at ?? ''),
+              published: true, mine: false, songs, unavailableSongs: entries.length - songs.length
+            };
+          });
+          this.publicStatus = '';
+        } catch {
+          this.publicStatus = '공개 목록을 불러오지 못했습니다. 전체 플레이리스트를 눌러 다시 시도해 주세요.';
+        } finally {
+          this.loadingPublic = false;
+          if (this.scope === 'public') this.renderBrowse();
+        }
       }
 
       setAccount(accountId) {
@@ -2445,6 +2471,7 @@
           const playlist = await this.createOnServer({ ...payload, request_id: this.createRequest.id });
           if (this.accountId !== this.draftOwner) throw new Error('Session changed');
           this.serverPlaylists = [playlist, ...this.serverPlaylists.filter(entry => entry.id !== playlist.id)];
+          if (playlist.published) void this.loadPublic();
           this.renderBrowse();
           this.editor.inert = false;
           if (this.leaveDialog.open) this.finishLeave(() => this.finishSave(playlist));
@@ -2495,7 +2522,7 @@
 
       renderBrowse() {
         const queries = Utils.getSearchQueries(this.search.value);
-        const lists = this.scope === 'mine' ? this.serverPlaylists : this.samples.filter(playlist => playlist.published);
+        const lists = this.scope === 'mine' ? this.serverPlaylists : this.publicPlaylists;
         const matches = lists.filter(playlist => {
           return Utils.matchesSearch(Utils.createSearchText([playlist.title, playlist.description]), queries);
         }).sort((a, b) => b.updated.localeCompare(a.updated));
@@ -2510,7 +2537,10 @@
         });
         if (this.scope === 'mine' && !this.accountId) {
           this.showEmpty(this.results, 'Google 로그인 후 내 플레이리스트를 볼 수 있습니다.');
-        } else if (matches.length === 0) this.showEmpty(this.results, this.scope === 'mine' && this.mineStatus ? this.mineStatus : '조건에 맞는 플레이리스트가 없습니다.');
+        } else if (matches.length === 0) {
+          const status = this.scope === 'mine' ? this.mineStatus : this.publicStatus;
+          this.showEmpty(this.results, status || '조건에 맞는 플레이리스트가 없습니다.');
+        }
         this.results.scrollTop = 0;
       }
 
@@ -2533,7 +2563,11 @@
           const row = this.createSongRow(song, `${index + 1}. ${song.title}`, () => this.onPlay(playlist, index));
           this.songs.append(row);
         });
-        if (playlist.songs.length === 0) this.showEmpty(this.songs, playlist.serverRecord ? '서버 수록곡 조회를 연결하는 중입니다.' : '수록곡이 없습니다.');
+        if (playlist.unavailableSongs) {
+          this.showEmpty(this.songs, `노래 DB에서 재생 정보를 찾을 수 없는 곡이 ${playlist.unavailableSongs}개 있습니다.`);
+        } else if (playlist.songs.length === 0) {
+          this.showEmpty(this.songs, playlist.serverRecord ? '서버 수록곡 조회를 연결하는 중입니다.' : '수록곡이 없습니다.');
+        }
         this.browse.hidden = true;
         this.detail.hidden = false;
         this.songs.scrollTop = 0;
@@ -2713,6 +2747,7 @@
           song => this.playSavedPlaylist({ id: Symbol(), songs: [song] }, 0)
         );
         this.playingSavedPlaylistId = null;
+        this.savedPlaylists.getSongsByLogId = () => this.data.getSongsByLogId();
         this.playlistAuth = new PlaylistAuth(this.savedPlaylists);
         this.playlistBrowseScope = null;
         this.isYouTubeApiLoading = false;
@@ -2731,12 +2766,10 @@
         
         try {
           await this.data.loadAllData();
-          this.savedPlaylists.setSamples(this.data.getPlaylistSampleSongs());
           this.applyStreamerData();
           this.ui.hideInitialLoading();
         } catch (err) {
           console.error(err);
-          this.savedPlaylists.setSamples([]);
           this.ui.hideInitialLoading();
           this.ui.showError('데이터베이스 연동 중 오류가 발생했습니다.');
         }
@@ -3012,6 +3045,7 @@
 
       switchMainTab(tabId, btn) {
         this.ui.switchTab(tabId, btn);
+        if (tabId === 'playlists' && this.savedPlaylists.scope === 'public') void this.savedPlaylists.loadPublic();
         const scope = tabId === 'playlists' && this.playlistBrowseScope !== null
           ? this.playlistBrowseScope
           : this.data.mainScopeKey;
