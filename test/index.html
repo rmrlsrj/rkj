@@ -792,12 +792,17 @@
       </div>
 
       <div id="panel-playlists" class="playlist-section right-panel-view" hidden>
+        <div class="saved-playlists-controls">
+          <div id="playlistGoogleSignIn"></div>
+          <button type="button" id="playlistSignOut" class="filter-btn" hidden>로그아웃</button>
+          <span id="playlistAuthStatus" class="saved-playlists-meta" role="status">로그인 준비 중</span>
+        </div>
         <div id="savedPlaylistsBrowse" class="saved-playlists-view right-panel-view">
           <div class="saved-playlists-controls" role="group" aria-label="플레이리스트 범위">
             <button type="button" class="filter-btn active" data-playlist-scope="public" aria-pressed="true">전체 플레이리스트</button>
             <button type="button" class="filter-btn" data-playlist-scope="mine" aria-pressed="false">내 플레이리스트</button>
             <button type="button" id="savedPlaylistCreate" class="filter-btn">새로 만들기</button>
-            <span class="saved-playlists-meta saved-playlists-tag">이 브라우저에 저장</span>
+            <span class="saved-playlists-meta saved-playlists-tag">테스트</span>
           </div>
           <input id="savedPlaylistsSearch" type="search" class="search-input" aria-label="플레이리스트 검색" placeholder="제목 · 설명 검색">
           <p class="saved-playlists-meta">최근 수정순</p>
@@ -832,8 +837,8 @@
             aria-valuemin="20" aria-valuemax="80" aria-valuenow="50"></div>
           <section class="playlist-editor-pane" aria-label="플레이리스트 편집 내용">
             <div class="playlist-editor-fields">
-              <label>제목 <input id="playlistEditorTitle" type="text" class="search-input"></label>
-              <label>설명 <textarea id="playlistEditorDescription" class="search-input" rows="2"></textarea></label>
+              <label>제목 <input id="playlistEditorTitle" type="text" class="search-input" maxlength="100"></label>
+              <label>설명 <textarea id="playlistEditorDescription" class="search-input" rows="2" maxlength="1000"></textarea></label>
               <label class="playlist-editor-visibility"><input id="playlistEditorPublished" type="checkbox"> 공개 플레이리스트</label>
             </div>
             <p id="playlistEditorSongCount" class="saved-playlists-meta"></p>
@@ -896,6 +901,11 @@
     // =========================================================================
     // ⚙️ 0. 전역 설정
     // =========================================================================
+    const PLAYLIST_AUTH = {
+      googleClientId: '674342453238-b90ei73nb5490canp242ikddhbbdqp4c.apps.googleusercontent.com',
+      verifyUrl: 'https://reactkr-playlist-auth-test.crescnet-4890.workers.dev/auth/verify'
+    };
+
     const CONFIG = {
       TIMER_INTERVAL: 250,      
       DEBOUNCE_DELAY: 250,      
@@ -2057,8 +2067,10 @@
     }
 
     class SavedPlaylistsView {
-      storageKey = 'rkj:test:playlists:v1';
-      localPlaylists = [];
+      accountId = null;
+      samples = [];
+      serverPlaylists = [];
+      mineStatus = '';
       pendingLeave = null;
 
       constructor(onPlay, getSongContextColors, getExploreSongs, onPreview) {
@@ -2067,7 +2079,6 @@
         this.getExploreSongs = getExploreSongs;
         this.onPreview = onPreview;
         this.scope = 'public';
-        this.playlists = [];
         this.openId = null;
         const element = id => document.getElementById(id);
         this.browse = element('savedPlaylistsBrowse');
@@ -2080,6 +2091,7 @@
         this.songs = element('savedPlaylistSongs');
         this.playAll = element('savedPlaylistPlayAll');
         this.createButton = element('savedPlaylistCreate');
+        this.createButton.disabled = true;
         this.editButton = element('savedPlaylistEdit');
         this.editor = element('playlistEditor');
         this.editorDivider = element('playlistEditorDivider');
@@ -2115,18 +2127,15 @@
         element('savedPlaylistsBack').addEventListener('click', () => this.closeDetail());
         this.createButton.addEventListener('click', () => this.openEditor());
         element('playlistEditorCancel').addEventListener('click', () => this.requestLeave());
-        element('playlistEditorSave').addEventListener('click', () => {
-          const saved = this.saveDraft();
-          if (saved) this.finishSave(saved);
-        });
-        element('playlistLeaveSave').addEventListener('click', () => {
-          const saved = this.saveDraft();
-          if (saved) this.finishLeave(() => this.finishSave(saved));
-        });
+        element('playlistEditorSave').addEventListener('click', () => this.submitDraft());
+        element('playlistLeaveSave').addEventListener('click', () => this.submitDraft());
         element('playlistLeaveDiscard').addEventListener('click', () => this.finishLeave(() => this.closeEditor()));
         element('playlistLeaveCancel').addEventListener('click', () => this.leaveDialog.close());
         this.leaveDialog.addEventListener('close', () => {
           if (!this.leaveDialog.open) this.pendingLeave = null;
+        });
+        this.leaveDialog.addEventListener('cancel', event => {
+          if (this.saving) event.preventDefault();
         });
         [this.editorTitle, this.editorDescription, this.editorPublished].forEach(field => {
           field.addEventListener('input', () => this.updateDraftStatus());
@@ -2173,7 +2182,10 @@
       }
 
       openEditor(playlist = null) {
+        if (!this.accountId || (playlist && !playlist.mine)) return;
         this.editingPlaylist = playlist;
+        this.createRequest = null;
+        this.draftOwner = this.accountId;
         this.editorHeading.textContent = playlist ? '플레이리스트 편집' : '새 플레이리스트';
         this.editorTitle.value = playlist?.title ?? '';
         this.editorDescription.value = playlist?.description ?? '';
@@ -2327,20 +2339,30 @@
       }
 
       setSamples(songs) {
-        this.playlists = [
+        this.samples = [
           { id: 'empty', title: '빈 플레이리스트', description: '아직 수록곡이 없는 예시입니다.', updated: '2026-10-02', mine: true, published: false, songs: [] },
           { id: 'recent', title: '최근 방송에서 부른 곡', description: '노래 DB의 최근 곡을 모았습니다.', updated: '2026-10-03', mine: false, published: true, songs: songs.slice(0, 3) },
           { id: 'mix', title: '내 노래 모음', description: '내 목록과 전체 목록에서 모두 볼 수 있는 예시입니다.', updated: '2026-10-04', mine: true, published: true, songs: songs.slice(3, 6) }
         ];
-        try {
-          const stored = JSON.parse(localStorage.getItem(this.storageKey) ?? '[]');
-          if (Array.isArray(stored)) this.localPlaylists = stored.filter(playlist =>
-            typeof playlist?.id === 'string' && typeof playlist.title === 'string' &&
-            typeof playlist.updated === 'string' && Array.isArray(playlist.songs));
-        } catch (error) {
-          console.warn('테스트 플레이리스트를 불러오지 못했습니다.', error);
+        this.renderBrowse();
+      }
+
+      setAccount(accountId) {
+        this.accountId = accountId;
+        this.serverPlaylists = [];
+        this.mineStatus = '';
+        this.createButton.disabled = !accountId;
+        if (this.openId !== null) {
+          this.openId = null;
+          this.detail.hidden = true;
+          if (this.editor.hidden) this.browse.hidden = false;
         }
-        this.localPlaylists.forEach(playlist => this.updatePlaylistRecord(playlist));
+        this.renderBrowse();
+      }
+
+      setServerLists(lists, status = '') {
+        this.serverPlaylists = lists;
+        this.mineStatus = status;
         this.renderBrowse();
       }
 
@@ -2369,6 +2391,7 @@
       }
 
       requestLeave(continueNavigation = () => {}) {
+        if (this.saving) return;
         if (this.editor.hidden) return continueNavigation();
         if (!this.isDraftDirty()) {
           this.closeEditor();
@@ -2388,38 +2411,51 @@
         continueNavigation?.();
       }
 
-      saveDraft() {
+      async submitDraft() {
+        if (this.saving) return;
         const draft = this.readDraft();
         draft.title = draft.title.trim();
         const status = this.leaveDialog.open ? this.leaveStatus : this.editorStatus;
+        if (!this.accountId || this.accountId !== this.draftOwner) {
+          status.textContent = '편집을 시작한 계정으로 로그인한 뒤 저장해 주세요.';
+          return null;
+        }
         if (!draft.title) {
           status.textContent = '제목을 입력해 주세요.';
           if (!this.leaveDialog.open) this.editorTitle.focus();
           return null;
         }
-        const playlist = {
-          ...draft,
-          id: this.editingPlaylist?.id ?? crypto.randomUUID(),
-          mine: true,
-          updated: new Date().toISOString()
-        };
-        const next = this.localPlaylists.filter(entry => entry.id !== playlist.id).concat(playlist);
-        try {
-          localStorage.setItem(this.storageKey, JSON.stringify(next));
-        } catch (error) {
-          status.textContent = '이 브라우저에 저장하지 못했습니다. 편집 내용은 그대로 남아 있습니다.';
-          return null;
+        if (this.editingPlaylist || draft.songs.length) {
+          status.textContent = this.editingPlaylist
+            ? '기존 목록 수정은 서버 연결이 필요합니다. 편집 내용은 그대로 남아 있습니다.'
+            : '곡 저장은 서버 연결이 필요합니다. 지금은 빈 목록만 서버에 만들 수 있습니다.';
+          return;
         }
-        this.localPlaylists = next;
-        this.updatePlaylistRecord(playlist);
-        this.renderBrowse();
-        return playlist;
-      }
-
-      updatePlaylistRecord(playlist) {
-        const index = this.playlists.findIndex(entry => entry.id === playlist.id);
-        if (index < 0) this.playlists.push(playlist);
-        else this.playlists[index] = playlist;
+        const payload = { title: draft.title, description: draft.description, visibility: draft.published ? 'PUBLIC' : 'PRIVATE' };
+        const fingerprint = JSON.stringify(payload);
+        if (this.createRequest?.fingerprint !== fingerprint) {
+          this.createRequest = { fingerprint, id: crypto.randomUUID() };
+        }
+        this.saving = true;
+        this.editor.inert = true;
+        const dialogButtons = this.leaveDialog.querySelectorAll('button');
+        dialogButtons.forEach(button => { button.disabled = true; });
+        status.textContent = '서버에 저장하는 중…';
+        try {
+          const playlist = await this.createOnServer({ ...payload, request_id: this.createRequest.id });
+          if (this.accountId !== this.draftOwner) throw new Error('Session changed');
+          this.serverPlaylists = [playlist, ...this.serverPlaylists.filter(entry => entry.id !== playlist.id)];
+          this.renderBrowse();
+          this.editor.inert = false;
+          if (this.leaveDialog.open) this.finishLeave(() => this.finishSave(playlist));
+          else this.finishSave(playlist);
+        } catch {
+          status.textContent = '서버에 저장하지 못했습니다. 편집 내용은 그대로 남아 있습니다.';
+        } finally {
+          this.saving = false;
+          this.editor.inert = false;
+          dialogButtons.forEach(button => { button.disabled = false; });
+        }
       }
 
       finishSave(playlist) {
@@ -2459,19 +2495,22 @@
 
       renderBrowse() {
         const queries = Utils.getSearchQueries(this.search.value);
-        const matches = this.playlists.filter(playlist => {
-          const inScope = this.scope === 'mine' ? playlist.mine : playlist.published;
-          return inScope && Utils.matchesSearch(Utils.createSearchText([playlist.title, playlist.description]), queries);
+        const lists = this.scope === 'mine' ? this.serverPlaylists : this.samples.filter(playlist => playlist.published);
+        const matches = lists.filter(playlist => {
+          return Utils.matchesSearch(Utils.createSearchText([playlist.title, playlist.description]), queries);
         }).sort((a, b) => b.updated.localeCompare(a.updated));
 
         this.results.replaceChildren();
         matches.forEach(playlist => {
           const visibility = playlist.published ? '공개' : '비공개';
-          const row = this.createRow(playlist.title, `${playlist.songs.length}곡 · ${visibility} · ${playlist.updated.slice(0, 10)}`, () => this.openDetail(playlist));
+          const details = [playlist.serverRecord ? '' : `${playlist.songs.length}곡`, visibility, playlist.updated.slice(0, 10)];
+          const row = this.createRow(playlist.title, details.filter(Boolean).join(' · '), () => this.openDetail(playlist));
           row.dataset.playlistId = playlist.id;
           this.results.append(row);
         });
-        if (matches.length === 0) this.showEmpty(this.results, '조건에 맞는 플레이리스트가 없습니다.');
+        if (this.scope === 'mine' && !this.accountId) {
+          this.showEmpty(this.results, 'Google 로그인 후 내 플레이리스트를 볼 수 있습니다.');
+        } else if (matches.length === 0) this.showEmpty(this.results, this.scope === 'mine' && this.mineStatus ? this.mineStatus : '조건에 맞는 플레이리스트가 없습니다.');
         this.results.scrollTop = 0;
       }
 
@@ -2479,17 +2518,22 @@
         this.openId = playlist.id;
         this.title.textContent = playlist.title;
         this.description.textContent = playlist.description;
-        this.meta.textContent = `${playlist.songs.length}곡 · ${playlist.published ? '공개' : '비공개'} · ${playlist.updated.slice(0, 10)}`;
+        this.meta.textContent = [
+          playlist.serverRecord ? '' : `${playlist.songs.length}곡`,
+          playlist.published ? '공개' : '비공개',
+          playlist.updated.slice(0, 10)
+        ].filter(Boolean).join(' · ');
         this.playAll.disabled = playlist.songs.length === 0;
         this.playAll.onclick = () => this.onPlay(playlist, 0);
-        this.editButton.hidden = !playlist.mine;
-        this.editButton.onclick = playlist.mine ? () => this.openEditor(playlist) : null;
+        const canEdit = this.serverPlaylists.includes(playlist) && playlist.mine;
+        this.editButton.hidden = !canEdit;
+        this.editButton.onclick = canEdit ? () => this.openEditor(playlist) : null;
         this.songs.replaceChildren();
         playlist.songs.forEach((song, index) => {
           const row = this.createSongRow(song, `${index + 1}. ${song.title}`, () => this.onPlay(playlist, index));
           this.songs.append(row);
         });
-        if (playlist.songs.length === 0) this.showEmpty(this.songs, '수록곡이 없습니다.');
+        if (playlist.songs.length === 0) this.showEmpty(this.songs, playlist.serverRecord ? '서버 수록곡 조회를 연결하는 중입니다.' : '수록곡이 없습니다.');
         this.browse.hidden = true;
         this.detail.hidden = false;
         this.songs.scrollTop = 0;
@@ -2515,6 +2559,144 @@
       }
     }
 
+    class PlaylistAuth {
+      constructor(view) {
+        this.view = view;
+        this.button = document.getElementById('playlistGoogleSignIn');
+        this.signOut = document.getElementById('playlistSignOut');
+        this.status = document.getElementById('playlistAuthStatus');
+        this.view.createOnServer = payload => this.createPlaylist(payload);
+        this.signOut.onclick = () => this.view.requestLeave(() => this.clearSession('로그아웃했습니다.'));
+      }
+
+      start() {
+        if (!/^[\w.-]+\.apps\.googleusercontent\.com$/.test(PLAYLIST_AUTH.googleClientId)) {
+          this.status.textContent = 'Google 로그인 설정이 필요합니다.';
+          return;
+        }
+        const sdk = document.createElement('script');
+        sdk.src = 'https://accounts.google.com/gsi/client';
+        sdk.async = true;
+        sdk.onload = () => {
+          google.accounts.id.initialize({
+            client_id: PLAYLIST_AUTH.googleClientId,
+            auto_select: false,
+            callback: response => this.verify(response.credential)
+          });
+          google.accounts.id.renderButton(this.button, { theme: 'outline', size: 'medium', locale: 'ko' });
+          this.status.textContent = '';
+        };
+        sdk.onerror = () => { this.status.textContent = 'Google 로그인 버튼을 불러오지 못했습니다.'; };
+        document.head.append(sdk);
+      }
+
+      async verify(credential) {
+        if (this.verifying || this.view.accountId || !credential) return;
+        this.verifying = true;
+        this.status.textContent = 'Google 계정을 확인하는 중…';
+        try {
+          const response = await fetch(PLAYLIST_AUTH.verifyUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ credential }),
+            signal: AbortSignal.timeout(15000)
+          });
+          const data = await response.json();
+          if (!response.ok || data.success !== true || data.verified !== true ||
+              typeof data.owner_id !== 'string' || !data.owner_id.trim()) {
+            this.status.textContent = '계정 확인에 실패했습니다. 다시 로그인해 주세요.';
+            return;
+          }
+          // The Worker confirms the identity. The token's expiry only sets the UI timeout.
+          const payload = credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+          const expiresIn = Number(JSON.parse(atob(payload)).exp) * 1000 - Date.now();
+          if (!Number.isFinite(expiresIn) || expiresIn <= 0) {
+            this.status.textContent = '로그인이 만료되었습니다. 다시 로그인해 주세요.';
+            return;
+          }
+          this.credential = credential;
+          this.view.setAccount(data.owner_id);
+          this.button.hidden = true;
+          this.signOut.hidden = false;
+          this.status.textContent = 'Google 로그인 완료';
+          this.expiryTimer = setTimeout(() => this.clearSession('로그인이 만료되었습니다. 다시 로그인해 주세요.'), Math.min(expiresIn, 3600000));
+          void this.loadMine();
+        } catch {
+          this.status.textContent = '로그인 서버에 연결하지 못했습니다. 다시 시도해 주세요.';
+        } finally {
+          this.verifying = false;
+        }
+      }
+
+      clearSession(message) {
+        clearTimeout(this.expiryTimer);
+        this.credential = null;
+        google.accounts.id.disableAutoSelect();
+        this.view.setAccount(null);
+        this.button.hidden = false;
+        this.signOut.hidden = true;
+        this.status.textContent = message;
+      }
+
+      async callPlaylist(path, body = {}) {
+        const credential = this.credential;
+        if (!credential) throw new Error('Sign-in required');
+        const url = new URL(path, PLAYLIST_AUTH.verifyUrl);
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...body, credential }),
+          signal: AbortSignal.timeout(15000)
+        });
+        if (credential !== this.credential) throw new Error('Session changed');
+        if (response.status === 401) {
+          this.clearSession('로그인이 만료되었습니다. 다시 로그인해 주세요.');
+          throw new Error('Session expired');
+        }
+        const data = await response.json();
+        if (credential !== this.credential || !response.ok || data.success !== true) throw new Error('Request failed');
+        return data;
+      }
+
+      toPlaylist(record) {
+        if (typeof record?.playlist_id !== 'string' || !record.playlist_id || typeof record.title !== 'string') {
+          throw new Error('Invalid playlist');
+        }
+        return {
+          id: record.playlist_id,
+          title: record.title,
+          description: String(record.description ?? ''),
+          published: record.visibility === 'PUBLIC',
+          updated: String(record.updated_at ?? record.created_at ?? ''),
+          version: record.version,
+          mine: true,
+          serverRecord: true,
+          songs: []
+        };
+      }
+
+      async loadMine() {
+        const credential = this.credential;
+        this.view.setServerLists([], '내 플레이리스트를 불러오는 중…');
+        try {
+          const data = await this.callPlaylist('/playlist/mine');
+          const lists = data.playlists.map(record => this.toPlaylist(record));
+          if (credential === this.credential) {
+            const byId = new Map(lists.map(list => [list.id, list]));
+            this.view.serverPlaylists.forEach(list => byId.set(list.id, list));
+            this.view.setServerLists([...byId.values()]);
+          }
+        } catch {
+          if (credential === this.credential) this.view.setServerLists(this.view.serverPlaylists, '서버에서 내 목록을 불러오지 못했습니다. 다시 로그인해 주세요.');
+        }
+      }
+
+      async createPlaylist(payload) {
+        const data = await this.callPlaylist('/playlist/create', payload);
+        return this.toPlaylist(data.playlist);
+      }
+    }
+
     // =========================================================================
     // 🚀 7. 앱 오케스트레이터 및 이벤트 바인더
     // =========================================================================
@@ -2531,6 +2713,7 @@
           song => this.playSavedPlaylist({ id: Symbol(), songs: [song] }, 0)
         );
         this.playingSavedPlaylistId = null;
+        this.playlistAuth = new PlaylistAuth(this.savedPlaylists);
         this.playlistBrowseScope = null;
         this.isYouTubeApiLoading = false;
         this.searchDebounceTimer = null;
@@ -2542,6 +2725,7 @@
         document.documentElement.setAttribute('data-main-scope', this.data.mainScopeKey);
         this.ui.initScrollObserver();
         this.bindEvents(); 
+        this.playlistAuth.start();
         this.ui.renderSkeleton('playlist', CONFIG.SKELETON_COUNT_MAIN, false);
         this.ui.renderSkeleton('statsList', CONFIG.SKELETON_COUNT_STATS, true);
         
