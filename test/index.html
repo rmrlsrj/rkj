@@ -2077,11 +2077,12 @@
       mineStatus = '';
       pendingLeave = null;
 
-      constructor(onPlay, getSongContextColors, getExploreSongs, onPreview) {
+      constructor({ onPlay, getSongContextColors, getExploreSongs, onPreview, getSongsByLogId }) {
         this.onPlay = onPlay;
         this.getSongContextColors = getSongContextColors;
         this.getExploreSongs = getExploreSongs;
         this.onPreview = onPreview;
+        this.getSongsByLogId = getSongsByLogId;
         this.scope = 'public';
         this.openId = null;
         const element = id => document.getElementById(id);
@@ -2822,14 +2823,14 @@
         this.ui = new UIController();
         this.mainPlayer = new MainPlayerManager(() => this.playNextSong());
         this.statsPlayer = new StatsPlayerManager();
-        this.savedPlaylists = new SavedPlaylistsView(
-          (playlist, index) => this.playSavedPlaylist(playlist, index),
-          song => this.ui.getSongContextColors(song),
-          () => this.data.getSongsForScope(this.playlistBrowseScope ?? this.data.mainScopeKey),
-          song => this.playSavedPlaylist({ id: Symbol(), songs: [song] }, 0)
-        );
+        this.savedPlaylists = new SavedPlaylistsView({
+          onPlay: (playlist, index) => this.playSavedPlaylist(playlist, index),
+          getSongContextColors: song => this.ui.getSongContextColors(song),
+          getExploreSongs: () => this.data.getSongsForScope(this.playlistBrowseScope ?? this.data.mainScopeKey),
+          onPreview: song => this.playSavedPlaylist({ id: Symbol(), songs: [song] }, 0),
+          getSongsByLogId: () => this.data.getSongsByLogId()
+        });
         this.playingSavedPlaylistId = null;
-        this.savedPlaylists.getSongsByLogId = () => this.data.getSongsByLogId();
         this.playlistAuth = new PlaylistAuth(this.savedPlaylists);
         this.playlistBrowseScope = null;
         this.isYouTubeApiLoading = false;
