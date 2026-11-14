@@ -2351,10 +2351,23 @@ data.playlists.forEach(playlist => {
   const description = document.createElement('p');
   description.textContent = playlist.description || '설명 없음';
 
-  item.appendChild(title);
-  item.appendChild(description);
+item.appendChild(title);
+item.appendChild(description);
 
-  result.appendChild(item);
+// 플레이리스트 수록곡 표시
+const songList = document.createElement('ol');
+
+(playlist.songs || []).forEach(song => {
+  const songItem = document.createElement('li');
+
+  songItem.textContent =
+    song.song_title + ' / ' + song.artist;
+
+  songList.appendChild(songItem);
+});
+
+item.appendChild(songList);
+result.appendChild(item);
 });
 
     console.log('GAS 응답:', data);
