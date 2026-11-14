@@ -2366,6 +2366,28 @@ playSavedPlaylist(savedSongs) {
             border:2px solid #4285f4;
             border-radius:8px;">
   <div id="google-login-button"></div>
+
+  <script>
+  window.addEventListener('load', () => {
+    google.accounts.id.initialize({
+      client_id: '674342453238-b90ei73nb5490canp242ikddhbbdqp4c.apps.googleusercontent.com',
+      callback: function(response) {
+        document.getElementById('google-login-status').textContent =
+          'Google 로그인 응답 수신 (서버 검증 전)';
+      }
+    });
+
+    google.accounts.id.renderButton(
+      document.getElementById('google-login-button'),
+      {
+        theme: 'outline',
+        size: 'large',
+        text: 'signin_with'
+      }
+    );
+  });
+</script>
+  
   <div id="google-login-status"
        style="color:black; font-size:12px; margin-top:8px;">
     로그인하지 않음
