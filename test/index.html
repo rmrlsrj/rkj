@@ -886,7 +886,8 @@
             <div class="playlist-editor-fields">
               <label>제목 <input id="playlistEditorTitle" type="text" class="search-input" maxlength="100"></label>
               <label>설명 <textarea id="playlistEditorDescription" class="search-input" rows="2" maxlength="1000"></textarea></label>
-              <label class="playlist-editor-visibility"><input id="playlistEditorPublished" type="checkbox"> 공개 플레이리스트</label>
+              <label class="playlist-editor-visibility"><input id="playlistEditorPrivate" type="checkbox" aria-describedby="playlistEditorVisibilityHint"> 비공개 (나만 보기)</label>
+              <p id="playlistEditorVisibilityHint" class="saved-playlists-meta">체크하지 않으면 공개 목록에 표시됩니다.</p>
             </div>
             <p id="playlistEditorSongCount" class="saved-playlists-meta"></p>
             <ol id="playlistEditorSongs" class="playlist-editor-songs"></ol>
@@ -2169,7 +2170,7 @@
         this.editorHeading = element('playlistEditorHeading');
         this.editorTitle = element('playlistEditorTitle');
         this.editorDescription = element('playlistEditorDescription');
-        this.editorPublished = element('playlistEditorPublished');
+        this.editorPrivate = element('playlistEditorPrivate');
         this.editorSongCount = element('playlistEditorSongCount');
         this.editorSongs = element('playlistEditorSongs');
         this.editorExplore = element('playlistEditorExplore');
@@ -2209,7 +2210,7 @@
         this.leaveDialog.addEventListener('cancel', event => {
           if (this.saving) event.preventDefault();
         });
-        [this.editorTitle, this.editorDescription, this.editorPublished].forEach(field => {
+        [this.editorTitle, this.editorDescription, this.editorPrivate].forEach(field => {
           field.addEventListener('input', () => this.updateDraftStatus());
         });
         this.editorVideo.addEventListener('change', () => this.filterEditorSongs());
@@ -2261,7 +2262,7 @@
         this.editorHeading.textContent = playlist ? '플레이리스트 편집' : '새 플레이리스트';
         this.editorTitle.value = playlist?.title ?? '';
         this.editorDescription.value = playlist?.description ?? '';
-        this.editorPublished.checked = playlist?.published ?? false;
+        this.editorPrivate.checked = playlist?.published === false;
         this.draftItems = (playlist?.songs ?? []).map(song => ({ song }));
         this.originalDraft = this.readDraft();
         this.renderDraftItems();
@@ -2481,7 +2482,7 @@
         this.deleteButton.onclick = null;
         this.editorTitle.value = '';
         this.editorDescription.value = '';
-        this.editorPublished.checked = false;
+        this.editorPrivate.checked = false;
         this.editorSongs.replaceChildren();
         this.editorSongCount.textContent = '';
         this.editorStatus.textContent = '';
@@ -2501,7 +2502,7 @@
         return {
           title: this.editorTitle.value,
           description: this.editorDescription.value,
-          published: this.editorPublished.checked,
+          published: !this.editorPrivate.checked,
           songs: this.draftItems.map(item => item.song)
         };
       }
