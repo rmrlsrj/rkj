@@ -330,7 +330,7 @@
       content: '▶ ';
       color: var(--song-primary);
     }
-    #savedPlaylistPlayAll:disabled { opacity: 0.55; cursor: default; }
+    #savedPlaylistPlayAll:disabled, #savedPlaylistPlayShuffle:disabled { opacity: 0.55; cursor: default; }
     .playlist-editor {
       display: grid; flex: 1; min-height: 0;
       grid-template-rows: minmax(0, var(--editor-top, 1fr)) 16px minmax(0, var(--editor-bottom, 1fr));
@@ -842,6 +842,7 @@
             <button type="button" id="savedPlaylistsBack" class="filter-btn">← 목록</button>
             <div class="saved-playlists-controls">
               <button type="button" id="savedPlaylistPlayAll" class="filter-btn saved-playlists-primary">전체 재생</button>
+              <button type="button" id="savedPlaylistPlayShuffle" class="filter-btn">🔀 셔플 재생</button>
               <button type="button" id="savedPlaylistEdit" class="filter-btn" hidden>편집</button>
               <button type="button" id="savedPlaylistDelete" class="filter-btn" hidden>삭제</button>
             </div>
@@ -2156,6 +2157,7 @@
         this.getSongsByLogId = getSongsByLogId;
         this.scope = 'public';
         this.openId = null;
+        this.displayOrder = null;
         const element = id => document.getElementById(id);
         this.browse = element('savedPlaylistsBrowse');
         this.detail = element('savedPlaylistsDetail');
@@ -2166,6 +2168,7 @@
         this.meta = element('savedPlaylistMeta');
         this.songs = element('savedPlaylistSongs');
         this.playAll = element('savedPlaylistPlayAll');
+        this.playShuffle = element('savedPlaylistPlayShuffle');
         this.createButton = element('savedPlaylistCreate');
         this.createButton.disabled = true;
         this.editButton = element('savedPlaylistEdit');
@@ -2694,6 +2697,7 @@
 
       openDetail(playlist) {
         this.openId = playlist.id;
+        this.displayOrder = null;
         this.title.textContent = playlist.title;
         this.description.textContent = playlist.description;
         this.meta.textContent = [
@@ -2703,7 +2707,26 @@
         ].filter(Boolean).join(' · ');
         const firstPlayable = playlist.songs.findIndex(song => song.videoId);
         this.playAll.disabled = firstPlayable < 0;
-        this.playAll.onclick = () => this.onPlay(playlist, firstPlayable);
+        this.playAll.onclick = () => {
+          this.displayOrder = null;
+          this.renderDetailSongs(playlist);
+          this.onPlay(playlist, firstPlayable);
+        };
+        this.playShuffle.disabled = firstPlayable < 0;
+        this.playShuffle.onclick = () => {
+          const order = playlist.songs.map((_, position) => position);
+          for (let i = order.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [order[i], order[j]] = [order[j], order[i]];
+          }
+          if (order.length > 1 && order.every((position, i) => position === i)) {
+            [order[0], order[1]] = [order[1], order[0]];
+          }
+          this.displayOrder = order;
+          this.renderDetailSongs(playlist);
+          const firstShuffledPlayable = order.find(position => playlist.songs[position].videoId);
+          this.onPlay(playlist, firstShuffledPlayable, order);
+        };
         const canEdit = this.serverPlaylists.includes(playlist) && playlist.mine && !playlist.serverRecord;
         this.editButton.hidden = !canEdit;
         this.editButton.onclick = canEdit ? () => this.openEditor(playlist) : null;
@@ -2711,9 +2734,20 @@
         this.deleteButton.hidden = !canEdit;
         this.deleteButton.disabled = this.deleting === true;
         this.deleteButton.onclick = canEdit ? () => this.deletePlaylist(playlist) : null;
+        this.renderDetailSongs(playlist);
+        this.browse.hidden = true;
+        this.detail.hidden = false;
+        this.songs.scrollTop = 0;
+        this.title.focus();
+      }
+
+      renderDetailSongs(playlist) {
         this.songs.replaceChildren();
-        playlist.songs.forEach((song, index) => {
-          const row = this.createSongRow(song, `${index + 1}. ${song.title}`, () => this.onPlay(playlist, index));
+        const order = this.displayOrder ?? playlist.songs.map((_, position) => position);
+        order.forEach((position, displayIndex) => {
+          const song = playlist.songs[position];
+          const row = this.createSongRow(song, `${displayIndex + 1}. ${song.title}`, () => this.onPlay(playlist, position, this.displayOrder));
+          row.dataset.playlistPosition = String(position);
           row.disabled = !song.videoId;
           this.songs.append(row);
         });
@@ -2722,11 +2756,7 @@
         } else if (playlist.songs.length === 0) {
           this.showEmpty(this.songs, playlist.serverRecord ? '수록곡을 불러오지 못했습니다.' : '수록곡이 없습니다.');
         }
-        this.browse.hidden = true;
-        this.detail.hidden = false;
-        this.songs.scrollTop = 0;
         this.highlightPlaying(this.playingId, this.playingIndex);
-        this.title.focus();
       }
 
       async deletePlaylist(playlist) {
@@ -2776,6 +2806,7 @@
       closeDetail() {
         const previousRow = this.results.querySelector(`[data-playlist-id="${this.openId}"]`);
         this.openId = null;
+        this.displayOrder = null;
         this.detail.hidden = true;
         this.browse.hidden = false;
         (previousRow || this.search).focus();
@@ -2784,8 +2815,8 @@
       highlightPlaying(playlistId, index) {
         this.playingId = playlistId;
         this.playingIndex = index;
-        this.songs.querySelectorAll('button').forEach((row, rowIndex) => {
-          if (this.openId === playlistId && rowIndex === index) row.setAttribute('aria-current', 'true');
+        this.songs.querySelectorAll('button').forEach(row => {
+          if (this.openId === playlistId && Number(row.dataset.playlistPosition) === index) row.setAttribute('aria-current', 'true');
           else row.removeAttribute('aria-current');
         });
       }
@@ -2963,7 +2994,7 @@
         this.mainPlayer = new MainPlayerManager(() => this.playNextSong());
         this.statsPlayer = new StatsPlayerManager();
         this.savedPlaylists = new SavedPlaylistsView({
-          onPlay: (playlist, index) => this.playSavedPlaylist(playlist, index),
+          onPlay: (playlist, index, order = null) => this.playSavedPlaylist(playlist, index, order),
           getSongContextColors: song => this.ui.getSongContextColors(song),
           getExploreSongs: () => this.data.getSongsForScope(this.playlistBrowseScope ?? this.data.mainScopeKey),
           onPreview: song => this.playSavedPlaylist({ id: Symbol(), songs: [song] }, 0),
@@ -3139,15 +3170,17 @@
         this.updateDesktopSongFlow();
       }
 
-      playSavedPlaylist(playlist, index) {
+      playSavedPlaylist(playlist, index, order = null) {
         const song = playlist.songs[index];
         if (!song?.videoId) return;
-        const queue = playlist.songs.filter(entry => entry.videoId);
+        const positions = (order ?? playlist.songs.map((_, position) => position))
+          .filter(position => playlist.songs[position].videoId);
+        const queue = positions.map(position => playlist.songs[position]);
         this.playingSavedPlaylistId = playlist.id;
         this.playingPrivatePlaylist = Boolean(playlist.mine && !playlist.published);
-        this.savedPlaylistQueuePositions = playlist.songs.flatMap((entry, position) => entry.videoId ? [position] : []);
+        this.savedPlaylistQueuePositions = positions;
         this.mainPlayer.updatePlaylist(queue);
-        this.playSong(playlist.songs.slice(0, index).filter(entry => entry.videoId).length);
+        this.playSong(positions.indexOf(index));
       }
 
       clearPrivatePlayback() {
