@@ -2306,5 +2306,39 @@
     const App = new KaraApp();
     window.addEventListener('DOMContentLoaded', () => App.init());
   </script>
+    
+    <!-- GAS 연결 테스트 -->
+<div id="gas-test-result"
+     style="padding:15px; margin:15px; border:1px solid #aaa;">
+  GAS 연결 확인 중...
+</div>
+
+<script>
+(async function testGasConnection() {
+  const url = 'https://script.google.com/macros/s/AKfycbwteNow06y6gOWyH3-CiWv7RoOkIJ7JSuY6kzDDFuZtTixKXkxWQ9Vb96SwAk2mqEDf/exec';
+
+  const result = document.getElementById('gas-test-result');
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('HTTP ' + response.status);
+    }
+
+    const data = await response.json();
+
+    result.textContent =
+      'GAS 연결 성공! 플레이리스트 수: ' +
+      data.playlists.length;
+
+    console.log('GAS 응답:', data);
+
+  } catch (error) {
+    result.textContent = 'GAS 연결 실패: ' + error.message;
+    console.error('GAS 연결 오류:', error);
+  }
+})();
+</script>
+    
 </body>
 </html>
