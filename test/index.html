@@ -2722,7 +2722,8 @@
 
       async deletePlaylist(playlist) {
         if (this.deleting || !this.accountId || !this.serverPlaylists.includes(playlist) || !playlist.mine) return;
-        if (!window.confirm(`‘${playlist.title}’ 플레이리스트를 삭제할까요?`)) return;
+        if (!window.confirm(`‘${playlist.title}’ 플레이리스트\n\n삭제하면 복구할 수 없습니다. 삭제하시겠습니까?`)) return;
+        if (!window.confirm('마지막으로 확인합니다. 복구할 수 없습니다. 삭제하시겠습니까?')) return;
         const owner = this.accountId;
         this.deleting = true;
         this.deleteButton.disabled = true;
