@@ -2616,9 +2616,19 @@
           if (playlist.published) void this.loadPublic();
         } catch (error) {
           if (owner === this.accountId && this.openId === playlist.id) {
-            this.deleteStatus.textContent = error.code === 'VERSION_CONFLICT'
-              ? '목록이 변경되었습니다. 새로고침해 최신 목록을 연 뒤 다시 시도해 주세요.'
-              : '삭제 결과를 확인하지 못했습니다. 다시 시도해 주세요.';
+            const messages = {
+              VERSION_CONFLICT: '목록이 변경되었습니다. 새로고침해 최신 목록을 연 뒤 다시 시도해 주세요.',
+              UNKNOWN_ACTION: 'Apps Script 배포에 삭제 요청 처리가 연결되어 있지 않습니다. (UNKNOWN_ACTION)',
+              INVALID_REQUEST: 'Apps Script에서 삭제 요청을 처리하지 못했습니다. 실행 기록을 확인해 주세요. (INVALID_REQUEST)',
+              'Not Found': '테스트 Worker에서 삭제 경로 응답을 받지 못했습니다. (404)',
+              PLAYLIST_NOT_FOUND: '서버에서 이 계정의 목록을 찾지 못했습니다. 새로고침 후 확인해 주세요.',
+              INVALID_PLAYLIST_DATA: '목록 ID 또는 버전이 유효하지 않습니다. 새로고침 후 시도해 주세요.',
+              PLAYLIST_SAVE_BUSY: '서버가 다른 저장을 처리 중입니다. 잠시 후 다시 시도해 주세요.',
+              PLAYLIST_DELETE_FAILED: 'Worker가 Apps Script의 삭제 응답을 읽지 못했습니다. (PLAYLIST_DELETE_FAILED)'
+            };
+            const message = Object.hasOwn(messages, error.code) ? messages[error.code] : null;
+            const status = Number.isInteger(error.status) ? ` (HTTP ${error.status})` : '';
+            this.deleteStatus.textContent = message ?? `삭제 결과를 확인하지 못했습니다${status}. 목록을 새로고침해 확인해 주세요.`;
           }
         } finally {
           this.deleting = false;
@@ -2741,9 +2751,11 @@
           this.clearSession('로그인이 만료되었습니다. 다시 로그인해 주세요.');
           throw new Error('Session expired');
         }
-        const data = await response.json();
+        const data = await response.json().catch(() => null);
         if (credential !== this.credential) throw new Error('Session changed');
-        if (!response.ok || data.success !== true) throw Object.assign(new Error('Request failed'), { code: data.error });
+        if (!response.ok || data?.success !== true) {
+          throw Object.assign(new Error('Request failed'), { code: data?.error, status: response.status });
+        }
         return data;
       }
 
