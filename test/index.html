@@ -2392,8 +2392,11 @@
         }
       }
 
-      async loadPublic() {
-        if (this.loadingPublic) return;
+      async loadPublic(afterWrite = false) {
+        if (this.loadingPublic) {
+          if (afterWrite) this.refreshPublicAfterLoad = true;
+          return;
+        }
         this.loadingPublic = true;
         this.publicStatus = '공개 목록을 불러오는 중…';
         if (this.scope === 'public') this.renderBrowse();
@@ -2405,6 +2408,8 @@
           if (!response.ok) throw new Error('Public list unavailable');
           const data = await response.json();
           if (data.success !== true || !Array.isArray(data.playlists)) throw new Error('Invalid public list');
+          await this.songsReady;
+          if (this.refreshPublicAfterLoad) return;
           const songsById = this.getSongsByLogId();
           this.publicPlaylists = data.playlists.filter(record => !this.deletedPlaylistIds.has(String(record.playlist_id))).map(record => {
             const entries = Array.isArray(record.songs) ? record.songs : [];
@@ -2421,7 +2426,10 @@
           this.publicStatus = '공개 목록을 불러오지 못했습니다. ‘공개 목록’을 눌러 다시 시도해 주세요.';
         } finally {
           this.loadingPublic = false;
-          if (this.scope === 'public') this.renderBrowse();
+          if (this.refreshPublicAfterLoad) {
+            this.refreshPublicAfterLoad = false;
+            void this.loadPublic();
+          } else if (this.scope === 'public') this.renderBrowse();
         }
       }
 
@@ -2530,7 +2538,10 @@
             : await this.createOnServer({ ...payload, request_id: this.createRequest.id });
           if (this.accountId !== this.draftOwner) throw new Error('Session changed');
           this.serverPlaylists = [playlist, ...this.serverPlaylists.filter(entry => entry.id !== playlist.id)];
-          if (playlist.published || this.editingPlaylist?.published) void this.loadPublic();
+          if (!playlist.published) {
+            this.publicPlaylists = this.publicPlaylists.filter(entry => entry.id !== playlist.id);
+          }
+          if (playlist.published || this.editingPlaylist?.published) void this.loadPublic(true);
           this.renderBrowse();
           this.editor.inert = false;
           if (this.leaveDialog.open) this.finishLeave(() => this.finishSave(playlist));
@@ -2679,7 +2690,7 @@
           this.publicPlaylists = this.publicPlaylists.filter(entry => entry.id !== playlist.id);
           this.renderBrowse();
           if (this.openId === playlist.id) this.closeDetail();
-          if (playlist.published) void this.loadPublic();
+          if (playlist.published) void this.loadPublic(true);
         } catch (error) {
           if (owner === this.accountId && this.openId === playlist.id) {
             const messages = {
@@ -2861,6 +2872,8 @@
         this.view.setServerLists([], '내 플레이리스트를 불러오는 중…');
         try {
           const data = await this.callPlaylist('/playlist/mine');
+          await this.view.songsReady;
+          if (credential !== this.credential) return;
           const lists = data.playlists.map(record => this.toPlaylist(record))
             .filter(playlist => !this.view.deletedPlaylistIds.has(playlist.id));
           if (credential === this.credential) {
@@ -2910,12 +2923,14 @@
         document.documentElement.setAttribute('data-main-scope', this.data.mainScopeKey);
         this.ui.initScrollObserver();
         this.bindEvents(); 
+        const loadSongs = this.data.loadAllData();
+        this.savedPlaylists.songsReady = loadSongs.catch(() => {});
         this.playlistAuth.start();
         this.ui.renderSkeleton('playlist', CONFIG.SKELETON_COUNT_MAIN, false);
         this.ui.renderSkeleton('statsList', CONFIG.SKELETON_COUNT_STATS, true);
         
         try {
-          await this.data.loadAllData();
+          await loadSongs;
           this.applyStreamerData();
           this.ui.hideInitialLoading();
         } catch (err) {
