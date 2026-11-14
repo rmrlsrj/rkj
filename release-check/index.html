@@ -2685,7 +2685,9 @@
           this.showEmpty(this.results, 'Google 로그인 후 내 플레이리스트를 볼 수 있습니다.');
         } else if (matches.length === 0) {
           const status = this.scope === 'mine' ? this.mineStatus : this.publicStatus;
-          this.showEmpty(this.results, status || '조건에 맞는 플레이리스트가 없습니다.');
+          this.showEmpty(this.results, status || (this.scope === 'mine' && lists.length === 0
+            ? '아직 만든 플레이리스트가 없습니다. 새로 만들어 보세요!'
+            : '조건에 맞는 플레이리스트가 없습니다.'));
         }
         this.results.scrollTop = 0;
       }
