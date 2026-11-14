@@ -2371,10 +2371,38 @@ playSavedPlaylist(savedSongs) {
   window.addEventListener('load', () => {
     google.accounts.id.initialize({
       client_id: '674342453238-b90ei73nb5490canp242ikddhbbdqp4c.apps.googleusercontent.com',
-      callback: function(response) {
-        document.getElementById('google-login-status').textContent =
-          'Google 로그인 응답 수신 (서버 검증 전)';
+callback: async function(response) {
+  const status = document.getElementById('google-login-status');
+
+  status.textContent = 'Google 로그인 검증 중...';
+
+  try {
+    const result = await fetch(
+      'https://reactkr-playlist-auth-test.crescnet-4890.workers.dev/auth/verify',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          credential: response.credential
+        })
       }
+    );
+
+    const data = await result.json();
+
+    if (result.ok && data.success && data.verified) {
+      status.textContent = 'Google 로그인 서버 검증 성공';
+    } else {
+      status.textContent = 'Google 로그인 서버 검증 실패';
+      console.error('인증 실패:', data.error);
+    }
+  } catch (error) {
+    status.textContent = 'Google 로그인 서버 연결 오류';
+    console.error('인증 요청 오류:', error);
+  }
+}
     });
 
     google.accounts.id.renderButton(
