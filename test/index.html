@@ -2475,15 +2475,16 @@
           if (!this.leaveDialog.open) this.editorTitle.focus();
           return null;
         }
-        if (!this.editingPlaylist && draft.songs.length) {
-          status.textContent = '먼저 빈 목록을 만든 뒤 상세 화면의 편집에서 곡을 저장해 주세요.';
-          return;
-        }
         if (draft.songs.some(song => !song.logId) || draft.songs.length > 500) {
           status.textContent = '곡은 기록 ID가 있는 항목으로 최대 500곡까지 저장할 수 있습니다.';
           return;
         }
-        const payload = { title: draft.title, description: draft.description, visibility: draft.published ? 'PUBLIC' : 'PRIVATE' };
+        const payload = {
+          title: draft.title, description: draft.description, visibility: draft.published ? 'PUBLIC' : 'PRIVATE',
+          songs: draft.songs.map(song => ({
+            log_id: String(song.logId), song_title: song.title, artist: song.artist
+          }))
+        };
         const fingerprint = JSON.stringify(payload);
         if (this.createRequest?.fingerprint !== fingerprint) {
           this.createRequest = { fingerprint, id: crypto.randomUUID() };
@@ -2496,10 +2497,7 @@
         try {
           const playlist = this.editingPlaylist
             ? await this.updateOnServer({
-                ...payload, playlist_id: this.editingPlaylist.id, version: this.editingPlaylist.version,
-                songs: draft.songs.map(song => ({
-                  log_id: String(song.logId), song_title: song.title, artist: song.artist
-                }))
+                ...payload, playlist_id: this.editingPlaylist.id, version: this.editingPlaylist.version
               })
             : await this.createOnServer({ ...payload, request_id: this.createRequest.id });
           if (this.accountId !== this.draftOwner) throw new Error('Session changed');
@@ -2827,8 +2825,10 @@
       }
 
       async createPlaylist(payload) {
-        const data = await this.callPlaylist('/playlist/create', payload);
-        return this.toPlaylist({ ...data.playlist, description: payload.description, version: 1, songs: [] });
+        const path = payload.songs.length ? '/playlist/create-with-songs' : '/playlist/create';
+        const data = await this.callPlaylist(path, payload);
+        if (payload.songs.length && !Array.isArray(data.playlist?.songs)) throw new Error('Missing saved songs');
+        return this.toPlaylist({ description: payload.description, version: 1, songs: [], ...data.playlist });
       }
     }
 
