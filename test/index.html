@@ -2394,6 +2394,21 @@ data.playlists.forEach(playlist => {
 item.appendChild(title);
 item.appendChild(description);
 
+  // 저장된 플레이리스트 재생 버튼
+const playButton = document.createElement('button');
+playButton.textContent = '▶ 플레이리스트 재생';
+
+playButton.style.display = 'block';
+playButton.style.margin = '10px 0';
+playButton.style.padding = '8px 15px';
+playButton.style.cursor = 'pointer';
+
+playButton.addEventListener('click', () => {
+  App.playSavedPlaylist(playlist.songs || []);
+});
+
+item.appendChild(playButton);
+
 // 플레이리스트 수록곡 표시
 const songList = document.createElement('ol');
 
