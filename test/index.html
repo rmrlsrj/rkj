@@ -304,10 +304,18 @@
       background: var(--card-bg); color: var(--text); font: inherit; font-size: 0.85rem;
       overflow-wrap: anywhere; cursor: pointer;
     }
+    .saved-playlists-song-row {
+      border-inline-start: 4px solid var(--song-primary);
+      background: color-mix(in srgb, var(--song-light) 40%, var(--card-bg));
+    }
     .saved-playlists-row:hover,
     .saved-playlists-row[aria-current="true"] {
       border-color: var(--song-primary, var(--accent-primary));
       background: var(--song-light, var(--accent-light));
+    }
+    .saved-playlists-song-row[aria-current="true"] > strong::before {
+      content: '▶ ';
+      color: var(--song-primary);
     }
     #savedPlaylistPlayAll:disabled { opacity: 0.55; cursor: default; }
     .playlist-editor {
@@ -1818,10 +1826,10 @@
       }
 
       getSongContextColors(song) {
-        const singers = Array.isArray(song?.streamers) ? song.streamers : [];
+        const singers = Array.isArray(song?.streamers) ? [...new Set(song.streamers.filter(Boolean))] : [];
         const keys = Object.keys(STREAMER_MAP).filter(key => singers.includes(STREAMER_MAP[key].dbId));
 
-        if (keys.length === 1) {
+        if (singers.length === 1 && keys.length === 1) {
           const key = keys[0];
           return {
             primary: `var(--${key}-primary)`,
@@ -2264,7 +2272,7 @@
           const add = document.createElement('button');
           add.type = 'button';
           add.className = 'filter-btn';
-          add.textContent = '+';
+          add.textContent = '추가';
           add.setAttribute('aria-label', `${song.title} 추가`);
           add.onclick = () => {
             this.draftItems.push({ song });
@@ -2540,6 +2548,7 @@
       createSongRow(song, title, onClick) {
         const meta = [song.artist, song.streamers.join(', '), song.date].filter(Boolean).join(' · ');
         const row = this.createRow(title, meta, onClick);
+        row.classList.add('saved-playlists-song-row');
         const colors = this.getSongContextColors(song);
         row.style.setProperty('--song-primary', colors.primary);
         row.style.setProperty('--song-light', colors.light);
