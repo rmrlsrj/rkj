@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko" data-theme="light" data-streamer="kira">
 <head>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Unofficial</title>
@@ -162,9 +160,8 @@
     .header-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
     .theme-toggle-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px; border-radius: 50%; transition: transform 0.2s; }
     .theme-toggle-btn:hover { transform: scale(1.1); }
-.streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: nowrap; }
+    .streamer-nav, .tab-nav { display: flex; gap: 4px; background-color: var(--bg-color); padding: 4px; border-radius: 8px; border: 1px solid var(--border); flex-wrap: nowrap; }
     .streamer-btn, .tab-btn { flex: 0 0 auto; white-space: nowrap; }
-    .streamer-btn { padding: 6px 14px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
     
     @media (min-width: 901px) {
       header {
@@ -187,70 +184,24 @@
     }
 
     @media (min-width: 901px) and (max-width: 1200px) {
-      header .header-controls { gap: 8px; }
-      header .streamer-nav { gap: 2px; }
-      header .streamer-btn { padding: 6px 10px; }
-      header .tab-nav { gap: 2px; }
-      header .tab-btn { padding: 6px 12px; }
-    }
-
-    /* 🟢 721px ~ 900px (피벗 모니터 864px 및 태블릿): 한 줄로 정렬 */
-    @media (min-width: 721px) and (max-width: 900px) {
-      header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: nowrap;
-        gap: 10px;
-        padding: 10px 16px;
-      }
-
-      header h1 {
-        flex-shrink: 0;
-      }
-
       header .header-controls {
-        display: flex;
-        align-items: center;
         gap: 8px;
-        flex-wrap: nowrap;
       }
-
-      header .theme-toggle-btn {
-        font-size: 1.2rem;
-        padding: 4px;
-        flex-shrink: 0;
-      }
-
       header .streamer-nav {
-        flex-shrink: 0;
+        gap: 2px;
       }
-
-      header .tab-nav {
-        flex-shrink: 0;
-      }
-
-      .streamer-btn {
-        font-size: 0;
-        padding: 6px 9px;
-        flex: 0 0 auto;
-        white-space: nowrap;
-      }
-      .streamer-btn[data-streamer-target="ALL"]::after { content: "전체"; font-size: 0.85rem; }
-      .streamer-btn[data-streamer-target="kira"]::after { content: "키라"; font-size: 0.85rem; }
-      .streamer-btn[data-streamer-target="tenten"]::after { content: "텐텐"; font-size: 0.85rem; }
-      .streamer-btn[data-streamer-target="nao"]::after { content: "나오"; font-size: 0.85rem; }
-      .streamer-btn[data-streamer-target="suya"]::after { content: "스야"; font-size: 0.85rem; }
-      .streamer-btn[data-streamer-target="choke"]::after { content: "쵸케"; font-size: 0.85rem; }
-
-      header .tab-btn {
+      header .streamer-btn {
         padding: 6px 10px;
-        font-size: 0.85rem;
+      }
+      header .tab-nav {
+        gap: 2px;
+      }
+      header .tab-btn {
+        padding: 6px 12px;
       }
     }
-
-    /* 🟢 720px 이하 (스마트폰 세로 모드): 2줄 배치 유지 */
-    @media (max-width: 720px) {
+    .streamer-btn { padding: 6px 14px; border-radius: 6px; border: none; background-color: transparent; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    @media (max-width: 900px) {
       header {
         display: grid;
         grid-template-columns: 1fr auto;
@@ -290,7 +241,7 @@
 
       .streamer-btn {
         font-size: 0;
-        padding: 6px 8px;
+        padding: 6px 10px;
         flex: 0 0 auto;
         white-space: nowrap;
       }
@@ -314,7 +265,6 @@
     .tab-content { display: none; width: 100%; flex: 1; }
     .tab-content.active { display: block; }
     .main-container { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
-    @media (min-width: 900px) { .main-container { grid-template-columns: 1.2fr 0.8fr; } }
     .player-section { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
     .player-container { position: relative; padding-bottom: 56.25%; height: 0; background-color: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
     .player-container iframe, .player-container div#player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
@@ -324,12 +274,17 @@
     .now-playing-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; word-break: break-word; overflow-wrap: anywhere; }
     .now-playing-artist { font-size: 0.9rem; color: var(--text-muted); }
     .now-playing-streamer { display: inline-flex; align-items: center; gap: 4px; margin: 2px 0 8px; font-size: 0.75rem; font-weight: 600; padding: 3px 8px; border-radius: 6px; background-color: var(--now-playing-streamer-bg, var(--card-bg)); color: var(--now-playing-streamer-color, var(--text-muted)); }
-    .now-playing-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 0.78rem; color: var(--text-muted); }
-    @media (max-width: 799px) { .now-playing-meta { display: none !important; } }
+    .now-playing-meta { display: none; gap: 8px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 0.78rem; color: var(--text-muted); }
     .db-badge { background-color: var(--card-bg); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
     
     .song-info-streamers { font-size: 0.78rem; font-weight: 500; color: var(--text-muted); white-space: nowrap; margin-left: 6px; padding-left: 6px; border-left: 1px solid var(--border); }
     .playlist-section { background-color: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; height: 600px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s ease, border-color 0.3s ease; min-width: 0; }
+    .right-panel-view[hidden] { display: none !important; }
+    .playlist-home-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+    .playlist-home-title { margin: 0; color: var(--text); font-size: 1rem; }
+    .playlist-home-placeholder { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-muted); text-align: center; }
+    .playlist-home-placeholder strong { color: var(--text); font-size: 1rem; }
+    .playlist-home-placeholder p { margin: 0; font-size: 0.85rem; line-height: 1.6; }
     .search-filter-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; container-type: inline-size; }
     .search-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
     .search-input { width: 100%; padding: 10px 36px 10px 14px; border-radius: 8px; border: 1px solid var(--border); background-color: var(--panel-bg); color: var(--text); font-size: 0.9rem; outline: none; transition: border-color 0.2s, background-color 0.3s, color 0.3s; }
@@ -481,15 +436,10 @@
       }
     }
 
-    /* ================================================================
-       재생 탭 데스크톱 개선 (901px 이상만 적용)
-       - 모바일은 기존 표시 그대로 유지
-       - 페이지 전체가 아닌 우측 곡 리스트 내부만 스크롤
-       - 기존 LazyListRenderer / 순차 로딩 JS는 수정하지 않음
-       ================================================================ */
     .desktop-song-flow { display: none; }
 
-    @media (min-width: 800px) {
+    @media (min-width: 901px), (hover: hover) and (pointer: fine) and (min-width: 700px) and (max-width: 900px) {
+          .now-playing-meta { display: flex; }
       /* 재생 탭이 열린 동안 모니터 한 화면 안에서만 구성 */
       body:has(#tab-player.active) {
         height: 100vh;
@@ -707,25 +657,8 @@
       }
     }
 
-/* 🟢 피벗 세로 모니터 (800px ~ 1000px): 플레이어 320px 콤팩트 고정 + 곡 목록 대폭 확장 */
-    @media (min-width: 800px) and (max-width: 1000px) {
-      .main-container {
-        grid-template-columns: 320px minmax(0, 1fr);
-        gap: 14px;
-        padding: 14px 16px;
-      }
-
-      .now-playing-card {
-        padding: 12px 16px;
-      }
-
-      .desktop-song-flow {
-        padding: 8px 14px;
-      }
-    }
-
-    /* 일반 중간 폭 데스크톱 (1001px ~ 1200px) */
-    @media (min-width: 1001px) and (max-width: 1200px) {
+    /* 중간 폭 데스크톱 보정 */
+    @media (min-width: 901px) and (max-width: 1200px) {
       .main-container {
         grid-template-columns: minmax(0, 1fr) minmax(420px, 0.9fr);
         gap: 14px;
@@ -733,10 +666,10 @@
       }
     }
 
-    /* 낮은 높이 화면 보정 */
-    @media (min-width: 800px) and (max-height: 900px) {
+    /* 작은/저해상도 모니터 보정 */
+    @media (min-width: 901px) and (max-height: 900px) {
       .main-container {
-        grid-template-columns: clamp(320px, calc(0.87 * 100vh - 140px), 640px) minmax(400px, 1fr);
+        grid-template-columns: clamp(380px, calc(0.87 * 100vh - 140px), 640px) minmax(560px, 1fr);
       }
 
       .now-playing-card { padding: 10px 18px; }
@@ -770,6 +703,7 @@
       
       <div class="tab-nav">
         <button class="tab-btn active" data-tab-target="player">재생</button>
+        <button class="tab-btn" data-tab-target="playlists">플레이리스트</button>
         <button class="tab-btn" data-tab-target="stats">통계</button>
       </div>
     </div>
@@ -794,7 +728,7 @@
         </div>
       </div>
 
-      <div class="playlist-section">
+      <div id="panel-player" class="playlist-section right-panel-view">
         <div class="search-filter-box">
           <div class="search-wrapper">
             <input type="text" id="searchInput" class="search-input" placeholder="곡명 · 가수 · 별칭 · 년월일 검색">
@@ -822,6 +756,16 @@
           </div>
         </div>
         <div class="playlist-scroll" id="playlist"></div>
+      </div>
+
+      <div id="panel-playlists" class="playlist-section right-panel-view" hidden>
+        <div class="playlist-home-header">
+          <h2 class="playlist-home-title">플레이리스트</h2>
+        </div>
+        <div class="playlist-home-placeholder">
+          <strong>플레이리스트 화면 준비 중</strong>
+          <p>다음 단계에서 목록과 상세 화면을 이 영역에 추가합니다.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -861,8 +805,7 @@
        <div class="stats-list" id="statsList"></div>
      </div>
    </div>
-  </div>
-  
+
    <footer> Unofficial </footer>
    <button id="backToTop" class="back-to-top" title="맨 위로 가기">↑</button>
   <script>
@@ -1193,10 +1136,6 @@
         return this.#currentStreamerSongs; 
       }
 
-getSongByLogId(logId) {
-  return this.#allSongs.find(song => song.logId === logId) || null;
-}
-      
       getMainSongs() {
         if (this.#mainScopeKey === 'ALL') {
           const activeMembers = Object.values(STREAMER_MAP).map(s => s.dbId);
@@ -1601,6 +1540,8 @@ getSongByLogId(logId) {
           backToTop: document.getElementById('backToTop'),
           tabPlayer: document.getElementById('tab-player'),
           tabStats: document.getElementById('tab-stats'),
+          panelPlayer: document.getElementById('panel-player'),
+          panelPlaylists: document.getElementById('panel-playlists'),
           searchInput: document.getElementById('searchInput'),
           searchClearBtn: document.getElementById('searchClearBtn'),
           statsSearchInput: document.getElementById('statsSearchInput'),
@@ -1652,7 +1593,12 @@ getSongByLogId(logId) {
         this.els.tabPlayer.classList.remove('active');
         this.els.tabStats.classList.remove('active');
         btn.classList.add('active');
-        (tabId === 'player' ? this.els.tabPlayer : this.els.tabStats).classList.add('active');
+
+        const isStats = tabId === 'stats';
+        this.els.tabPlayer.classList.toggle('active', !isStats);
+        this.els.tabStats.classList.toggle('active', isStats);
+        this.els.panelPlayer.hidden = tabId !== 'player';
+        this.els.panelPlaylists.hidden = tabId !== 'playlists';
       }
 
       toggleClearBtn(inputEl, btnEl) {
@@ -2044,13 +1990,9 @@ getSongByLogId(logId) {
         this.ui.renderSkeleton('statsList', CONFIG.SKELETON_COUNT_STATS, true);
         
         try {
-await this.data.loadAllData();
-this.applyStreamerData();
-
-// 노래 DB 준비 완료 알림
-document.dispatchEvent(new Event('reactkr:data-ready'));
-
-this.ui.hideInitialLoading();
+          await this.data.loadAllData();
+          this.applyStreamerData();
+          this.ui.hideInitialLoading();
         } catch (err) {
           console.error(err);
           this.ui.hideInitialLoading();
@@ -2194,34 +2136,6 @@ this.ui.hideInitialLoading();
         this.ui.renderStatsList(list, (ev, e, div, anchor) => this.toggleStatsPlayer(ev, e, div, anchor));
       }
 
-playSavedPlaylist(savedSongs) {
-  // 저장된 log_id를 기존 노래 DB와 연결
-  const songs = savedSongs
-    .map(item => this.data.getSongByLogId(item.log_id))
-    .filter(Boolean);
-
-  if (songs.length === 0) {
-    alert('재생할 수 있는 노래가 없습니다.');
-    return;
-  }
-
-  // 기존 플레이어의 재생목록 변경
-  this.mainPlayer.stop();
-  this.mainPlayer.reset();
-  this.mainPlayer.updatePlaylist(songs);
-
-  // 화면에 재생목록 표시
-  this.ui.renderPlaylist(
-    songs,
-    null,
-    (index) => this.playSong(index),
-    true
-  );
-
-  // 첫 번째 곡 재생
-  this.playSong(0);
-}
-      
       playSong(index, cueOnly = false) {
         this.statsPlayer.close(); this.ui.removeStatsPlayerDOM();
         
@@ -2345,465 +2259,5 @@ playSavedPlaylist(savedSongs) {
     const App = new KaraApp();
     window.addEventListener('DOMContentLoaded', () => App.init());
   </script>
-    
-    <!-- GAS 연결 테스트 -->
-<div id="gas-test-result"
-     style="position: fixed; top: 20px; left: 20px;
-            z-index: 10000; display: block !important;
-            background: white; color: black;
-            padding: 15px; border: 3px solid red; border-radius: 8px;">
-  GAS 연결 확인 중...
-</div>
-
-<!-- Google 로그인 테스트 영역 -->
-<div id="google-login-area"
-     style="position:fixed;
-            top:20px;
-            right:20px;
-            z-index:2147483647;
-            background:white;
-            padding:12px;
-            border:2px solid #4285f4;
-            border-radius:8px;">
-  <div id="google-login-button"></div>
-
-  <script>
-  window.addEventListener('load', () => {
-    google.accounts.id.initialize({
-      client_id: '674342453238-b90ei73nb5490canp242ikddhbbdqp4c.apps.googleusercontent.com',
-callback: async function(response) {
-  const status = document.getElementById('google-login-status');
-
-  status.textContent = 'Google 로그인 검증 중...';
-
-  try {
-    const result = await fetch(
-      'https://reactkr-playlist-auth-test.crescnet-4890.workers.dev/auth/verify',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          credential: response.credential
-        })
-      }
-    );
-
-    const data = await result.json();
-
- if (result.ok && data.success && data.verified) {
-  window.reactkrLogin = {
-    ownerId: data.owner_id,
-    credential: response.credential
-  };
-
-  status.textContent = 'Google 로그인 완료';
-
-  document.getElementById('google-login-button').style.display = 'none';
-} else {
-      status.textContent = 'Google 로그인 서버 검증 실패';
-      console.error('인증 실패:', data.error);
-    }
-  } catch (error) {
-    status.textContent = 'Google 로그인 서버 연결 오류';
-    console.error('인증 요청 오류:', error);
-  }
-}
-    });
-
-    google.accounts.id.renderButton(
-      document.getElementById('google-login-button'),
-      {
-        theme: 'outline',
-        size: 'large',
-        text: 'signin_with'
-      }
-    );
-  });
-</script>
-
-<button id="gas-auth-test-button" type="button">
-  Worker-GAS 인증 테스트
-</button>
-
-<div id="gas-auth-test-result"></div>
-
-<script>
-  document.getElementById('gas-auth-test-button')
-    .addEventListener('click', async function() {
-      const resultElement =
-        document.getElementById('gas-auth-test-result');
-
-      if (!window.reactkrLogin?.credential) {
-        resultElement.textContent =
-          '먼저 Google 로그인을 해주세요.';
-        return;
-      }
-
-      resultElement.textContent = 'GAS 인증 확인 중...';
-
-      try {
-        const response = await fetch(
-          'https://reactkr-playlist-auth-test.crescnet-4890.workers.dev/gas-auth-check',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              credential: window.reactkrLogin.credential
-            })
-          }
-        );
-
-        const data = await response.json();
-
-        resultElement.textContent =
-          response.ok && data.success && data.gasAuthenticated
-            ? 'Worker-GAS 인증 성공'
-            : 'Worker-GAS 인증 실패';
-
-      } catch (error) {
-        resultElement.textContent = 'Worker-GAS 연결 오류';
-        console.error('GAS 인증 테스트 오류:', error);
-      }
-    });
-</script>
-
-  <button id="playlist-create-test-button" type="button">
-  플레이리스트 생성 검증 테스트
-</button>
-
-<div id="playlist-create-test-result"></div>
-
-<script>
-  document.getElementById('playlist-create-test-button')
-    .addEventListener('click', async function() {
-      const resultElement =
-        document.getElementById('playlist-create-test-result');
-
-      if (!window.reactkrLogin?.credential) {
-        resultElement.textContent = '먼저 Google 로그인을 해주세요.';
-        return;
-      }
-
-      resultElement.textContent = '생성 요청 검증 중...';
-
-      try {
-        const response = await fetch(
-          'https://reactkr-playlist-auth-test.crescnet-4890.workers.dev/playlist-create-check',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              credential: window.reactkrLogin.credential
-            })
-          }
-        );
-
-        const data = await response.json();
-
-        resultElement.textContent =
-          response.ok &&
-          data.success &&
-          data.createRequestValidated &&
-          data.writeEnabled === false
-            ? '플레이리스트 생성 요청 검증 성공 (저장 안 함)'
-            : '플레이리스트 생성 요청 검증 실패';
-
-      } catch (error) {
-        resultElement.textContent = '생성 검증 서버 연결 오류';
-        console.error('생성 검증 오류:', error);
-      }
-    });
-</script>
-
-  
-<div id="playlist-create-form" style="margin:20px 0; padding:15px; border:1px solid #aaa;">
-  <h3>새 플레이리스트 만들기 (TEST)</h3>
-
-  <p>
-    <input
-      id="new-playlist-title"
-      type="text"
-      maxlength="100"
-      placeholder="플레이리스트 제목"
-    >
-  </p>
-
-  <p>
-    <textarea
-      id="new-playlist-description"
-      maxlength="1000"
-      placeholder="설명 (선택)"
-    ></textarea>
-  </p>
-
-  <p>
-    <select id="new-playlist-visibility">
-      <option value="PRIVATE">비공개</option>
-      <option value="PUBLIC">공개</option>
-    </select>
-  </p>
-
-  <button id="new-playlist-save-button" type="button">
-    플레이리스트 저장
-  </button>
-
-  <p id="new-playlist-save-result"></p>
-</div>
-
-<script>
-  let pendingPlaylistRequestId = null;
-
-  document.getElementById('new-playlist-save-button')
-    .addEventListener('click', async function() {
-      const button = this;
-      const resultElement =
-        document.getElementById('new-playlist-save-result');
-
-      if (!window.reactkrLogin?.credential) {
-        resultElement.textContent = '먼저 Google 로그인을 해주세요.';
-        return;
-      }
-
-      const title =
-        document.getElementById('new-playlist-title').value.trim();
-
-      const description =
-        document.getElementById('new-playlist-description').value;
-
-      const visibility =
-        document.getElementById('new-playlist-visibility').value;
-
-      if (!title) {
-        resultElement.textContent = '제목을 입력해 주세요.';
-        return;
-      }
-
-      if (!pendingPlaylistRequestId) {
-        pendingPlaylistRequestId = crypto.randomUUID();
-      }
-
-      button.disabled = true;
-      resultElement.textContent = '플레이리스트 저장 중...';
-
-      try {
-        const response = await fetch(
-          'https://reactkr-playlist-auth-test.crescnet-4890.workers.dev/playlist/create',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              credential: window.reactkrLogin.credential,
-              title,
-              description,
-              visibility,
-              request_id: pendingPlaylistRequestId
-            })
-          }
-        );
-
-        const data = await response.json();
-
-        if (response.ok && data.success && data.playlist?.playlist_id) {
-          resultElement.textContent =
-            '플레이리스트 저장 성공: ' + data.playlist.title;
-
-          pendingPlaylistRequestId = null;
-        } else {
-          resultElement.textContent =
-            '플레이리스트 저장 실패: ' + (data.error || '알 수 없는 오류');
-        }
-
-      } catch (error) {
-        resultElement.textContent =
-          '저장 서버 연결 오류. 재시도하면 같은 요청 ID를 사용합니다.';
-        console.error('플레이리스트 저장 오류:', error);
-      } finally {
-        button.disabled = false;
-      }
-    });
-
-  ['new-playlist-title', 'new-playlist-description',
-   'new-playlist-visibility'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () => {
-      pendingPlaylistRequestId = null;
-    });
-  });
-</script>
-
-  
-<div id="my-playlists-test" style="margin:20px 0; padding:15px; border:1px solid #aaa;">
-  <h3>내 플레이리스트 (TEST)</h3>
-
-  <button id="my-playlists-load-button" type="button">
-    내 플레이리스트 조회
-  </button>
-
-  <div id="my-playlists-result"></div>
-</div>
-
-<script>
-  document.getElementById('my-playlists-load-button')
-    .addEventListener('click', async function() {
-      const resultElement =
-        document.getElementById('my-playlists-result');
-
-      if (!window.reactkrLogin?.credential) {
-        resultElement.textContent = '먼저 Google 로그인을 해주세요.';
-        return;
-      }
-
-      resultElement.textContent = '내 플레이리스트 조회 중...';
-
-      try {
-        const response = await fetch(
-          'https://reactkr-playlist-auth-test.crescnet-4890.workers.dev/playlist/mine',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              credential: window.reactkrLogin.credential
-            })
-          }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok || !data.success ||
-            !Array.isArray(data.playlists)) {
-          resultElement.textContent =
-            '내 플레이리스트 조회 실패';
-          return;
-        }
-
-        resultElement.replaceChildren();
-
-        if (data.playlists.length === 0) {
-          resultElement.textContent =
-            '아직 만든 플레이리스트가 없습니다.';
-          return;
-        }
-
-        data.playlists.forEach(playlist => {
-          const item = document.createElement('p');
-
-          const visibility =
-            playlist.visibility === 'PUBLIC' ? '공개' : '비공개';
-
-          item.textContent =
-            `${playlist.title} (${visibility})`;
-
-          resultElement.appendChild(item);
-        });
-
-      } catch (error) {
-        resultElement.textContent =
-          '내 플레이리스트 서버 연결 오류';
-
-        console.error('내 플레이리스트 조회 오류:', error);
-      }
-    });
-</script>
-
-  
-  <div id="google-login-status"
-       style="color:black; font-size:12px; margin-top:8px;">
-    로그인하지 않음
-  </div>
-</div>
-  
-<script>
-(async function testGasConnection() {
-  const dataReady = new Promise(resolve => {
-  document.addEventListener('reactkr:data-ready', resolve, { once: true });
-});
-  const url = 'https://script.google.com/macros/s/AKfycbwteNow06y6gOWyH3-CiWv7RoOkIJ7JSuY6kzDDFuZtTixKXkxWQ9Vb96SwAk2mqEDf/exec';
-
-  const result = document.getElementById('gas-test-result');
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error('HTTP ' + response.status);
-    }
-
-    const data = await response.json();
-    await dataReady;
-
-result.replaceChildren();
-
-const heading = document.createElement('h3');
-heading.textContent =
-  '공개 플레이리스트 (' + data.playlists.length + '개)';
-
-result.appendChild(heading);
-
-data.playlists.forEach(playlist => {
-  const item = document.createElement('div');
-
-  item.style.padding = '10px';
-  item.style.borderBottom = '1px solid #ddd';
-
-  const title = document.createElement('strong');
-  title.textContent = playlist.title;
-
-  const description = document.createElement('p');
-  description.textContent = playlist.description || '설명 없음';
-
-item.appendChild(title);
-item.appendChild(description);
-
-  // 저장된 플레이리스트 재생 버튼
-const playButton = document.createElement('button');
-playButton.textContent = '▶ 플레이리스트 재생';
-
-playButton.style.display = 'block';
-playButton.style.margin = '10px 0';
-playButton.style.padding = '8px 15px';
-playButton.style.cursor = 'pointer';
-
-playButton.addEventListener('click', () => {
-  App.playSavedPlaylist(playlist.songs || []);
-});
-
-item.appendChild(playButton);
-
-// 플레이리스트 수록곡 표시
-const songList = document.createElement('ol');
-
-(playlist.songs || []).forEach(song => {
-  const songItem = document.createElement('li');
-
-const actualSong = App.data.getSongByLogId(song.log_id);
-
-songItem.textContent = actualSong
-  ? actualSong.title + ' / ' + actualSong.artist
-  : '[원본 DB에서 찾을 수 없음] ' + song.log_id;
-
-  songList.appendChild(songItem);
-});
-
-item.appendChild(songList);
-result.appendChild(item);
-});
-
-    console.log('GAS 응답:', data);
-
-  } catch (error) {
-    result.textContent = 'GAS 연결 실패: ' + error.message;
-    console.error('GAS 연결 오류:', error);
-  }
-})();
-</script>
-    
 </body>
 </html>
