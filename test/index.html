@@ -2451,10 +2451,12 @@
           if (!this.leaveDialog.open) this.editorTitle.focus();
           return null;
         }
-        if (this.editingPlaylist || draft.songs.length) {
-          status.textContent = this.editingPlaylist
-            ? '기존 목록 수정은 서버 연결이 필요합니다. 편집 내용은 그대로 남아 있습니다.'
-            : '곡 저장은 서버 연결이 필요합니다. 지금은 빈 목록만 서버에 만들 수 있습니다.';
+        if (!this.editingPlaylist && draft.songs.length) {
+          status.textContent = '먼저 빈 목록을 만든 뒤 상세 화면의 편집에서 곡을 저장해 주세요.';
+          return;
+        }
+        if (draft.songs.some(song => !song.logId) || draft.songs.length > 500) {
+          status.textContent = '곡은 기록 ID가 있는 항목으로 최대 500곡까지 저장할 수 있습니다.';
           return;
         }
         const payload = { title: draft.title, description: draft.description, visibility: draft.published ? 'PUBLIC' : 'PRIVATE' };
@@ -2468,16 +2470,25 @@
         dialogButtons.forEach(button => { button.disabled = true; });
         status.textContent = '서버에 저장하는 중…';
         try {
-          const playlist = await this.createOnServer({ ...payload, request_id: this.createRequest.id });
+          const playlist = this.editingPlaylist
+            ? await this.updateOnServer({
+                ...payload, playlist_id: this.editingPlaylist.id, version: this.editingPlaylist.version,
+                songs: draft.songs.map(song => ({
+                  log_id: String(song.logId), song_title: song.title, artist: song.artist
+                }))
+              })
+            : await this.createOnServer({ ...payload, request_id: this.createRequest.id });
           if (this.accountId !== this.draftOwner) throw new Error('Session changed');
           this.serverPlaylists = [playlist, ...this.serverPlaylists.filter(entry => entry.id !== playlist.id)];
-          if (playlist.published) void this.loadPublic();
+          if (playlist.published || this.editingPlaylist?.published) void this.loadPublic();
           this.renderBrowse();
           this.editor.inert = false;
           if (this.leaveDialog.open) this.finishLeave(() => this.finishSave(playlist));
           else this.finishSave(playlist);
-        } catch {
-          status.textContent = '서버에 저장하지 못했습니다. 편집 내용은 그대로 남아 있습니다.';
+        } catch (error) {
+          status.textContent = error.code === 'VERSION_CONFLICT'
+            ? '서버에서 목록이 변경되었습니다. 편집 내용은 남아 있습니다. 최신 목록을 다시 열어 주세요.'
+            : '서버에 저장하지 못했습니다. 편집 내용은 그대로 남아 있습니다.';
         } finally {
           this.saving = false;
           this.editor.inert = false;
@@ -2553,14 +2564,16 @@
           playlist.published ? '공개' : '비공개',
           playlist.updated.slice(0, 10)
         ].filter(Boolean).join(' · ');
-        this.playAll.disabled = playlist.songs.length === 0;
-        this.playAll.onclick = () => this.onPlay(playlist, 0);
-        const canEdit = this.serverPlaylists.includes(playlist) && playlist.mine;
+        const firstPlayable = playlist.songs.findIndex(song => song.videoId);
+        this.playAll.disabled = firstPlayable < 0;
+        this.playAll.onclick = () => this.onPlay(playlist, firstPlayable);
+        const canEdit = this.serverPlaylists.includes(playlist) && playlist.mine && !playlist.serverRecord;
         this.editButton.hidden = !canEdit;
         this.editButton.onclick = canEdit ? () => this.openEditor(playlist) : null;
         this.songs.replaceChildren();
         playlist.songs.forEach((song, index) => {
           const row = this.createSongRow(song, `${index + 1}. ${song.title}`, () => this.onPlay(playlist, index));
+          row.disabled = !song.videoId;
           this.songs.append(row);
         });
         if (playlist.unavailableSongs) {
@@ -2600,6 +2613,7 @@
         this.signOut = document.getElementById('playlistSignOut');
         this.status = document.getElementById('playlistAuthStatus');
         this.view.createOnServer = payload => this.createPlaylist(payload);
+        this.view.updateOnServer = async payload => this.toPlaylist((await this.callPlaylist('/playlist/update', payload)).playlist);
         this.signOut.onclick = () => this.view.requestLeave(() => this.clearSession('로그아웃했습니다.'));
       }
 
@@ -2688,7 +2702,8 @@
           throw new Error('Session expired');
         }
         const data = await response.json();
-        if (credential !== this.credential || !response.ok || data.success !== true) throw new Error('Request failed');
+        if (credential !== this.credential) throw new Error('Session changed');
+        if (!response.ok || data.success !== true) throw Object.assign(new Error('Request failed'), { code: data.error });
         return data;
       }
 
@@ -2696,16 +2711,24 @@
         if (typeof record?.playlist_id !== 'string' || !record.playlist_id || typeof record.title !== 'string') {
           throw new Error('Invalid playlist');
         }
+        const songsById = this.view.getSongsByLogId();
+        const songs = Array.isArray(record.songs)
+          ? record.songs.slice().sort((a, b) => Number(a.position) - Number(b.position)).map(ref =>
+              songsById.get(String(ref.log_id)) ?? {
+                logId: String(ref.log_id), title: String(ref.song_title || ref.log_id),
+                artist: String(ref.artist ?? ''), streamers: []
+              })
+          : [];
         return {
           id: record.playlist_id,
           title: record.title,
           description: String(record.description ?? ''),
           published: record.visibility === 'PUBLIC',
           updated: String(record.updated_at ?? record.created_at ?? ''),
-          version: record.version,
+          version: Number(record.version),
           mine: true,
-          serverRecord: true,
-          songs: []
+          serverRecord: !Array.isArray(record.songs),
+          songs
         };
       }
 
@@ -2727,7 +2750,7 @@
 
       async createPlaylist(payload) {
         const data = await this.callPlaylist('/playlist/create', payload);
-        return this.toPlaylist(data.playlist);
+        return this.toPlaylist({ ...data.playlist, description: payload.description, version: 1, songs: [] });
       }
     }
 
@@ -2911,11 +2934,14 @@
       }
 
       playSavedPlaylist(playlist, index) {
-        if (!playlist.songs[index]) return;
+        const song = playlist.songs[index];
+        if (!song?.videoId) return;
+        const queue = playlist.songs.filter(entry => entry.videoId);
         this.playingSavedPlaylistId = playlist.id;
-        this.mainPlayer.updatePlaylist(playlist.songs);
+        this.savedPlaylistQueuePositions = playlist.songs.flatMap((entry, position) => entry.videoId ? [position] : []);
+        this.mainPlayer.updatePlaylist(queue);
         this.loadYouTubeAPI();
-        this.playSong(index);
+        this.playSong(playlist.songs.slice(0, index).filter(entry => entry.videoId).length);
       }
 
       renderStatistics() {
@@ -2933,7 +2959,8 @@
         
         this.mainPlayer.play(index, cueOnly);
         this.ui.highlightActiveSong(song.id); 
-        this.savedPlaylists.highlightPlaying(this.playingSavedPlaylistId, index);
+        const highlightedIndex = this.playingSavedPlaylistId === null ? -1 : this.savedPlaylistQueuePositions[index];
+        this.savedPlaylists.highlightPlaying(this.playingSavedPlaylistId, highlightedIndex);
         this.ui.updateNowPlaying(song);
         this.updateDesktopSongFlow();
       }
