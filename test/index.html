@@ -2639,6 +2639,82 @@ callback: async function(response) {
 </script>
 
   
+<div id="my-playlists-test" style="margin:20px 0; padding:15px; border:1px solid #aaa;">
+  <h3>내 플레이리스트 (TEST)</h3>
+
+  <button id="my-playlists-load-button" type="button">
+    내 플레이리스트 조회
+  </button>
+
+  <div id="my-playlists-result"></div>
+</div>
+
+<script>
+  document.getElementById('my-playlists-load-button')
+    .addEventListener('click', async function() {
+      const resultElement =
+        document.getElementById('my-playlists-result');
+
+      if (!window.reactkrLogin?.credential) {
+        resultElement.textContent = '먼저 Google 로그인을 해주세요.';
+        return;
+      }
+
+      resultElement.textContent = '내 플레이리스트 조회 중...';
+
+      try {
+        const response = await fetch(
+          'https://reactkr-playlist-auth-test.crescnet-4890.workers.dev/playlist/mine',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              credential: window.reactkrLogin.credential
+            })
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success ||
+            !Array.isArray(data.playlists)) {
+          resultElement.textContent =
+            '내 플레이리스트 조회 실패';
+          return;
+        }
+
+        resultElement.replaceChildren();
+
+        if (data.playlists.length === 0) {
+          resultElement.textContent =
+            '아직 만든 플레이리스트가 없습니다.';
+          return;
+        }
+
+        data.playlists.forEach(playlist => {
+          const item = document.createElement('p');
+
+          const visibility =
+            playlist.visibility === 'PUBLIC' ? '공개' : '비공개';
+
+          item.textContent =
+            `${playlist.title} (${visibility})`;
+
+          resultElement.appendChild(item);
+        });
+
+      } catch (error) {
+        resultElement.textContent =
+          '내 플레이리스트 서버 연결 오류';
+
+        console.error('내 플레이리스트 조회 오류:', error);
+      }
+    });
+</script>
+
+  
   <div id="google-login-status"
        style="color:black; font-size:12px; margin-top:8px;">
     로그인하지 않음
