@@ -1441,7 +1441,10 @@
         this.#player = new YT.Player('player', {
           height: '100%', width: '100%', videoId: firstSong.videoId,
           playerVars: { 'autoplay': 0, 'controls': 1, 'start': firstSong.start },
-          events: { 'onReady': () => { this.#isReady = true; }, 'onStateChange': (e) => this.#onStateChange(e) }
+          events: {
+            'onReady': (e) => { if (e.target === this.#player) this.#isReady = true; },
+            'onStateChange': (e) => { if (e.target === this.#player) this.#onStateChange(e); }
+          }
         });
       }
 
@@ -1534,6 +1537,22 @@
         this.#currentSongId = null;
         this.#isSeekingForced = false; 
         this.#currentVideoId = null;
+      }
+
+      clearVideo() {
+        this.reset();
+        const player = this.#player;
+        this.#player = null;
+        this.#isReady = false;
+        if (!player) return;
+        const container = document.querySelector('.player-section .player-container');
+        const placeholder = document.createElement('div');
+        placeholder.id = 'player';
+        try {
+          player.destroy();
+        } finally {
+          container.replaceChildren(placeholder);
+        }
       }
     }
 
@@ -2446,6 +2465,32 @@
         this.renderBrowse();
       }
 
+      clearAccountContent() {
+        if (this.leaveDialog.open) this.leaveDialog.close();
+        this.pendingLeave = null;
+        this.openId = null;
+        if (!this.editor.hidden) this.closeEditor();
+        this.detail.hidden = true;
+        this.browse.hidden = false;
+        this.title.textContent = '';
+        this.description.textContent = '';
+        this.meta.textContent = '';
+        this.songs.replaceChildren();
+        this.playAll.onclick = null;
+        this.editButton.onclick = null;
+        this.deleteButton.onclick = null;
+        this.editorTitle.value = '';
+        this.editorDescription.value = '';
+        this.editorPublished.checked = false;
+        this.editorSongs.replaceChildren();
+        this.editorSongCount.textContent = '';
+        this.editorStatus.textContent = '';
+        this.draftItems = [];
+        this.originalDraft = null;
+        this.editingPlaylist = null;
+        this.createRequest = null;
+      }
+
       setServerLists(lists, status = '') {
         this.serverPlaylists = lists;
         this.mineStatus = status;
@@ -2537,6 +2582,7 @@
               })
             : await this.createOnServer({ ...payload, request_id: this.createRequest.id });
           if (this.accountId !== this.draftOwner) throw new Error('Session changed');
+          this.onPlaylistSaved(playlist);
           this.serverPlaylists = [playlist, ...this.serverPlaylists.filter(entry => entry.id !== playlist.id)];
           if (!playlist.published) {
             this.publicPlaylists = this.publicPlaylists.filter(entry => entry.id !== playlist.id);
@@ -2736,8 +2782,9 @@
     }
 
     class PlaylistAuth {
-      constructor(view) {
+      constructor(view, onSessionEnd) {
         this.view = view;
+        this.onSessionEnd = onSessionEnd;
         this.button = document.getElementById('playlistGoogleSignIn');
         this.signOut = document.getElementById('playlistSignOut');
         this.status = document.getElementById('playlistAuthStatus');
@@ -2811,6 +2858,8 @@
         this.credential = null;
         google.accounts.id.disableAutoSelect();
         this.view.setAccount(null);
+        this.view.clearAccountContent();
+        this.onSessionEnd();
         this.button.hidden = false;
         this.signOut.hidden = true;
         this.status.textContent = message;
@@ -2911,7 +2960,11 @@
           getSongsByLogId: () => this.data.getSongsByLogId()
         });
         this.playingSavedPlaylistId = null;
-        this.playlistAuth = new PlaylistAuth(this.savedPlaylists);
+        this.playingPrivatePlaylist = false;
+        this.savedPlaylists.onPlaylistSaved = playlist => {
+          if (playlist.id === this.playingSavedPlaylistId && !playlist.published) this.playingPrivatePlaylist = true;
+        };
+        this.playlistAuth = new PlaylistAuth(this.savedPlaylists, () => this.clearPrivatePlayback());
         this.playlistBrowseScope = null;
         this.isYouTubeApiLoading = false;
         this.searchDebounceTimer = null;
@@ -3068,6 +3121,7 @@
         this.ui.renderPlaylist(list, this.mainPlayer.currentSongId, (index) => {
           if (this.playingSavedPlaylistId !== null) {
             this.playingSavedPlaylistId = null;
+            this.playingPrivatePlaylist = false;
             this.mainPlayer.updatePlaylist(list);
           }
           this.playSong(index);
@@ -3080,10 +3134,24 @@
         if (!song?.videoId) return;
         const queue = playlist.songs.filter(entry => entry.videoId);
         this.playingSavedPlaylistId = playlist.id;
+        this.playingPrivatePlaylist = Boolean(playlist.mine && !playlist.published);
         this.savedPlaylistQueuePositions = playlist.songs.flatMap((entry, position) => entry.videoId ? [position] : []);
         this.mainPlayer.updatePlaylist(queue);
-        this.loadYouTubeAPI();
         this.playSong(playlist.songs.slice(0, index).filter(entry => entry.videoId).length);
+      }
+
+      clearPrivatePlayback() {
+        if (!this.playingPrivatePlaylist) return;
+        this.playingPrivatePlaylist = false;
+        this.playingSavedPlaylistId = null;
+        this.savedPlaylistQueuePositions = [];
+        this.mainPlayer.clearVideo();
+        this.savedPlaylists.highlightPlaying(null, -1);
+        this.ui.setEmptyNowPlaying();
+        this.ui.els.npStreamer.textContent = '';
+        Object.values(this.ui.npMetaEls).forEach(element => { element.textContent = ''; });
+        this.renderPlaylist();
+        this.updateDesktopSongFlow();
       }
 
       renderStatistics() {
@@ -3099,6 +3167,7 @@
         const song = this.mainPlayer.playlist[index];
         if (!song) return;
         
+        this.loadYouTubeAPI();
         this.mainPlayer.play(index, cueOnly);
         this.ui.highlightActiveSong(song.id); 
         const highlightedIndex = this.playingSavedPlaylistId === null ? -1 : this.savedPlaylistQueuePositions[index];
@@ -3175,6 +3244,7 @@
         this.data.mainFilters.lang = this.data.getMainLang();
         this.mainPlayer.reset();
         this.playingSavedPlaylistId = null;
+        this.playingPrivatePlaylist = false;
         this.savedPlaylists.highlightPlaying(null, -1);
         
         this.ui.updateStreamerNav(btn, key);
@@ -3197,6 +3267,7 @@
         this.data.mainFilters.lang = this.data.getMainLang();
         this.mainPlayer.reset();
         this.playingSavedPlaylistId = null;
+        this.playingPrivatePlaylist = false;
         this.savedPlaylists.highlightPlaying(null, -1);
 
         this.ui.updateMainScopeNav(btn);
