@@ -2392,9 +2392,11 @@ callback: async function(response) {
 
     const data = await result.json();
 
-    if (result.ok && data.success && data.verified) {
-      status.textContent = 'Google 로그인 서버 검증 성공';
-    } else {
+  if (result.ok && data.success && data.verified) {
+  status.textContent = 'Google 로그인 완료';
+
+  document.getElementById('google-login-button').style.display = 'none';
+} else {
       status.textContent = 'Google 로그인 서버 검증 실패';
       console.error('인증 실패:', data.error);
     }
